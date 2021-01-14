@@ -784,7 +784,7 @@ void	vActuatorReportChan(uint8_t Chan) {
 	bool	bLevel = xActuateGetLevelDIG(Chan) ;
 	if (Chan == 0) {
 		printfx_nolock("%C Ch| LBb |Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min DC Max | Sequence%C\n",
-				xpfSGR(attrRESET, colourFG_CYAN, 0, 0), attrRESET) ;
+				xpfSGR(attrRESET, colourFG_CYAN, 0, 0), xpfSGR(attrRESET, 0, 0, 0)) ;
 	}
 	printfx_nolock(" %2d| %c%c%c | %s | %'#5d |%'#7d|%'#7d|%'#7d|%'#7d|%'#7d| %3d %3d %3d | %3d %3d %3d|",
 						psAI->ChanNum,
