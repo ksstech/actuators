@@ -61,7 +61,7 @@ const char * const StageNames[]	= { "FI ", "ON ", "FO ", "OFF" } ;
 const char * const ActTypeNames[]	= { "SoC/DIG", "SoC/PWM", "SoC/ANA", "I2C/DIG", "I2C/PWM", "I2C/ANA", "SPI/DIG", "SPI/PWM", "SPI/ANA" } ;
 
 act_init_t	ActInit[actNUMBER] = {						// Static configuration info
-#if		(ESP32_VARIANT == ESP32_VAR_AC00)
+#if		(HW_VARIANT == HW_AC00)
 	[ LED0 ] = {	actI2C_DIG,	pinPCA9555_7,	},
 	[ LED1 ] = {	actI2C_DIG,	pinPCA9555_6,	},
 	[ LED2 ] = {	actI2C_DIG,	pinPCA9555_5,	},
@@ -80,7 +80,7 @@ act_init_t	ActInit[actNUMBER] = {						// Static configuration info
 	[RELAY6] = {	actI2C_DIG,	pinPCA9555_14,	},
 	[RELAY7] = {	actI2C_DIG,	pinPCA9555_15,	},
 
-#elif	(ESP32_VARIANT == ESP32_VAR_AC01)
+#elif	(HW_VARIANT == HW_AC01)
 	[ LED0 ] = {	actI2C_DIG,	pinPCA9555_0,	},
 	[ LED1 ] = {	actI2C_DIG,	pinPCA9555_1,	},
 	[ LED2 ] = {	actI2C_DIG,	pinPCA9555_2,	},
@@ -99,18 +99,18 @@ act_init_t	ActInit[actNUMBER] = {						// Static configuration info
 	[RELAY6] = {	actI2C_DIG,	pinPCA9555_14,	},
 	[RELAY7] = {	actI2C_DIG,	pinPCA9555_15,	},
 
-#elif	(ESP32_VARIANT == ESP32_VAR_EM1P2) || (ESP32_VARIANT == ESP32_VAR_EM3P2)
+#elif	(HW_VARIANT == HW_EM1P2) || (HW_VARIANT == HW_EM3P2)
 	// [ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
 
-#elif	(ESP32_VARIANT == ESP32_VAR_WROVERKIT)			// WROVER-KIT
+#elif	(HW_VARIANT == HW_WROVERKIT)			// WROVER-KIT
 	[ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	},
 	[ LED1 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_1,	},
 	[ LED2 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_2,	},
 
-#elif	(ESP32_VARIANT == ESP32_VAR_DOITDEVKIT)			// DoIT DevKIt v1
+#elif	(HW_VARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
 	[ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	},
 
-#elif	(ESP32_VARIANT == ESP32_VAR_EBOX)
+#elif	(HW_VARIANT == HW_EBOX)
 	[ LED1 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	},
 	[ LED2 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_1,	},
 
@@ -1001,7 +1001,7 @@ void	vTaskActuatorInit(void * pvPara) { xRtosTaskCreate(vTaskActuator, "Actuator
 #define	tLATCH		5000
 void	vActuatorsIdent(void) {
 	printfx_lock() ;
-#if		(configHAL_XXX_XXX_OUT > 0) && (ESP32_VARIANT == ESP32_VAR_AC00 || ESP32_VARIANT == ESP32_VAR_AC01)
+#if		(configHAL_XXX_XXX_OUT > 0) && (HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
 	for (uint8_t Chan = LED0; Chan <= LED7; ++Chan) {
 		int32_t iRV =xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
 		IF_myASSERT(debugRESULT, iRV == erSUCCESS) ;
@@ -1013,7 +1013,7 @@ void	vActuatorsIdent(void) {
 		vActuatorReportChan(Chan) ;
 	}
 
-#elif		(configHAL_XXX_XXX_OUT > 0) && (ESP32_VARIANT == ESP32_VAR_WROVERKIT || ESP32_VARIANT == ESP32_VAR_DOITDEVKIT)
+#elif		(configHAL_XXX_XXX_OUT > 0) && (HW_VARIANT == HW_WROVERKIT || HW_VARIANT == HW_DOITDEVKIT)
 	for (uint8_t Chan = 0; Chan < actNUMBER; ++Chan) {
 		xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
 		vActuatorReportChan(Chan) ;
