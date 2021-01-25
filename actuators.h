@@ -194,7 +194,7 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
 
 // ################################### Public Variables ############################################
 
-extern	act_seq_t	ActSeq[] ;
+extern	act_seq_t	sAS[] ;
 
 // ################################ GLOBAL Functions Prototypes ####################################
 
