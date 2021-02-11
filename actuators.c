@@ -676,7 +676,7 @@ int32_t	vActuatorOff(uint8_t Chan) { return xActuatorLoad(Chan, UINT32_MAX, 0, 0
 // ############################## Rules interface to Actuator table ################################
 
 int32_t	xActuatorVerifyParameters(uint8_t Chan, uint8_t Field) {
-	if ((Chan >= actNUMBER) || OUTSIDE(fldACT_FIRST, Field, fldACT_LAST, uint8_t) || sAI[Chan].Blocked) {
+	if ((Chan >= actNUMBER) || OUTSIDE(selACT_FIRST, Field, selACT_LAST, uint8_t) || sAI[Chan].Blocked) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked) ;
 		return erFAILURE ;
 	}
@@ -691,35 +691,35 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
 	px64Var->varDef.cv.varcount	= 1 ;
 	act_info_t * psAI = &sAI[Chan] ;
 	x64_t x64Value ;
-	if (Field < fldACT_T_REM) {							// all these are real tXXX fields/stages
-		x64Value.f64 				= psAI->tXXX[Field-fldACT_FIRST] ;
-		px64Var->varVal.x32[0].u32 	= psAI->tXXX[Field-fldACT_FIRST] ;
+	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
+		x64Value.f64 				= psAI->tXXX[Field-selACT_FIRST] ;
+		px64Var->varVal.x32[0].u32 	= psAI->tXXX[Field-selACT_FIRST] ;
 	} else {
 		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan) ;
 		IF_PRINT(debugREMTIME, "F64=%f", x64Value.f64) ;
 		px64Var->varVal.x32[0].u32 = (uint32_t) x64Value.f64 ;
 	}
-	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-fldACT_FIRST, px64Var->varVal.x32[0].u32) ;
+	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->varVal.x32[0].u32) ;
 	return x64Value.f64 ;
 }
 
 int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)	return erFAILURE ;
-	sAI[Chan].tXXX[Field-fldACT_FIRST] = px64Var->varVal.x32[0].u32 ;
-	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-fldACT_FIRST, sAI[Chan].tXXX[Field-fldACT_FIRST]) ;
+	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->varVal.x32[0].u32 ;
+	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]) ;
 	return erSUCCESS ;
 }
 
 int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) 	return erFAILURE ;
-	uint32_t CurVal = sAI[Chan].tXXX[Field-fldACT_FIRST] ;
+	uint32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST] ;
 	if ((px64Var->varVal.x32[0].i32 < 0) && (CurVal >= abs(px64Var->varVal.x32[0].i32))) {
 		CurVal	+= px64Var->varVal.x32[0].i32 ;
 	} else {
 		CurVal	= 0 ;
 	}
-	sAI[Chan].tXXX[Field-fldACT_FIRST] = CurVal ;
-	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-fldACT_FIRST, sAI[Chan].tXXX[Field-fldACT_FIRST]) ;
+	sAI[Chan].tXXX[Field-selACT_FIRST] = CurVal ;
+	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]) ;
 	return erSUCCESS ;
 }
 
