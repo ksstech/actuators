@@ -1082,7 +1082,7 @@ void	vActuatorTest(void) {
 			xActuatorStart(eChan, UINT32_MAX) ;
 			for(int8_t CurDC = actMIN_DUTYCYCLE; CurDC <= actMAX_DUTYCYCLE ; CurDC = (CurDC == 0) ? 1 : CurDC * 2) {
 				vActuatorSetDC(eChan, CurDC) ;
-				SL_DBG("DIG: Chan=%d  Freq=%'u  Lev=%'u\n", eChan, Freq, CurDC) ;
+				SL_INFO("DIG: Chan=%d  Freq=%'u  Lev=%'u\n", eChan, Freq, CurDC) ;
 				getchar() ;
 			}
 		}
