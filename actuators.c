@@ -16,7 +16,6 @@
 #include	"systiming.h"
 #include	"x_errors_events.h"
 
-#include	"hal_debug.h"
 #include	"hal_gpio.h"
 
 #if		(halHAS_PCA9555 > 0)
