@@ -885,7 +885,7 @@ void IRAM_ATTR vActuatorUpdateTiming(act_info_t * pAI) {
 void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
 #if		(configHAL_I2C_XXX_OUT > 0)
-	xRtosWaitStatus(flagAPP_I2C_READY, portMAX_DELAY) ;
+	xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY) ;
 #endif
 	vActuatorsConfig() ;
 	IF_SYSTIMER_INIT(debugTIMING_STAGES, systimerACT_S0, systimerCLOCKS, "ActS0_FI", 50, 50000) ;
