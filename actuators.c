@@ -413,22 +413,22 @@ void	vActuatorsConfig(void) {
  */
 int32_t	IRAM_ATTR xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) {
 	IF_myASSERT(debugPARAM, URI_ACT < URI_MAX_VAL && Level < alertLEVEL_NUM) ;
-	ep_info_t	sEpInfo = { 0 } ;
-	event_t		sEvent	= { 0 } ;
-	alert_t		sAlert	= { 0 } ;
-	ubuf_t		sBuf	= { 0 } ;
-	vEpGetInfoWithIndex(&sEpInfo, URI_ACT) ;
-	if (sEpInfo.psES == NULL || sEpInfo.psEW == NULL) {
+	epi_t	sEI = { 0 } ;
+	event_t	sEvent	= { 0 } ;
+	alert_t	sAlert	= { 0 } ;
+	ubuf_t	sBuf	= { 0 } ;
+	vEpGetInfoWithIndex(&sEI, URI_ACT) ;
+	if (sEI.psES == NULL || sEI.psEW == NULL) {
 		return erFAILURE ;
 	}
-	sEpInfo.psEvent		= &sEvent ;
-	sEpInfo.psAlert		= &sAlert ;
-	sEpInfo.psUB		= &sBuf ;
+	sEI.psEvent		= &sEvent ;
+	sEI.psAlert		= &sAlert ;
+	sEI.psUB		= &sBuf ;
 	// configure the type, level and supporting field/channel info
-	sAlert.Type			= Type ;
-	sAlert.Level		= Level ;
-	sAlert.pvValue		= pAI ;
-	xRulesGenerateAlert(&sEpInfo) ;
+	sAlert.Type		= Type ;
+	sAlert.Level	= Level ;
+	sAlert.pvValue	= pAI ;
+	xEpGenerateAlert(&sEI) ;
 	return erSUCCESS ;
 }
 
@@ -737,7 +737,7 @@ int32_t	xActuatorVerifyParameters(uint8_t Chan, uint8_t Field) {
 	return erSUCCESS ;
 }
 
-double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
+double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) {
 		return 0.0 ;
 	}
@@ -748,33 +748,33 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
 	act_info_t * psAI = &sAI[Chan] ;
 	x64_t x64Value ;
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
-		x64Value.f64 				= psAI->tXXX[Field-selACT_FIRST] ;
-		px64Var->varVal.x32[0].u32 	= psAI->tXXX[Field-selACT_FIRST] ;
+		x64Value.f64 					= psAI->tXXX[Field-selACT_FIRST] ;
+		px64Var->varVal.x64.x32[0].u32 	= psAI->tXXX[Field-selACT_FIRST] ;
 	} else {
 		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan) ;
 		IF_PRINT(debugREMTIME, "F64=%f", x64Value.f64) ;
-		px64Var->varVal.x32[0].u32 = (uint32_t) x64Value.f64 ;
+		px64Var->varVal.x64.x32[0].u32 = (uint32_t) x64Value.f64 ;
 	}
-	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->varVal.x32[0].u32) ;
+	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->varVal.x64.x32[0].u32) ;
 	return x64Value.f64 ;
 }
 
-int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
+int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) {
 		return erFAILURE ;
 	}
-	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->varVal.x32[0].u32 ;
+	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->varVal.x64.x32[0].u32 ;
 	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]) ;
 	return erSUCCESS ;
 }
 
-int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) {
+int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) {
 		return erFAILURE ;
 	}
 	uint32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST] ;
-	if ((px64Var->varVal.x32[0].i32 < 0) && (CurVal >= abs(px64Var->varVal.x32[0].i32))) {
-		CurVal	+= px64Var->varVal.x32[0].i32 ;
+	if ((px64Var->varVal.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->varVal.x64.x32[0].i32))) {
+		CurVal	+= px64Var->varVal.x64.x32[0].i32 ;
 	} else {
 		CurVal	= 0 ;
 	}
@@ -1017,7 +1017,7 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 				xActuatorNextStage(pAI) ;
 				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S2) ;
 				/* FALLTHRU */ /* no break */
-			case actSTAGE_OFF:							// remain on 0% for tOFF mSec
+			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
 				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStart, systimerACT_S3) ;
 				if (pAI->tOFF > 0) {
 					if (pAI->tNOW == 0) {

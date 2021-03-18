@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include	"hal_config.h"
-#include	"x_complex_vars.h"							// x_struct_union [x_time [sdkconfig x_definitions stdint time]]
+#include	"hal_config.h"				// [sdkconfig]
+#include	"x_complex_vars.h"			// x_struct_union x_time x_definitions time stdint
 
 #ifdef __cplusplus
 extern "C" {
@@ -249,9 +249,9 @@ uint64_t xActuatorGetRemainingTime(uint8_t Chan) ;
 uint64_t xActuatorGetMaxRemainingTime (void) ;
 uint32_t xActuatorRunningCount (void) ;
 
-double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) ;
-int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) ;
-int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, x64var_t * px64Var) ;
+double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
+int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
+int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
 
 // ######################################## status reporting #######################################
 
