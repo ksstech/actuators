@@ -820,17 +820,19 @@ uint64_t xActuatorGetRemainingTime(uint8_t Chan) {
 	return u64Value ;
 }
 
+/**
+ * Determines the longest remaining running time, not the sum of ALL
+ * @return Remaining maximum actuator running time in uSecs
+ */
 uint64_t xActuatorGetMaxRemainingTime (void) {
 	uint64_t u64Now, u64Max = 0.0 ;
 	for (int32_t Chan = 0; Chan < actNUMBER; ++Chan) {
 		u64Now = xActuatorGetRemainingTime(Chan) ;
 		if (u64Now > u64Max) {
-			IF_PRINT(debugREMTIME, "Ch#%d  Now=%llu Max=%llu\n", Chan, u64Now, u64Max) ;
 			u64Max = u64Now ;
 		}
 	}
-	IF_PRINT(debugTRACK, "Max=%f\r", u64Max) ;
-	return u64Max ;
+	return u64Max * MICROS_IN_MILLISEC ;
 }
 
 void	vActuatorReportSeq(uint8_t Seq) {
@@ -872,7 +874,7 @@ void	vTaskActuatorReport(void) {
 	for (uint8_t Seq = 0; Seq < actSEQ_NUM; ++Seq) {
 		vActuatorReportSeq(Seq) ;
 	}
-	printfx_nolock("Running=%u  maxDelay=%!.R\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime() * MICROS_IN_MILLISEC) ;
+	printfx_nolock("Running=%u  maxDelay=%!.R\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime()) ;
 	printfx_unlock() ;
 }
 
