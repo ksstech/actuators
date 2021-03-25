@@ -838,19 +838,19 @@ uint64_t xActuatorGetMaxRemainingTime (void) {
 void	vActuatorReportSeq(uint8_t Seq) {
 	act_seq_t * psAS = &sAS[Seq] ;
 	if (Seq == 0) {
-		printfx_nolock("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", xpfSGR(colourFG_CYAN, 0, 0, 0), xpfSGR(attrRESET, 0, 0, 0)) ;
+		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", xpfSGR(colourFG_CYAN, 0, 0, 0), xpfSGR(attrRESET, 0, 0, 0)) ;
 	}
-	printfx_nolock(" %2d | %'#5u|%'#7u|%'#7u|%'#7u|%'#7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF) ;
+	printfx(" %2d | %'#5u|%'#7u|%'#7u|%'#7u|%'#7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF) ;
 }
 
 void	vActuatorReportChan(uint8_t Chan) {
 	act_info_t * psAI = &sAI[Chan] ;
 	bool	bLevel = xActuateGetLevelDIG(Chan) ;
 	if (Chan == 0) {
-		printfx_nolock("%C Ch| LBb |Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min DC Max | Sequence%C\n",
+		printfx("%C Ch| LBb |Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min DC Max | Sequence%C\n",
 				xpfSGR(colourFG_CYAN, 0, 0, 0), xpfSGR(attrRESET, 0, 0, 0)) ;
 	}
-	printfx_nolock(" %2d| %c%c%c | %s | %'#5d |%'#7d|%'#7d|%'#7d|%'#7d|%'#7d| %3d %3d %3d | %3d %3d %3d|",
+	printfx(" %2d| %c%c%c | %s | %'#5d |%'#7d|%'#7d|%'#7d|%'#7d|%'#7d| %3d %3d %3d | %3d %3d %3d|",
 						psAI->ChanNum,
 						bLevel ? CHR_1 : CHR_0,
 						psAI->Blocked ? CHR_B : CHR_SPACE,
@@ -860,22 +860,20 @@ void	vActuatorReportChan(uint8_t Chan) {
 						psAI->Divisor, psAI->Count, psAI->Match, psAI->MinDC, psAI->CurDC, psAI->MaxDC) ;
 	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
 		for(int32_t Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx) {
-			printfx_nolock("%02x ", psAI->Seq[Idx]) ;
+			printfx("%02x ", psAI->Seq[Idx]) ;
 		}
 	}
-	printfx_nolock("\n") ;
+	printfx("\n") ;
 }
 
 void	vTaskActuatorReport(void) {
-	printfx_lock() ;
 	for (uint8_t Chan = 0; Chan < actNUMBER; ++Chan) {
 		vActuatorReportChan(Chan) ;
 	}
 	for (uint8_t Seq = 0; Seq < actSEQ_NUM; ++Seq) {
 		vActuatorReportSeq(Seq) ;
 	}
-	printfx_nolock("Running=%u  maxDelay=%!.R\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime()) ;
-	printfx_unlock() ;
+	printfx("Running=%u  maxDelay=%!.R\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime()) ;
 }
 
 /* ############################### actuator task & support functions ###############################
@@ -1074,8 +1072,8 @@ void	vTaskActuatorInit(void * pvPara) {
 #define	tBASE		(3000 * SCALE)
 #define	tSTEP		(500 * SCALE)
 #define	tLATCH		5000
+
 void	vActuatorsIdent(void) {
-	printfx_lock() ;
 #if		(configHAL_XXX_XXX_OUT > 0) && (HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
 	for (uint8_t Chan = LED0; Chan <= LED7; ++Chan) {
 		int32_t iRV =xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
@@ -1094,14 +1092,12 @@ void	vActuatorsIdent(void) {
 		vActuatorReportChan(Chan) ;
 	}
 #endif
-	printfx_unlock() ;
 }
 
 void	vActuatorTestReport(uint8_t Chan, char * pcMess) {
 	IF_myASSERT(debugPARAM, Chan < actNUMBER) ;
 	act_info_t * pAI = &sAI[0] ;
-	printfx_lock() ;
-	printfx_nolock("%s #%d Stage:%d Rpt:%d tFI:%d tON:%d tFO:%d tOFF:%d tNOW:%d ",
+	printfx("%s #%d Stage:%d Rpt:%d tFI:%d tON:%d tFO:%d tOFF:%d tNOW:%d ",
 				pcMess, Chan, pAI->StageNow, pAI->Rpt,
 				pAI->tFI, pAI->tON, pAI->tFO, pAI->tOFF, pAI->tNOW) ;
 	switch(ActInit[Chan].Type) {
@@ -1122,15 +1118,14 @@ void	vActuatorTestReport(uint8_t Chan, char * pcMess) {
 	case actSOC_PWM:
 	#endif
 
-		printfx_nolock("(%s) Div:%d Match:%d\n", ActTypeNames[ActInit[Chan].Type], pAI->Divisor, pAI->Match) ;
+		printfx("(%s) Div:%d Match:%d\n", ActTypeNames[ActInit[Chan].Type], pAI->Divisor, pAI->Match) ;
 		break ;
 #endif
 
 	default:
-		printfx_nolock("Invalid actuator type=%d\n", ActInit[Chan].Type) ;
+		printfx("Invalid actuator type=%d\n", ActInit[Chan].Type) ;
 		break ;
 	}
-	printfx_unlock() ;
 }
 
 void	vActuatorTest(void) {
