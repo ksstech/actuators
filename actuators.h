@@ -88,11 +88,7 @@ enum {													// interface SOC/I2C/SPI & type DIG/PWM/ANA
 } ;
 
 enum {		 											// actuators present in system
-#if		(HW_VARIANT == HW_EBOX)
-	LED1,
-	LED2,
-
-#elif	(HW_VARIANT == HW_AC00) || (HW_VARIANT == HW_AC01)
+#if		(HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
 	LED0,
 	LED1,
 	LED2,
@@ -110,17 +106,20 @@ enum {		 											// actuators present in system
 	RELAY6,
 	RELAY7,
 
-#elif	(HW_VARIANT == HW_EM1P2) || (HW_VARIANT == HW_EM3P2)
+#elif	(HW_VARIANT == HW_EM1P2 || HW_VARIANT == HW_EM3P2)
 //	DUMMY,												// Nothing, LED pin conflicts with SCL pin
 
-#elif	(HW_VARIANT == HW_WROVERKIT)			// WROVER-KIT
+#elif	(HW_VARIANT == HW_WROVERKIT)					// WROVER-KIT
 	LED0,
 	LED1,
 	LED2,
 
-#elif	(HW_VARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
+#elif	(HW_VARIANT == HW_DOITDEVKIT)					// DoIT DevKIt v1
 	LED0,
 
+#elif	(HW_VARIANT == HW_EBOX)
+	LED1,
+	LED2,
 #endif
 	actNUMBER,
 } ;
