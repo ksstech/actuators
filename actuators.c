@@ -740,21 +740,21 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) {
 		return 0.0 ;
 	}
-	px64Var->varDef.cv.varsize	= vs32B ;
-	px64Var->varDef.cv.vartype	= vtVALUE ;
-	px64Var->varDef.cv.varform	= vfUXX ;
-	px64Var->varDef.cv.varcount	= 1 ;
+	px64Var->def.cv.vs	= vs32B ;
+	px64Var->def.cv.vt	= vtVALUE ;
+	px64Var->def.cv.vf	= vfUXX ;
+	px64Var->def.cv.vc	= 1 ;
 	act_info_t * psAI = &sAI[Chan] ;
 	x64_t x64Value ;
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
 		x64Value.f64 					= psAI->tXXX[Field-selACT_FIRST] ;
-		px64Var->varVal.x64.x32[0].u32 	= psAI->tXXX[Field-selACT_FIRST] ;
+		px64Var->val.x64.x32[0].u32 	= psAI->tXXX[Field-selACT_FIRST] ;
 	} else {
 		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan) ;
 		IF_PRINT(debugREMTIME, "F64=%f", x64Value.f64) ;
-		px64Var->varVal.x64.x32[0].u32 = (uint32_t) x64Value.f64 ;
+		px64Var->val.x64.x32[0].u32 = (uint32_t) x64Value.f64 ;
 	}
-	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->varVal.x64.x32[0].u32) ;
+	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32) ;
 	return x64Value.f64 ;
 }
 
@@ -762,7 +762,7 @@ int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) {
 		return erFAILURE ;
 	}
-	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->varVal.x64.x32[0].u32 ;
+	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->val.x64.x32[0].u32 ;
 	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]) ;
 	return erSUCCESS ;
 }
@@ -772,8 +772,8 @@ int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) 
 		return erFAILURE ;
 	}
 	uint32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST] ;
-	if ((px64Var->varVal.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->varVal.x64.x32[0].i32))) {
-		CurVal	+= px64Var->varVal.x64.x32[0].i32 ;
+	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
+		CurVal	+= px64Var->val.x64.x32[0].i32 ;
 	} else {
 		CurVal	= 0 ;
 	}
