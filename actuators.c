@@ -60,57 +60,57 @@ const char * const ActTypeNames[]	= { "SoC/DIG", "SoC/PWM", "SoC/ANA", "I2C/DIG"
 
 act_init_t	ActInit[actNUMBER] = {						// Static configuration info
 #if		(HW_VARIANT == HW_AC00)
-	[ LED0 ] = {	actI2C_DIG,	pinPCA9555_7,	},
-	[ LED1 ] = {	actI2C_DIG,	pinPCA9555_6,	},
-	[ LED2 ] = {	actI2C_DIG,	pinPCA9555_5,	},
-	[ LED3 ] = {	actI2C_DIG,	pinPCA9555_4,	},
-	[ LED4 ] = {	actI2C_DIG,	pinPCA9555_3,	},
-	[ LED5 ] = {	actI2C_DIG,	pinPCA9555_2,	},
-	[ LED6 ] = {	actI2C_DIG,	pinPCA9555_1,	},
-	[ LED7 ] = {	actI2C_DIG,	pinPCA9555_0,	},
+	[ LED0 ] = {	actI2C_DIG,	7,	},
+	[ LED1 ] = {	actI2C_DIG,	6,	},
+	[ LED2 ] = {	actI2C_DIG,	5,	},
+	[ LED3 ] = {	actI2C_DIG,	4,	},
+	[ LED4 ] = {	actI2C_DIG,	3,	},
+	[ LED5 ] = {	actI2C_DIG,	2,	},
+	[ LED6 ] = {	actI2C_DIG,	1,	},
+	[ LED7 ] = {	actI2C_DIG,	0,	},
 
-	[RELAY0] = {	actI2C_DIG,	pinPCA9555_8,	},
-	[RELAY1] = {	actI2C_DIG,	pinPCA9555_9,	},
-	[RELAY2] = {	actI2C_DIG,	pinPCA9555_10,	},
-	[RELAY3] = {	actI2C_DIG,	pinPCA9555_11,	},
-	[RELAY4] = {	actI2C_DIG,	pinPCA9555_12,	},
-	[RELAY5] = {	actI2C_DIG,	pinPCA9555_13,	},
-	[RELAY6] = {	actI2C_DIG,	pinPCA9555_14,	},
-	[RELAY7] = {	actI2C_DIG,	pinPCA9555_15,	},
+	[RELAY0] = {	actI2C_DIG,	8,	},
+	[RELAY1] = {	actI2C_DIG,	9,	},
+	[RELAY2] = {	actI2C_DIG,	10,	},
+	[RELAY3] = {	actI2C_DIG,	11,	},
+	[RELAY4] = {	actI2C_DIG,	12,	},
+	[RELAY5] = {	actI2C_DIG,	13,	},
+	[RELAY6] = {	actI2C_DIG,	14,	},
+	[RELAY7] = {	actI2C_DIG,	15,	},
 
 #elif	(HW_VARIANT == HW_AC01)
-	[ LED0 ] = {	actI2C_DIG,	pinPCA9555_0,	},
-	[ LED1 ] = {	actI2C_DIG,	pinPCA9555_1,	},
-	[ LED2 ] = {	actI2C_DIG,	pinPCA9555_2,	},
-	[ LED3 ] = {	actI2C_DIG,	pinPCA9555_3,	},
-	[ LED4 ] = {	actI2C_DIG,	pinPCA9555_4,	},
-	[ LED5 ] = {	actI2C_DIG,	pinPCA9555_5,	},
-	[ LED6 ] = {	actI2C_DIG,	pinPCA9555_6,	},
-	[ LED7 ] = {	actI2C_DIG,	pinPCA9555_7,	},
+	[ LED0 ] = {	actI2C_DIG,	0,	},
+	[ LED1 ] = {	actI2C_DIG,	1,	},
+	[ LED2 ] = {	actI2C_DIG,	2,	},
+	[ LED3 ] = {	actI2C_DIG,	3,	},
+	[ LED4 ] = {	actI2C_DIG,	4,	},
+	[ LED5 ] = {	actI2C_DIG,	5,	},
+	[ LED6 ] = {	actI2C_DIG,	6,	},
+	[ LED7 ] = {	actI2C_DIG,	7,	},
 
-	[RELAY0] = {	actI2C_DIG,	pinPCA9555_8,	},
-	[RELAY1] = {	actI2C_DIG,	pinPCA9555_9,	},
-	[RELAY2] = {	actI2C_DIG,	pinPCA9555_10,	},
-	[RELAY3] = {	actI2C_DIG,	pinPCA9555_11,	},
-	[RELAY4] = {	actI2C_DIG,	pinPCA9555_12,	},
-	[RELAY5] = {	actI2C_DIG,	pinPCA9555_13,	},
-	[RELAY6] = {	actI2C_DIG,	pinPCA9555_14,	},
-	[RELAY7] = {	actI2C_DIG,	pinPCA9555_15,	},
+	[RELAY0] = {	actI2C_DIG,	8,	},
+	[RELAY1] = {	actI2C_DIG,	9,	},
+	[RELAY2] = {	actI2C_DIG,	10,	},
+	[RELAY3] = {	actI2C_DIG,	11,	},
+	[RELAY4] = {	actI2C_DIG,	12,	},
+	[RELAY5] = {	actI2C_DIG,	13,	},
+	[RELAY6] = {	actI2C_DIG,	14,	},
+	[RELAY7] = {	actI2C_DIG,	15,	},
 
 #elif	(HW_VARIANT == HW_EM1P2) || (HW_VARIANT == HW_EM3P2)
 	// [ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
 
 #elif	(HW_VARIANT == HW_WROVERKIT)			// WROVER-KIT
-	[ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	},
-	[ LED1 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_1,	},
-	[ LED2 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_2,	},
+	[ LED0 ] = {	actSOC_DIG,	0,	},
+	[ LED1 ] = {	actSOC_DIG,	1,	},
+	[ LED2 ] = {	actSOC_DIG,	2,	},
 
 #elif	(HW_VARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
-	[ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	},
+	[ LED0 ] = {	actSOC_DIG,	0,	},
 
 #elif	(HW_VARIANT == HW_EBOX)
-	[ LED1 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	},
-	[ LED2 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_1,	},
+	[ LED1 ] = {	actSOC_DIG,	0,	},
+	[ LED2 ] = {	actSOC_DIG,	1,	},
 
 #endif
 } ;
@@ -155,7 +155,7 @@ int32_t	xActuatorLogError(const char * pFname, uint8_t eChan) {
 
 void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
-#if		(configHAL_GPIO_DIG_OUT > 0)
+#if		(halGP_DIG_OUT > 0)
 	case actSOC_DIG:
 		halGPIO_DIG_OUT_SetState(ActInit[eChan].halGPIO, NewState) ;
 		break ;
@@ -185,7 +185,7 @@ void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 int32_t	xActuateGetLevelDIG(uint8_t eChan) {
 	int32_t iRV = erFAILURE ;
 	switch(ActInit[eChan].Type) {						// handle hardware dependent component
-#if		(configHAL_GPIO_DIG_OUT > 0)
+#if		(halGP_DIG_OUT > 0)
 	case actSOC_DIG:
 		iRV = halGPIO_DIG_OUT_GetState(ActInit[eChan].halGPIO) ;
 		break ;
@@ -227,7 +227,7 @@ int32_t	xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
 	}
 	switch(ActInit[eChan].Type) {			// handle hardware dependent component
 #if		(configHAL_XXX_DIG_OUT > 0)
-	#if		(configHAL_GPIO_DIG_OUT > 0)
+	#if		(halGP_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
 
@@ -268,7 +268,7 @@ void IRAM_ATTR vActuatorSetDC(uint8_t eChan, int8_t CurDC) {
 
 	switch(ActInit[eChan].Type) {
 #if		(configHAL_XXX_DIG_OUT > 0)						// All (GPIO + I2C + SPI) DIGital type actuators
-	#if	(configHAL_GPIO_DIG_OUT > 0)
+	#if	(halGP_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
 
@@ -354,7 +354,7 @@ int32_t	xActuatorConfig(uint8_t Chan) {
 		return erFAILURE ;
 	}
 	switch(ActInit[Chan].Type) {					// handle hardware dependent component
-#if		(configHAL_GPIO_DIG_OUT > 0)
+#if		(halGP_DIG_OUT > 0)
 	case actSOC_DIG:
 		halGPIO_DIG_OUT_Config(ActInit[Chan].halGPIO) ;
 		xActuatorSetFrequency(Chan, configACTUATE_DIG_DEF_FREQ) ;
@@ -1101,7 +1101,7 @@ void	vActuatorTestReport(uint8_t Chan, char * pcMess) {
 				pAI->tFI, pAI->tON, pAI->tFO, pAI->tOFF, pAI->tNOW) ;
 	switch(ActInit[Chan].Type) {
 #if	(configHAL_XXX_DIG_OUT > 0)
-	#if	(configHAL_GPIO_DIG_OUT > 0)
+	#if	(halGP_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
 
