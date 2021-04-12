@@ -4,7 +4,7 @@
 
 #include	"hal_variables.h"
 
-#if		(configHAL_XXX_XXX_OUT > 0)
+#if		(halXXX_XXX_OUT > 0)
 #include 	"actuators.h"
 #include	"FreeRTOS_Support.h"
 #include	"endpoints.h"
@@ -98,7 +98,7 @@ act_init_t	ActInit[actNUMBER] = {						// Static configuration info
 	[RELAY7] = {	actI2C_DIG,	15,	},
 
 #elif	(HW_VARIANT == HW_EM1P2) || (HW_VARIANT == HW_EM3P2)
-	// [ LED0 ] = {	actSOC_DIG,	halGPIO_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
+	// [ LED0 ] = {	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
 
 #elif	(HW_VARIANT == HW_WROVERKIT)			// WROVER-KIT
 	[ LED0 ] = {	actSOC_DIG,	0,	},
@@ -155,19 +155,19 @@ int32_t	xActuatorLogError(const char * pFname, uint8_t eChan) {
 
 void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
-#if		(halGP_DIG_OUT > 0)
+#if		(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 		halGPIO_DIG_OUT_SetState(ActInit[eChan].halGPIO, NewState) ;
 		break ;
 #endif
 
-#if		(configHAL_GPIO_PWM_OUT > 0)
+#if		(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
 		halGPIO_PWM_OUT_SetState(ActInit[eChan].halGPIO, NewState) ;
 		break ;
 #endif
 
-#if		(configHAL_I2C_DIG_OUT > 0)
+#if		(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 	#if	(halHAS_PCA9555 == 1)							// To minimise I2C traffic, update bit array but do NOT write to device
 		pca9555DIG_OUT_SetState(ActInit[eChan].halGPIO, NewState, 0) ;
@@ -185,19 +185,19 @@ void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 int32_t	xActuateGetLevelDIG(uint8_t eChan) {
 	int32_t iRV = erFAILURE ;
 	switch(ActInit[eChan].Type) {						// handle hardware dependent component
-#if		(halGP_DIG_OUT > 0)
+#if		(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 		iRV = halGPIO_DIG_OUT_GetState(ActInit[eChan].halGPIO) ;
 		break ;
 #endif
 
-#if		(configHAL_GPIO_PWM_OUT > 0)
+#if		(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
 		iRV = halGPIO_PWM_OUT_GetState(ActInit[eChan].halGPIO) ;
 		break ;
 #endif
 
-#if		(configHAL_I2C_DIG_OUT > 0)
+#if		(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 	#if	(halHAS_PCA9555 == 1)
 		iRV = pca9555DIG_OUT_GetState(ActInit[eChan].halGPIO) ;
@@ -226,16 +226,16 @@ int32_t	xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
 		return erFAILURE ;
 	}
 	switch(ActInit[eChan].Type) {			// handle hardware dependent component
-#if		(configHAL_XXX_DIG_OUT > 0)
-	#if		(halGP_DIG_OUT > 0)
+#if		(halXXX_DIG_OUT > 0)
+	#if		(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
 
-	#if		(configHAL_I2C_DIG_OUT > 0)
+	#if		(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 	#endif
 
-	#if		(configHAL_SPI_DIG_OUT > 0)
+	#if		(halSPI_DIG_OUT > 0)
 	case actSPI_DIG:
 	#endif
 
@@ -244,10 +244,10 @@ int32_t	xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
  		break ;
 #endif
 
-#if		(configHAL_GPIO_PWM_OUT > 0)
+#if		(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
-		FIT2RANGE(configHAL_PWM_MIN_FREQ, Frequency, configHAL_PWM_MAX_FREQ, uint32_t) ;
-		sAI[eChan].Divisor	= (configHAL_PWM_CLOCK_HZ / Frequency) ;
+		FIT2RANGE(halPWM_MIN_FREQ, Frequency, halPWM_MAX_FREQ, uint32_t) ;
+		sAI[eChan].Divisor	= (halPWM_CLOCK_HZ / Frequency) ;
 		halGPIO_PWM_OUT_SetFrequency(ActInit[eChan].halGPIO, sAI[eChan].Divisor - 1) ;
 		break ;
 #endif
@@ -267,16 +267,16 @@ void IRAM_ATTR vActuatorSetDC(uint8_t eChan, int8_t CurDC) {
 	pAI->CurDC	= CurDC ;
 
 	switch(ActInit[eChan].Type) {
-#if		(configHAL_XXX_DIG_OUT > 0)						// All (GPIO + I2C + SPI) DIGital type actuators
-	#if	(halGP_DIG_OUT > 0)
+#if		(halXXX_DIG_OUT > 0)						// All (GPIO + I2C + SPI) DIGital type actuators
+	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
 
-	#if	(configHAL_I2C_DIG_OUT > 0) && (halHAS_PCA9555 == 1)
+	#if	(halI2C_DIG_OUT > 0) && (halHAS_PCA9555 == 1)
 	case actI2C_DIG:
 	#endif
 
-	#if	(configHAL_SPI_DIG_OUT > 0)
+	#if	(halSPI_DIG_OUT > 0)
 	case actSPI_DIG:
 	#endif
 
@@ -290,37 +290,37 @@ void IRAM_ATTR vActuatorSetDC(uint8_t eChan, int8_t CurDC) {
 		break ;
 #endif
 
-#if		(configHAL_XXX_PWM_OUT > 0)						// All (GPIO + I2C + SPI) PWM type actuators
-	#if	(configHAL_GPIO_PWM_OUT > 0)
+#if		(halXXX_PWM_OUT > 0)						// All (GPIO + I2C + SPI) PWM type actuators
+	#if	(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
-		pAI->Match = u32ScaleValue(CurDC, pAI->MinDC, pAI->MaxDC, configHAL_PWM_MIN_FREQ, configHAL_PWM_MAX_FREQ) ;
+		pAI->Match = u32ScaleValue(CurDC, pAI->MinDC, pAI->MaxDC, halPWM_MIN_FREQ, halPWM_MAX_FREQ) ;
 		halGPIO_PWM_OUT_SetCycle(ActInit[eChan].halGPIO, pAI->Match) ;
 		break ;
 	#endif
 
-	#if	(configHAL_I2C_PWM_OUT > 0)
+	#if	(halI2C_PWM_OUT > 0)
 	case actSOC_ANA:	myASSERT(0);		break ;
 	#endif
 
-	#if	(configHAL_SPI_PWM_OUT > 0)
+	#if	(halSPI_PWM_OUT > 0)
 	case actSOC_ANA:	myASSERT(0);		break ;
 	#endif
 #endif
 
-#if		(configHAL_XXX_ANA_OUT > 0)						// All (GPIO + I2C + SPI) ANAlog type actuators
-	#if	(configHAL_GPIO_ANA_OUT > 0)
+#if		(halXXX_ANA_OUT > 0)						// All (GPIO + I2C + SPI) ANAlog type actuators
+	#if	(halSOC_ANA_OUT > 0)
 	case actSOC_ANA:
 		myASSERT(0);
 		break ;
 	#endif
 
-	#if	(configHAL_I2C_ANA_OUT > 0)
+	#if	(halI2C_ANA_OUT > 0)
 	case actI2C_ANA:
 		myASSERT(0);
 		break ;
 	#endif
 
-	#if	(configHAL_SPI_ANA_OUT > 0)
+	#if	(halSPI_ANA_OUT > 0)
 	case actSPI_ANA:
 		myASSERT(0);
 		break ;
@@ -354,21 +354,21 @@ int32_t	xActuatorConfig(uint8_t Chan) {
 		return erFAILURE ;
 	}
 	switch(ActInit[Chan].Type) {					// handle hardware dependent component
-#if		(halGP_DIG_OUT > 0)
+#if		(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 		halGPIO_DIG_OUT_Config(ActInit[Chan].halGPIO) ;
 		xActuatorSetFrequency(Chan, configACTUATE_DIG_DEF_FREQ) ;
 		break ;
 #endif
 
-#if		(configHAL_GPIO_PWM_OUT > 0)
+#if		(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
 		halGPIO_PWM_OUT_Config(ActInit[Chan].halGPIO) ;
-		xActuatorSetFrequency(Chan, configHAL_PWM_DEF_FREQ) ;
+		xActuatorSetFrequency(Chan, halPWM_DEF_FREQ) ;
 		break ;
 #endif
 
-#if		(configHAL_I2C_DIG_OUT > 0)
+#if		(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 	#if	 (halHAS_PCA9555 == 1)
 		pca9555DIG_OUT_Config(ActInit[Chan].halGPIO) ;
@@ -953,7 +953,7 @@ void IRAM_ATTR vActuatorUpdateTiming(act_info_t * pAI) {
 
 void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
-#if		(configHAL_I2C_XXX_OUT > 0)
+#if		(halI2C_XXX_OUT > 0)
 	xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY) ;
 #endif
 	vActuatorsConfig() ;
@@ -1073,7 +1073,7 @@ void	vTaskActuatorInit(void * pvPara) {
 #define	tLATCH		5000
 
 void	vActuatorsIdent(void) {
-#if		(configHAL_XXX_XXX_OUT > 0) && (HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
+#if		(halXXX_XXX_OUT > 0) && (HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
 	for (uint8_t Chan = LED0; Chan <= LED7; ++Chan) {
 		int32_t iRV =xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
 		IF_myASSERT(debugRESULT, iRV == erSUCCESS) ;
@@ -1085,7 +1085,7 @@ void	vActuatorsIdent(void) {
 		vActuatorReportChan(Chan) ;
 	}
 
-#elif		(configHAL_XXX_XXX_OUT > 0) && (HW_VARIANT == HW_WROVERKIT || HW_VARIANT == HW_DOITDEVKIT)
+#elif		(halXXX_XXX_OUT > 0) && (HW_VARIANT == HW_WROVERKIT || HW_VARIANT == HW_DOITDEVKIT)
 	for (uint8_t Chan = 0; Chan < NumActuator; ++Chan) {
 		xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
 		vActuatorReportChan(Chan) ;
@@ -1100,20 +1100,20 @@ void	vActuatorTestReport(uint8_t Chan, char * pcMess) {
 				pcMess, Chan, pAI->StageNow, pAI->Rpt,
 				pAI->tFI, pAI->tON, pAI->tFO, pAI->tOFF, pAI->tNOW) ;
 	switch(ActInit[Chan].Type) {
-#if	(configHAL_XXX_DIG_OUT > 0)
-	#if	(halGP_DIG_OUT > 0)
+#if	(halXXX_DIG_OUT > 0)
+	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
 
-	#if	(configHAL_I2C_DIG_OUT > 0)
+	#if	(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 	#endif
 
-	#if	(configHAL_SPI_DIG_OUT > 0)
+	#if	(halSPI_DIG_OUT > 0)
 	case actSPI_DIG:
 	#endif
 
-	#if	(configHAL_GPIO_PWM_OUT > 0)
+	#if	(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
 	#endif
 
