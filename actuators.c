@@ -3,9 +3,9 @@
  */
 
 #include	"hal_variables.h"
-
-#if		(halXXX_XXX_OUT > 0)
 #include 	"actuators.h"
+
+//#if		(halXXX_XXX_OUT > 0)
 #include	"FreeRTOS_Support.h"
 #include	"endpoints.h"
 #include	"rules_engine.h"
@@ -58,59 +58,58 @@
 const char * const StageNames[]	= { "FI ", "ON ", "FO ", "OFF" } ;
 const char * const ActTypeNames[]	= { "SoC/DIG", "SoC/PWM", "SoC/ANA", "I2C/DIG", "I2C/PWM", "I2C/ANA", "SPI/DIG", "SPI/PWM", "SPI/ANA" } ;
 
-act_init_t	ActInit[actNUMBER] = {						// Static configuration info
+act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
 #if		(HW_VARIANT == HW_AC00)
-	[ LED0 ] = {	actI2C_DIG,	7,	},
-	[ LED1 ] = {	actI2C_DIG,	6,	},
-	[ LED2 ] = {	actI2C_DIG,	5,	},
-	[ LED3 ] = {	actI2C_DIG,	4,	},
-	[ LED4 ] = {	actI2C_DIG,	3,	},
-	[ LED5 ] = {	actI2C_DIG,	2,	},
-	[ LED6 ] = {	actI2C_DIG,	1,	},
-	[ LED7 ] = {	actI2C_DIG,	0,	},
+	{	actI2C_DIG,	7,	},
+	{	actI2C_DIG,	6,	},
+	{	actI2C_DIG,	5,	},
+	{	actI2C_DIG,	4,	},
+	{	actI2C_DIG,	3,	},
+	{	actI2C_DIG,	2,	},
+	{	actI2C_DIG,	1,	},
+	{	actI2C_DIG,	0,	},
 
-	[RELAY0] = {	actI2C_DIG,	8,	},
-	[RELAY1] = {	actI2C_DIG,	9,	},
-	[RELAY2] = {	actI2C_DIG,	10,	},
-	[RELAY3] = {	actI2C_DIG,	11,	},
-	[RELAY4] = {	actI2C_DIG,	12,	},
-	[RELAY5] = {	actI2C_DIG,	13,	},
-	[RELAY6] = {	actI2C_DIG,	14,	},
-	[RELAY7] = {	actI2C_DIG,	15,	},
+	{	actI2C_DIG,	8,	},
+	{	actI2C_DIG,	9,	},
+	{	actI2C_DIG,	10,	},
+	{	actI2C_DIG,	11,	},
+	{	actI2C_DIG,	12,	},
+	{	actI2C_DIG,	13,	},
+	{	actI2C_DIG,	14,	},
+	{	actI2C_DIG,	15,	},
 
 #elif	(HW_VARIANT == HW_AC01)
-	[ LED0 ] = {	actI2C_DIG,	0,	},
-	[ LED1 ] = {	actI2C_DIG,	1,	},
-	[ LED2 ] = {	actI2C_DIG,	2,	},
-	[ LED3 ] = {	actI2C_DIG,	3,	},
-	[ LED4 ] = {	actI2C_DIG,	4,	},
-	[ LED5 ] = {	actI2C_DIG,	5,	},
-	[ LED6 ] = {	actI2C_DIG,	6,	},
-	[ LED7 ] = {	actI2C_DIG,	7,	},
+	{	actI2C_DIG,	0,	},
+	{	actI2C_DIG,	1,	},
+	{	actI2C_DIG,	2,	},
+	{	actI2C_DIG,	3,	},
+	{	actI2C_DIG,	4,	},
+	{	actI2C_DIG,	5,	},
+	{	actI2C_DIG,	6,	},
+	{	actI2C_DIG,	7,	},
 
-	[RELAY0] = {	actI2C_DIG,	8,	},
-	[RELAY1] = {	actI2C_DIG,	9,	},
-	[RELAY2] = {	actI2C_DIG,	10,	},
-	[RELAY3] = {	actI2C_DIG,	11,	},
-	[RELAY4] = {	actI2C_DIG,	12,	},
-	[RELAY5] = {	actI2C_DIG,	13,	},
-	[RELAY6] = {	actI2C_DIG,	14,	},
-	[RELAY7] = {	actI2C_DIG,	15,	},
+	{	actI2C_DIG,	8,	},
+	{	actI2C_DIG,	9,	},
+	{	actI2C_DIG,	10,	},
+	{	actI2C_DIG,	11,	},
+	{	actI2C_DIG,	12,	},
+	{	actI2C_DIG,	13,	},
+	{	actI2C_DIG,	14,	},
+	{	actI2C_DIG,	15,	},
 
 #elif	(HW_VARIANT == HW_EM1P2) || (HW_VARIANT == HW_EM3P2)
-	// [ LED0 ] = {	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
-
+//	{	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
 #elif	(HW_VARIANT == HW_WROVERKIT)			// WROVER-KIT
-	[ LED0 ] = {	actSOC_DIG,	0,	},
-	[ LED1 ] = {	actSOC_DIG,	1,	},
-	[ LED2 ] = {	actSOC_DIG,	2,	},
+	{	actSOC_DIG,	0,	},
+	{	actSOC_DIG,	1,	},
+	{	actSOC_DIG,	2,	},
 
 #elif	(HW_VARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
-	[ LED0 ] = {	actSOC_DIG,	0,	},
+	{	actSOC_DIG,	0,	},
 
 #elif	(HW_VARIANT == HW_EBOX)
-	[ LED1 ] = {	actSOC_DIG,	0,	},
-	[ LED2 ] = {	actSOC_DIG,	1,	},
+	{	actSOC_DIG,	0,	},
+	{	actSOC_DIG,	1,	},
 
 #endif
 } ;
@@ -122,26 +121,24 @@ act_init_t	ActInit[actNUMBER] = {						// Static configuration info
  * actuators were serviced, the task RUN status is cleared, only to be restarted with the next LOAD.
  */
 uint8_t	ActuatorsRunning = 0 ;
-act_info_t	sAI[actNUMBER] ;
+act_info_t	sAI[halXXX_XXX_OUT] ;
 
 /* Objective is to facilitate a number of predefined sequences with a simple single actuation command.
  * SEQUENCE Ch# m0 m1 m2 m3 etc mZ will result in the first mode (m0) being loaded immediately with the
  * rest of the mode numbers going into a queue to be loaded sequentially after completion of the previous
  */
-act_seq_t	sAS[actSEQ_NUM]	= {
-//					Rpt		tFI			tON			tFO			tOFF
-	[actSEQ_0]	= { 5,		0,			1000,		0,			1000,		} ,		// LED 0.50Hz	x5	10Sec		OK
-	[actSEQ_1]	= { 1,		0,			0,			0,			25000, 		} ,		// LED OFF		x1	25Sec		BUSY
-
-	[actSEQ_2]	= { 5,		0,			1000,		0,			1000,		} ,		// LED 0.50Hz	x5	10Sec		OK
-	[actSEQ_3]	= { 1,		0,			0,			0,			275000, 	} ,		// LED OFF		x1	275Sec		BUSY
-	[actSEQ_4]	= { 30,		0,			500,		0,			500,		} ,		// LED 1.00Hz	x30 30Sec		WARNING
-	[actSEQ_5]	= {	15,		500,		0,			500,		0,			} ,		// LED 1.00Hz	x15	15Sec		WAIT !!!
-
-	[actSEQ_6]	= { 8,		0,			250,		0,			250,		} ,		// LED 2.00 Hz	x8	4Sec
-	[actSEQ_7]	= { 6,		0,			500,		0,			500,		} ,		// LED 1.00 Hz	x6	6Sec
-	[actSEQ_8]	= { 4,		0,			750,		0,			750,		} ,		// LED 0.67 Hz	x4	6Sec
-	[actSEQ_9]	= { 3,		0,			1000,		0,			1000,		} ,		// LED 0.50 Hz	x3	2Sec
+act_seq_t	sAS[actNUM_SEQUENCES]	= {
+//	  Rpt	tFI		tON		tFO		tOFF
+	{ 5,	0,		1000,	0,		1000,	} ,		// 0.50Hz	x5	10Sec		OK
+	{ 1,	0,		0,		0,		25000, 	} ,		// OFF		x1	25Sec		BUSY
+	{ 5,	0,		1000,	0,		1000,	} ,		// 0.50Hz	x5	10Sec		OK
+	{ 1,	0,		0,		0,		275000, } ,		// OFF		x1	275Sec		BUSY
+	{ 30,	0,		500,	0,		500,	} ,		// 1.00Hz	x30 30Sec		WARNING
+	{ 15,	500,	0,		500,	0,		} ,		// 1.00Hz	x15	15Sec		WAIT !!!
+	{ 8,	0,		250,	0,		250,	} ,		// 2.00 Hz	x8	4Sec
+	{ 6,	0,		500,	0,		500,	} ,		// 1.00 Hz	x6	6Sec
+	{ 4,	0,		750,	0,		750,	} ,		// 0.67 Hz	x4	6Sec
+	{ 3,	0,		1000,	0,		1000,	} ,		// 0.50 Hz	x3	2Sec
 } ;
 
 // ################################# local/static functions ########################################
@@ -239,7 +236,7 @@ int32_t	xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
 	case actSPI_DIG:
 	#endif
 
-		FIT2RANGE(configACTUATE_DIG_MIN_FREQ, Frequency, configACTUATE_DIG_MAX_FREQ, uint32_t) ;
+		FIT2RANGE(actDIG_MIN_FREQ, Frequency, actDIG_MAX_FREQ, uint32_t) ;
 		sAI[eChan].Divisor	= (MILLIS_IN_SECOND / ACTUATE_TASK_PERIOD) / Frequency ;
  		break ;
 #endif
@@ -357,7 +354,7 @@ int32_t	xActuatorConfig(uint8_t Chan) {
 #if		(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 		halGPIO_DIG_OUT_Config(ActInit[Chan].halGPIO) ;
-		xActuatorSetFrequency(Chan, configACTUATE_DIG_DEF_FREQ) ;
+		xActuatorSetFrequency(Chan, actDIG_DEF_FREQ) ;
 		break ;
 #endif
 
@@ -372,7 +369,7 @@ int32_t	xActuatorConfig(uint8_t Chan) {
 	case actI2C_DIG:
 	#if	 (halHAS_PCA9555 == 1)
 		pca9555DIG_OUT_Config(ActInit[Chan].halGPIO) ;
-		xActuatorSetFrequency(Chan, configACTUATE_DIG_DEF_FREQ) ;
+		xActuatorSetFrequency(Chan, actDIG_DEF_FREQ) ;
 	#else
 		myASSERT(0) ;
 	#endif
@@ -388,7 +385,7 @@ int32_t	xActuatorConfig(uint8_t Chan) {
 	psAI->MaxDC		= psAI->DelDC		= actMAX_DUTYCYCLE ;
 	psAI->StageBeg	= psAI->StageNow	= actSTAGE_FI ;
 	psAI->ChanNum	= Chan ;
-	psAI->ConfigOK	= true ;
+	psAI->ConfigOK	= 1 ;
 	vActuatorSetDC(Chan, actMIN_DUTYCYCLE) ;
 	IF_EXEC_1(debugTRACK, vActuatorReportChan, Chan) ;
 	return erSUCCESS ;
@@ -600,7 +597,7 @@ int32_t	xActuatorLoadSequence(uint8_t Chan, uint8_t * paSeq) {
 	act_info_t * psAI = &sAI[Chan] ;
 	int32_t Idx ;
 	for (Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
-		if (*paSeq < actSEQ_NUM) {						// if a valid SEQuence number
+		if (*paSeq < NUM_OF_MEMBERS(sAS)) {				// if a valid SEQuence number
 			psAI->Seq[Idx] = *paSeq++ ;					// store it
 		} else {
 			psAI->Seq[Idx] = 0xFF ;						// if not, mark it an unused terminator
@@ -634,7 +631,7 @@ int32_t	xActuatorQueSequence(uint8_t Chan, uint8_t * paSeq) {
 		++Idx ;
 	}
 	for (; Idx < actMAX_SEQUENCE; ++Idx) {
-		if (*paSeq < actSEQ_NUM) {						// if a valid SEQuence number
+		if (*paSeq < NUM_OF_MEMBERS(sAS)) {						// if a valid SEQuence number
 			*paSeqBeg++	= *paSeq++ ;					// store it
 		} else {
 			*paSeqBeg++ = 0xFF ;						// if not, mark it an unused terminator
@@ -809,7 +806,7 @@ uint64_t xActuatorGetRemainingTime(uint8_t Chan) {
 	} while (Stage != psAI->StageBeg) ;
 
 	// now add the time for the (optional) sequences
-	for(int32_t Idx = 0; psAI->Seq[Idx] < actSEQ_NUM; ++Idx) {
+	for(int32_t Idx = 0; psAI->Seq[Idx] < NUM_OF_MEMBERS(sAS); ++Idx) {
 		act_seq_t * psAS = &sAS[psAI->Seq[Idx]] ;
 		u64Value	+= psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF) ;
 		IF_PRINT(debugREMTIME, " -> I(%d): %llu", Idx, u64Value) ;
@@ -869,9 +866,7 @@ void	vTaskActuatorReport(void) {
 	for (uint8_t Chan = 0; Chan < NumActuator; ++Chan) {
 		vActuatorReportChan(Chan) ;
 	}
-	for (uint8_t Seq = 0; Seq < actSEQ_NUM; ++Seq) {
-		vActuatorReportSeq(Seq) ;
-	}
+	for (uint8_t Seq = 0; Seq < NUM_OF_MEMBERS(sAS); vActuatorReportSeq(Seq++)) ;
 	printfx("Running=%u  maxDelay=%!.R\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime()) ;
 }
 
@@ -889,7 +884,7 @@ void	vTaskActuatorReport(void) {
 
 int32_t	IRAM_ATTR xActuatorNextSequence(act_info_t * psAI) {
 	uint8_t	NxtSeq = psAI->Seq[0] ;
-	if (NxtSeq >= actSEQ_NUM) {
+	if (NxtSeq >= NUM_OF_MEMBERS(sAS)) {
 		return erFAILURE ;
 	}
 	IF_EXEC_1(debugTRACK, vActuatorReportSeq, NxtSeq) ;
@@ -1074,13 +1069,13 @@ void	vTaskActuatorInit(void * pvPara) {
 
 void	vActuatorsIdent(void) {
 #if		(halXXX_XXX_OUT > 0) && (HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
-	for (uint8_t Chan = LED0; Chan <= LED7; ++Chan) {
+	for (uint8_t Chan = 0; Chan <= 7; ++Chan) {
 		int32_t iRV =xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
 		IF_myASSERT(debugRESULT, iRV == erSUCCESS) ;
 		vActuatorReportChan(Chan) ;
 	}
-	for (uint8_t Chan = RELAY0; Chan <= RELAY7; ++Chan) {
-		int32_t iRV = xActuatorLoad(Chan, 2, 0, (tLATCH * (RELAY7 - Chan + 1)), 0, 0) ;
+	for (uint8_t Chan = 8; Chan <= 15; ++Chan) {
+		int32_t iRV = xActuatorLoad(Chan, 2, 0, (tLATCH * (8 - Chan)), 0, 0) ;
 		IF_myASSERT(debugRESULT, iRV == erSUCCESS) ;
 		vActuatorReportChan(Chan) ;
 	}
@@ -1145,7 +1140,7 @@ void	vActuatorTest(void) {
 #if		(debugFUNC)
 	for(uint8_t eChan = 0; eChan < NumActuator; ++eChan) {
 		xActuatorConfig(eChan) ;
-		for(uint32_t Freq = configACTUATE_DIG_MIN_FREQ ; Freq <= configACTUATE_DIG_MAX_FREQ; Freq *= 5) {
+		for(uint32_t Freq = actDIG_MIN_FREQ ; Freq <= actDIG_MAX_FREQ; Freq *= 5) {
 			xActuatorSetFrequency(eChan, Freq) ;
 			xActuatorSetTiming(eChan, 0, 0, UINT32_MAX, 0) ;
 			xActuatorStart(eChan, UINT32_MAX) ;
@@ -1178,4 +1173,4 @@ void	vActuatorTest(void) {
 #endif
 }
 
-#endif
+//#endif

@@ -52,25 +52,26 @@ extern "C" {
 
 // ####################################### MACROS ##################################################
 
-#define	ACTUATE_PRIORITY					8
-#define	ACTUATE_STACK_SIZE					(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 256))
-#define	ACTUATE_TASK_PERIOD					2
+#define	ACTUATE_PRIORITY			8
+#define	ACTUATE_STACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 256))
+#define	ACTUATE_TASK_PERIOD			2
 
-#define	configACTUATE_DIG_CLOCK_HZ			configTICK_RATE_HZ
-#define	configACTUATE_DIG_MIN_COUNT			1		// steps to go 0 -> 100%
-#define	configACTUATE_DIG_MIN_FREQ			1
-#define	configACTUATE_DIG_MAX_FREQ			(configACTUATE_DIG_CLOCK_HZ / configACTUATE_DIG_MIN_COUNT)
+#define	actDIG_CLOCK_HZ				configTICK_RATE_HZ
+#define	actDIG_MIN_COUNT			1		// steps to go 0 -> 100%
+#define	actDIG_MIN_FREQ				1
+#define	actDIG_MAX_FREQ				(actDIG_CLOCK_HZ / actDIG_MIN_COUNT)
 /* default was 10, timing worked exactly but flashing is prominent
  * 25 reduces flashing, provides more steps in intensity, smoother FI & FO
  * 50 is very smooth, no/minimal flicker, but slightly abrupt at end of FO
  * 100 is smooth but FI/FO look abrupt at start & end
  */
-#define	configACTUATE_DIG_DEF_FREQ			33
+#define	actDIG_DEF_FREQ				33
 
-#define	actMIN_DUTYCYCLE					0
-#define	actMAX_DUTYCYCLE					100
+#define	actMIN_DUTYCYCLE			0
+#define	actMAX_DUTYCYCLE			100
 
-#define	actMAX_SEQUENCE						8
+#define	actMAX_SEQUENCE				8
+#define actNUM_SEQUENCES			10
 
 // ######################################### Enumerations #########################################
 
@@ -87,64 +88,7 @@ enum {													// interface SOC/I2C/SPI & type DIG/PWM/ANA
 	actXXX_NUM,											// last item
 } ;
 
-enum {		 											// actuators present in system
-#if		(HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
-	LED0,
-	LED1,
-	LED2,
-	LED3,
-	LED4,
-	LED5,
-	LED6,
-	LED7,
-	RELAY0,
-	RELAY1,
-	RELAY2,
-	RELAY3,
-	RELAY4,
-	RELAY5,
-	RELAY6,
-	RELAY7,
-
-#elif	(HW_VARIANT == HW_EM1P2 || HW_VARIANT == HW_EM3P2)
-//	DUMMY,												// Nothing, LED pin conflicts with SCL pin
-
-#elif	(HW_VARIANT == HW_WROVERKIT)					// WROVER-KIT
-	LED0,
-	LED1,
-	LED2,
-
-#elif	(HW_VARIANT == HW_DOITDEVKIT)					// DoIT DevKIt v1
-	LED0,
-
-#elif	(HW_VARIANT == HW_EBOX)
-	LED1,
-	LED2,
-#endif
-	actNUMBER,
-} ;
-
-enum {													// Actuator Stages
-	actSTAGE_FI,
-	actSTAGE_ON,
-	actSTAGE_FO,
-	actSTAGE_OFF,
-	actSTAGE_NUM,
-} ;
-
-enum {													// number of PreDefined actuator sequences
-	actSEQ_0,
-	actSEQ_1,
-	actSEQ_2,
-	actSEQ_3,
-	actSEQ_4,
-	actSEQ_5,
-	actSEQ_6,
-	actSEQ_7,
-	actSEQ_8,
-	actSEQ_9,
-	actSEQ_NUM,
-} ;
+enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, } ;// Actuator Stages
 
 // ########################################## Structures ##########################################
 
@@ -186,7 +130,7 @@ typedef struct act_info_s {								// Actuator structure
 } act_info_t ;
 DUMB_STATIC_ASSERT(sizeof(act_info_t) == 52) ;
 
-typedef struct {							// Sequence structure
+typedef struct act_seq_t {							// Sequence structure
 	uint32_t	Rpt, tFI, tON, tFO, tOFF ;
 } act_seq_t ;
 DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
