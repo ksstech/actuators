@@ -521,15 +521,15 @@ int32_t	xActuatorStart(uint8_t Chan, uint32_t Repeats) {
 }
 
 int32_t	xActuatorStop(uint8_t Chan) {
-	act_info_t * pAI = &sAI[Chan] ;
-	if (Chan >= NumActuator || pAI->Blocked) {
+	act_info_t * psAI = &sAI[Chan] ;
+	if (Chan >= NumActuator || psAI->Blocked) {
 		return erFAILURE ;
 	}
 	// reset ONLY the tXXX values (incl Rpt + tNow)
-	memset(&pAI->tXXX, 0, SIZEOF_MEMBER(act_info_t, tXXX)) ;
-	memset(&pAI->Seq, 0xFF, SIZEOF_MEMBER(act_info_t, Seq)) ;
-	pAI->StageNow	= pAI->StageBeg ;
-	pAI->alertDone	= pAI->alertStage	= 0 ;
+	memset(&psAI->tXXX, 0, sizeof(sAI[0].tXXX)) ;
+	memset(&psAI->Seq, 0xFF, sizeof(sAI[0].Seq)) ;
+	psAI->StageNow	= psAI->StageBeg ;
+	psAI->alertDone	= psAI->alertStage	= 0 ;
 	vActuatorSetDC(Chan, 0) ;
 	IF_PRINT(debugTRACK, "[ACT] Stop C=%d\n", Chan) ;
 	return erSUCCESS ;

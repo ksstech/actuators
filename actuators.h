@@ -92,13 +92,13 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, } ;// 
 
 // ########################################## Structures ##########################################
 
-typedef struct act_init_s {
-	uint8_t	Type ;
-	uint8_t	halGPIO ;
+typedef struct act_init_t {
+	uint8_t		Type ;
+	uint8_t		halGPIO ;
 } act_init_t ;
 DUMB_STATIC_ASSERT(sizeof(act_init_t) == 2) ;
 
-typedef struct act_info_s {								// Actuator structure
+typedef struct act_info_t {								// Actuator structure
 	union {												// all values in TICKS not mSec
 		struct { uint32_t	tFI, tON, tFO, tOFF, Rpt, tNOW ; } ;
 		uint32_t		tXXX[actSTAGE_NUM + 2] ;		// +2 for tNOW & Rpt
