@@ -408,13 +408,13 @@ void	vActuatorsConfig(void) {
  * @return
  */
 int32_t	IRAM_ATTR xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) {
-	IF_myASSERT(debugPARAM, URI_ACT < URI_MAX_VAL && Level < alertLEVEL_NUM) ;
+	IF_myASSERT(debugPARAM, Level < alertLEVEL_NUM) ;
 	epi_t	sEI = { 0 } ;
 	event_t	sEvent	= { 0 } ;
 	alert_t	sAlert	= { 0 } ;
 	ubuf_t	sBuf	= { 0 } ;
 	vEpGetInfoWithIndex(&sEI, URI_ACT) ;
-	if (sEI.psES == NULL || sEI.psEW == NULL) {
+	if (sEI.psES == NULL) {
 		return erFAILURE ;
 	}
 	sEI.psEvent		= &sEvent ;
