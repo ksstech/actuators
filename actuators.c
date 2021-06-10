@@ -948,9 +948,8 @@ void IRAM_ATTR vActuatorUpdateTiming(act_info_t * pAI) {
 
 void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_TRACK(debugAPPL_THREADS, debugAPPL_MESS_UP) ;
-#if		(halI2C_XXX_OUT > 0)
+	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE) ;
 	xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY) ;
-#endif
 	vActuatorsConfig() ;
 	IF_SYSTIMER_INIT(debugTIMING_STAGES, systimerACT_S0, systimerCLOCKS, "ActS0_FI", 50, 50000) ;
 	IF_SYSTIMER_INIT(debugTIMING_STAGES, systimerACT_S1, systimerCLOCKS, "ActS1_ON", 50, 50000) ;
@@ -961,7 +960,7 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 
 	while(bRtosVerifyState(taskACTUATE)) {
 		TickType_t	ActLWtime = xTaskGetTickCount();    // Get the ticks as starting reference
-		IF_EXEC_1(debugTIMING_TASK, xSysTimerStart, systimerACT_SX) ;
+		IF_SYSTIMER_START(debugTIMING_TASK, systimerACT_SX) ;
 		act_info_t * pAI = &sAI[0] ;
 		ActuatorsRunning = 0 ;
 		for (uint8_t Chan = 0; Chan < NumActuator ; ++Chan, ++pAI) {
@@ -977,52 +976,52 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 			pAI->Busy = 1 ;
 			switch(pAI->StageNow) {
 			case actSTAGE_FI:							// Step UP from 0% to 100% over tFI mSec
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStart, systimerACT_S0) ;
+				IF_SYSTIMER_START(debugTIMING_STAGES, systimerACT_S0) ;
 				if (pAI->tFI > 0) {
 					vActuatorSetDC(Chan, pAI->MinDC + ((pAI->tNOW * pAI->DelDC) / pAI->tFI)) ;
 					vActuatorUpdateTiming(pAI) ;
-					IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S0) ;
+					IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S0) ;
 					break ;
 				}
 				xActuatorNextStage(pAI) ;
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S0) ;
+				IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S0) ;
 				/* FALLTHRU */ /* no break */
 			case actSTAGE_ON:							// remain on 100% for tON mSec
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStart, systimerACT_S1) ;
+				IF_SYSTIMER_START(debugTIMING_STAGES, systimerACT_S1) ;
 				if (pAI->tON > 0) {
 					if (pAI->tNOW == 0) {
 						vActuatorSetDC(Chan, pAI->MaxDC) ;
 					}
 					vActuatorUpdateTiming(pAI) ;
-					IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S1) ;
+					IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S1) ;
 					break ;
 				}
 				xActuatorNextStage(pAI) ;
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S1) ;
+				IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S1) ;
 				/* FALLTHRU */ /* no break */
 			case actSTAGE_FO:							// Step DOWN 100% -> 0% over tFO mSec
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStart, systimerACT_S2) ;
+				IF_SYSTIMER_START(debugTIMING_STAGES, systimerACT_S2) ;
 				if (pAI->tFO > 0) {
 					vActuatorSetDC(Chan, pAI->MaxDC - ((pAI->tNOW * pAI->DelDC) / pAI->tFO)) ;
 					vActuatorUpdateTiming(pAI) ;
-					IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S2) ;
+					IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S2) ;
 					break ;
 				}
 				xActuatorNextStage(pAI) ;
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S2) ;
+				IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S2) ;
 				/* FALLTHRU */ /* no break */
 			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStart, systimerACT_S3) ;
+				IF_SYSTIMER_START(debugTIMING_STAGES, systimerACT_S3) ;
 				if (pAI->tOFF > 0) {
 					if (pAI->tNOW == 0) {
 						vActuatorSetDC(Chan, pAI->MinDC) ;
 					}
 					vActuatorUpdateTiming(pAI) ;
-					IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S3) ;
+					IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S3) ;
 					break ;
 				}
 				xActuatorNextStage(pAI) ;
-				IF_EXEC_1(debugTIMING_STAGES, xSysTimerStop, systimerACT_S3) ;
+				IF_SYSTIMER_STOP(debugTIMING_STAGES, systimerACT_S3) ;
 				break ;
 			}
 			pAI->Busy = 0 ;
@@ -1045,7 +1044,7 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 		pca9555Check(ACTUATE_TASK_PERIOD) ;
 #endif
 
-		IF_EXEC_1(debugTIMING_TASK, xSysTimerStop, systimerACT_SX) ;
+		IF_SYSTIMER_STOP(debugTIMING_TASK, systimerACT_SX) ;
 		if (ActuatorsRunning) {							// Some active actuators, delay till next cycle
 			vTaskDelayUntil(&ActLWtime, pdMS_TO_TICKS(ACTUATE_TASK_PERIOD)) ;
 		} else {										// NO active actuators
@@ -1057,7 +1056,7 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 }
 
 void	vTaskActuatorInit(void * pvPara) {
-	xRtosTaskCreate(vTaskActuator, "Actuator", ACTUATE_STACK_SIZE, pvPara, 6, NULL, INT_MAX) ;
+	xRtosTaskCreate(vTaskActuator, "Actuator", ACTUATE_STACK_SIZE, pvPara, 6, NULL, tskNO_AFFINITY) ;
 }
 
 // ##################################### functional tests ##########################################
