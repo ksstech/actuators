@@ -5,7 +5,7 @@
 #pragma once
 
 #include	"hal_config.h"				// [sdkconfig]
-#include	"x_complex_vars.h"			// x_struct_union x_time x_definitions time stdint
+#include	"complex_vars.h"			// struct_union x_time definitions time stdint
 
 #ifdef __cplusplus
 extern "C" {
