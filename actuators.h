@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include	"hal_config.h"				// [sdkconfig]
+#include	"hal_config.h"
+#include	"FreeRTOS_Support.h"
 #include	"complex_vars.h"			// struct_union x_time definitions time stdint
 
 #ifdef __cplusplus
@@ -137,17 +138,17 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
 
 // ################################### Public Variables ############################################
 
-extern	act_seq_t	sAS[] ;
+extern act_seq_t sAS[] ;
 
 // ################################ GLOBAL Functions Prototypes ####################################
 
-void	vTaskActuator(void * pvParameters) ;
-void 	vTaskActuatorInit(void * pvAlertFunc) ;
+void vTaskActuator(void * pvParameters) ;
+void vTaskActuatorInit(void * pvAlertFunc) ;
 
-void	vActuatorUpdateTiming(act_info_t * pAI) ;
+void vActuatorUpdateTiming(act_info_t * pAI) ;
 
-void	vActuatorSetDC(uint8_t Chan, int8_t CurDC) ;
-void	vActuatorUpdateCurDC(act_info_t * pAI) ;
+void vActuatorSetDC(uint8_t Chan, int8_t CurDC) ;
+void vActuatorUpdateCurDC(act_info_t * pAI) ;
 
 int32_t	xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) ;
 

@@ -5,7 +5,6 @@
 #include	"hal_variables.h"
 #include 	"actuators.h"
 
-#include	"FreeRTOS_Support.h"
 #include	"endpoints.h"
 #include	"rules_engine.h"
 
@@ -790,6 +789,7 @@ int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 #if		(SW_AEP == 1)
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) return erFAILURE ;
+
 	uint32_t CurVal = sAI[Chan].tXXX[Field-oldACT_T_FI] ;
 	if ((px64Var->val.x64.x32[0].i32 < 0)
 	&& (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
@@ -802,6 +802,7 @@ int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) 
 	return erSUCCESS ;
 #elif	(SW_AEP == 2)
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE) return erFAILURE ;
+
 	uint32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST] ;
 	if ((px64Var->val.x64.x32[0].i32 < 0)
 	&& (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
