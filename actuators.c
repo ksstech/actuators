@@ -550,25 +550,13 @@ int32_t	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, ui
 	return iRV ;
 }
 
-/**
- * xActuatorLoadSequence()	load up to a maximum of actMAX_SEQUENCE sequence numbers to the
- * 							sequence table, overwriting any existing (pending) sequences
- *							Expects a full array of actMAX_SEQUENCE size, unused elements to be 0xFF
- * @param Chan		Channel number
- * @param paSeq		pointer to array of sequence numbers
- * @return
- */
-int32_t	xActuatorLoadSequence(uint8_t Chan, uint8_t * paSeq) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
+int xActuatorAddSequences(uint8_t Chan, int Idx, uint8_t * paSeq) {
 	act_info_t * psAI = &sAI[Chan] ;
-	int32_t Idx ;
-	for (Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
-		if (*paSeq < NO_MEM(sAS)) {				// if a valid SEQuence number
+	for (; Idx < actMAX_SEQUENCE; ++Idx) {
+		if (*paSeq < NO_MEM(sAS)) {						// if a valid SEQuence number
 			psAI->Seq[Idx] = *paSeq++ ;					// store it
 		} else {
-			psAI->Seq[Idx] = 0xFF ;						// if not, mark it an unused terminator
+			psAI->Seq[Idx] = 0xFF ;						// if not, mark it unused
 			break ;										// and go no further
 		}
 	}
@@ -576,45 +564,42 @@ int32_t	xActuatorLoadSequence(uint8_t Chan, uint8_t * paSeq) {
 	return Idx;
 }
 
-/**
- * xActuatorQueSequence()	append additional sequence numbers to the end of the sequence table
- *							Expects an array of up to actMAX_SEQUENCE size, unused elements to be 0xFF
- * @param Chan		Channel number
- * @param paSeq		pointer to array of sequence numbers
- * @return			erFAILURE if none appended else number of sequences appended
- */
-int32_t	xActuatorQueSequence(uint8_t Chan, uint8_t * paSeq) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
-	act_info_t * psAI = &sAI[Chan] ;
-	uint8_t * paSeqBeg = &psAI->Seq[0] ;
-	uint8_t * paSeqEnd = &psAI->Seq[actMAX_SEQUENCE] ;
-
-	int32_t Idx = 0 ;
-	while (*paSeqBeg != 0xFF) {							// skip over used space at start of sequence buffer
-		if (paSeqBeg == paSeqEnd)
-			return erFAILURE ;
-		++paSeqBeg ;
-		++Idx ;
-	}
-	for (; Idx < actMAX_SEQUENCE; ++Idx) {
-		if (*paSeq < NO_MEM(sAS)) {						// if a valid SEQuence number
-			*paSeqBeg++	= *paSeq++ ;					// store it
-		} else {
-			*paSeqBeg++ = 0xFF ;						// if not, mark it an unused terminator
-			break ;										// and go no further
-		}
-	}
-
-	IF_EXEC_1(debugTRACK, vActuatorReportChan, Chan) ;
-	return Idx ;
+int	xActuatorStartSequence(uint8_t Chan, uint8_t Seq) {
+	if (Chan >= NumActuator || sAI[Chan].Blocked || Seq >= actMAX_SEQUENCE) return erFAILURE;
+	act_seq_t * psAS = &sAS[Seq] ;
+	return xActuatorLoad(Chan, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF) ;
 }
 
-int32_t	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int32_t tFO, int32_t tOFF) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
+/**
+ * @brief	Load up to a maximum of actMAX_SEQUENCE sequence numbers to the
+ * 			sequence table, overwriting any existing (pending) sequences
+ *			Expects a full array of actMAX_SEQUENCE size, unused elements to be 0xFF
+ * @param	Chan		Channel number
+ * @param	paSeq		pointer to array of sequence numbers
+ * @return
+ */
+int	xActuatorLoadSequences(uint8_t Chan, uint8_t * paSeq) {
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE;
+	return xActuatorAddSequences(Chan, 0, paSeq) ;
+}
+
+/**
+ * @brief	Append additional sequence numbers to the end of the sequence table
+ *			Expects an array of up to actMAX_SEQUENCE size, unused elements to be 0xFF
+ * @param	Chan		Channel number
+ * @param	paSeq		pointer to array of sequence numbers
+ * @return	erFAILURE if none appended else number of sequences appended
+ */
+int	xActuatorQueSequences(uint8_t Chan, uint8_t * paSeq) {
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE;
+	for (int Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
+		if (sAI[Chan].Seq[Idx] == 0xFF) return xActuatorAddSequences(Chan, Idx, paSeq) ;
 	}
+	return erFAILURE;
+}
+
+int	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int32_t tFO, int32_t tOFF) {
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE ;
 	uint32_t CurRpt = xActuatorPause(Chan) ;
 	act_info_t * pAI = &sAI[Chan] ;
 	while (pAI->Busy) vTaskDelay(pdMS_TO_TICKS(1)) ;

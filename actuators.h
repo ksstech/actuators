@@ -138,7 +138,6 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
 
 // ################################### Public Variables ############################################
 
-extern act_seq_t sAS[] ;
 
 // ################################ GLOBAL Functions Prototypes ####################################
 
@@ -176,8 +175,9 @@ int32_t	xActuatorBlock(uint8_t Chan) ;
 int32_t	xActuatorUnBlock(uint8_t Chan) ;
 
 int32_t	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
-int32_t	xActuatorLoadSequence(uint8_t Chan, uint8_t * paSeq) ;
-int32_t	xActuatorQueSequence(uint8_t Chan, uint8_t * paSeq) ;
+int	xActuatorStartSequence(uint8_t Chan, uint8_t Seq) ;
+int	xActuatorLoadSequences(uint8_t Chan, uint8_t * paSeq) ;
+int	xActuatorQueSequences(uint8_t Chan, uint8_t * paSeq) ;
 int	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int32_t tFO, int32_t tOFF) ;
 int32_t	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int32_t Adjust) ;
 
