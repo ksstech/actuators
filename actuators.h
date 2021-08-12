@@ -102,7 +102,7 @@ DUMB_STATIC_ASSERT(sizeof(act_init_t) == 2) ;
 typedef struct act_info_t {								// Actuator structure
 	union {												// all values in TICKS not mSec
 		struct { uint32_t	tFI, tON, tFO, tOFF, Rpt, tNOW ; } ;
-		uint32_t		tXXX[actSTAGE_NUM + 2] ;		// +2 for tNOW & Rpt
+		uint32_t tXXX[actSTAGE_NUM + 2] ;				// +2 for tNOW & Rpt
 	} ;
 	uint8_t		Seq[actMAX_SEQUENCE] ;					// number of queued sequences
 	uint32_t	Divisor ;								// number of clocks in a cycle
@@ -178,7 +178,7 @@ int32_t	xActuatorUnBlock(uint8_t Chan) ;
 int32_t	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
 int32_t	xActuatorLoadSequence(uint8_t Chan, uint8_t * paSeq) ;
 int32_t	xActuatorQueSequence(uint8_t Chan, uint8_t * paSeq) ;
-int32_t	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int32_t tFO, int32_t tOFF) ;
+int	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int32_t tFO, int32_t tOFF) ;
 int32_t	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int32_t Adjust) ;
 
 int32_t	xActuatorToggle(uint8_t Act) ;

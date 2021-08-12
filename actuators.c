@@ -412,9 +412,7 @@ int32_t	IRAM_ATTR xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) 
 	alert_t	sAlert	= { 0 } ;
 	ubuf_t	sBuf	= { 0 } ;
 	vEpGetInfoWithIndex(&sEI, URI_ACT) ;
-	if (sEI.psES == NULL) {
-		return erFAILURE ;
-	}
+	if (sEI.psES == NULL) return erFAILURE ;
 	sEI.psEvent		= &sEvent ;
 	sEI.psAlert		= &sAlert ;
 	sEI.psUB		= &sBuf ;
@@ -428,39 +426,29 @@ int32_t	IRAM_ATTR xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) 
 
 // XXX add API support to en/disable from rules
 int32_t	xActuatorSetAlertStage(uint8_t Chan, uint8_t State) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE;
 	sAI[Chan].alertStage = State ? 1 : 0 ;
 	return erSUCCESS ;
 }
 
 // XXX add API support to en/disable from rules
 int32_t	xActuatorSetAlertDone(uint8_t Chan, uint8_t State) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE;
 	sAI[Chan].alertDone = State ? 1 : 0 ;
 	return erSUCCESS ;
 }
 
 // XXX add API support to en/disable from rules
 int32_t	xActuatorSetStartStage(uint8_t Chan, uint8_t Stage) {
-	if (Chan >= NumActuator || Stage >= actSTAGE_NUM || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || Stage >= actSTAGE_NUM || sAI[Chan].Blocked) return erFAILURE;
 	sAI[Chan].StageBeg	= TRIMMED(actSTAGE_OFF, Stage, actSTAGE_FO, int8_t) ;
 	return erSUCCESS ;
 }
 
 // XXX add API support to re/set from rules
 int32_t	vActuatorSetMinMaxDC(uint8_t Chan, int8_t iMin, int8_t iMax) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
-	if (iMin > iMax) {
-		SWAP(iMin, iMax, uint8_t) ;
-	}
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE ;
+	if (iMin > iMax) SWAP(iMin, iMax, uint8_t);
 	act_info_t	* pAI = &sAI[Chan] ;
 	pAI->MinDC = iMin > actMAX_DUTYCYCLE ? actMAX_DUTYCYCLE : iMin ;
 	pAI->MaxDC = iMax > actMAX_DUTYCYCLE ? actMAX_DUTYCYCLE : iMax ;
@@ -478,16 +466,12 @@ int32_t	vActuatorSetMinMaxDC(uint8_t Chan, int8_t iMin, int8_t iMax) {
  */
 int32_t	xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) {
 	act_info_t	* pAI = &sAI[Chan] ;
-	if (Chan >= NumActuator || pAI->ConfigOK == 0) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || pAI->ConfigOK == 0) return erFAILURE;
 	if (pAI->Blocked) {
 		xActuatorAlert(pAI, alertTYPE_ACT_BLOCKED, alertLEVEL_ERROR) ;
 		return erFAILURE ;
 	}
-	while (pAI->Busy) {
-		vTaskDelay(pdMS_TO_TICKS(1)) ;
-	}
+	while (pAI->Busy) vTaskDelay(pdMS_TO_TICKS(1));
 	pAI->Busy = 1 ;
 	// set configuration to max 1 day...
 	pAI->tFI		= pdMS_TO_TICKS(tFI > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFI) ;
@@ -501,18 +485,16 @@ int32_t	xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t tF
 
 int32_t	xActuatorStart(uint8_t Chan, uint32_t Repeats) {
 	act_info_t	* pAI = &sAI[Chan] ;
-	if (Chan >= NumActuator || pAI->ConfigOK == 0) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || pAI->ConfigOK == 0) return erFAILURE;
 	if (pAI->Blocked) {
 		xActuatorAlert(pAI, alertTYPE_ACT_BLOCKED, alertLEVEL_ERROR) ;
 		return erFAILURE ;
 	}
-	pAI->tNOW		= pAI->Count		= 0 ;
-	pAI->StageNow	= pAI->StageBeg ;
+	pAI->tNOW = pAI->Count = 0 ;
+	pAI->StageNow = pAI->StageBeg ;
 	vActuatorUpdateCurDC(pAI) ;
 	vActuatorSetDC(Chan, pAI->CurDC) ;
-	pAI->Rpt		= Repeats ;
+	pAI->Rpt = Repeats ;
 	IF_PRINT(debugTRACK, "[ACT] Start C=%d R=%d\n", Chan, Repeats) ;
 	xRtosSetStateRUN(taskACTUATE) ;
 	return erSUCCESS ;
@@ -520,9 +502,7 @@ int32_t	xActuatorStart(uint8_t Chan, uint32_t Repeats) {
 
 int32_t	xActuatorStop(uint8_t Chan) {
 	act_info_t * psAI = &sAI[Chan] ;
-	if (Chan >= NumActuator || psAI->Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || psAI->Blocked) return erFAILURE;
 	// reset ONLY the tXXX values (incl Rpt + tNow)
 	memset(&psAI->tXXX, 0, sizeof(sAI[0].tXXX)) ;
 	memset(&psAI->Seq, 0xFF, sizeof(sAI[0].Seq)) ;
@@ -534,36 +514,28 @@ int32_t	xActuatorStop(uint8_t Chan) {
 }
 
 uint32_t xActuatorPause(uint8_t Chan) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return 0xFFFFFFFF ;
-	}
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return 0xFFFFFFFF;
 	taskDISABLE_INTERRUPTS() ;
-	uint32_t CurRpt		= sAI[Chan].Rpt ;
-	sAI[Chan].Rpt	= 0 ;
+	uint32_t CurRpt = sAI[Chan].Rpt ;
+	sAI[Chan].Rpt = 0 ;
 	taskENABLE_INTERRUPTS() ;
 	return CurRpt;
 }
 
 int32_t	xActuatorUnPause(uint8_t Chan, uint32_t CurRpt) {
-	if (Chan >= NumActuator || sAI[Chan].Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || sAI[Chan].Blocked) return erFAILURE;
 	sAI[Chan].Rpt = CurRpt ;
 	return erSUCCESS ;
 }
 
 int32_t	xActuatorBlock(uint8_t Chan) {
-	if (Chan >= NumActuator) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator) return erFAILURE;
 	sAI[Chan].Blocked = 1 ;
 	return erSUCCESS ;
 }
 
 int32_t	xActuatorUnBlock(uint8_t Chan) {
-	if (Chan >= NumActuator) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator) return erFAILURE;
 	sAI[Chan].Blocked = 0 ;
 	return erSUCCESS ;
 }
@@ -572,9 +544,7 @@ int32_t	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, ui
 	int32_t iRV = xActuatorStop(Chan) ;
 	if (iRV == erSUCCESS) {
 		iRV = xActuatorSetTiming(Chan, tFI, tON, tFO, tOFF) ;
-		if (iRV == erSUCCESS) {
-			iRV = xActuatorStart(Chan, Rpt) ;
-		}
+		if (iRV == erSUCCESS) iRV = xActuatorStart(Chan, Rpt);
 		IF_EXEC_1(debugTRACK, vActuatorReportChan, Chan) ;
 	}
 	return iRV ;
@@ -603,7 +573,7 @@ int32_t	xActuatorLoadSequence(uint8_t Chan, uint8_t * paSeq) {
 		}
 	}
 	IF_EXEC_1(debugTRACK, vActuatorReportChan, Chan) ;
-	return Idx ;
+	return Idx;
 }
 
 /**
@@ -654,26 +624,15 @@ int32_t	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int
 	pAI->tFO		+= (tFO * configTICK_RATE_HZ) / MILLIS_IN_SECOND ;
 	pAI->tOFF		+= (tOFF * configTICK_RATE_HZ) / MILLIS_IN_SECOND ;
 	pAI->Busy = 0 ;
-	int32_t	iRV ;
-	if (CurRpt == UINT32_MAX) {
-		iRV = xActuatorUnPause(Chan, CurRpt) ;
-	} else {
-		iRV = xActuatorUnPause(Chan, CurRpt + Rpt) ;
-	}
-	IF_EXEC_1(debugTRACK, vActuatorReportChan, Chan) ;
-	return iRV ;
+	return xActuatorUnPause(Chan, (CurRpt == 0xFFFFFFFF) ? CurRpt : CurRpt + Rpt) ;
 }
 
 int32_t	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int32_t Adjust) {
 	act_info_t * pAI = &sAI[Chan] ;
-	if (Chan >= NumActuator || Stage >= actSTAGE_NUM || pAI->Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || Stage >= actSTAGE_NUM || pAI->Blocked) return erFAILURE ;
 	taskDISABLE_INTERRUPTS() ;					// XXX might be able to remove if Busy flag works
 	Adjust = (Adjust * configTICK_RATE_HZ) / MILLIS_IN_SECOND ;	// convert adjustment to Ticks
-	while (pAI->Busy) {
-		vTaskDelay(pdMS_TO_TICKS(1)) ;
-	}
+	while (pAI->Busy) vTaskDelay(pdMS_TO_TICKS(1));
 	pAI->Busy = 1 ;
 	uint32_t CurVal = pAI->tXXX[Stage] ;			// save the selected stage value
 	uint32_t NewVal = CurVal + Adjust ;
@@ -690,13 +649,9 @@ int32_t	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int32_t Adjust) {
 
 int32_t	xActuatorToggle(uint8_t Chan) {
 	act_info_t * pAI = &sAI[Chan] ;
-	if (Chan >= NumActuator || pAI->Blocked) {
-		return erFAILURE ;
-	}
+	if (Chan >= NumActuator || pAI->Blocked) return erFAILURE ;
 	taskDISABLE_INTERRUPTS() ;					// XXX might be able to remove if Busy flag works
-	while (pAI->Busy) {
-		vTaskDelay(pdMS_TO_TICKS(1)) ;
-	}
+	while (pAI->Busy) vTaskDelay(pdMS_TO_TICKS(1));
 	pAI->Busy = 1 ;
 	SWAP(pAI->tFI, pAI->tFO, uint32_t) ;
 	SWAP(pAI->tON, pAI->tOFF, uint32_t) ;
@@ -783,6 +738,8 @@ int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->val.x64.x32[0].u32 ;
 	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]) ;
 	return erSUCCESS ;
+#else
+	#error "NO/invalid AEP selected"
 #endif
 }
 
@@ -813,6 +770,8 @@ int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) 
 	sAI[Chan].tXXX[Field-selACT_FIRST] = CurVal ;
 	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]) ;
 	return erSUCCESS ;
+#else
+	#error "NO/invalid AEP selected"
 #endif
 }
 
@@ -857,7 +816,7 @@ uint64_t xActuatorGetMaxRemainingTime (void) {
 	uint64_t u64Now, u64Max = 0.0 ;
 	for (int Chan = 0; Chan < NumActuator; ++Chan) {
 		u64Now = xActuatorGetRemainingTime(Chan) ;
-		if (u64Now > u64Max)  u64Max = u64Now ;
+		if (u64Now > u64Max) u64Max = u64Now;
 	}
 	return u64Max * MICROS_IN_MILLISEC ;
 }
