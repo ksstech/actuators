@@ -205,8 +205,8 @@ void	vTaskActuatorReport(void) ;
 
 // ##################################### functional tests ##########################################
 
-void	vActuatorsIdent(void) ;
 void	vActuatorTest(void)  ;
+int xActuatorsConfigMode(rule_t * psR);
 
 #ifdef __cplusplus
 }

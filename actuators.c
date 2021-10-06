@@ -1019,25 +1019,25 @@ void vTaskActuatorInit(void * pvPara) {
 #define	tSTEP		(500 * SCALE)
 #define	tLATCH		5000
 
-void vActuatorsIdent(void) {
-#if		(halXXX_XXX_OUT > 0) && (HW_VARIANT == HW_AC00 || HW_VARIANT == HW_AC01)
-	for (uint8_t Chan = 0; Chan <= 7; ++Chan) {
-		int iRV =xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
-		IF_myASSERT(debugRESULT, iRV == erSUCCESS) ;
-		vActuatorReportChan(Chan) ;
-	}
-	for (uint8_t Chan = 8; Chan <= 15; ++Chan) {
-		int iRV = xActuatorLoad(Chan, 2, 0, (tLATCH * (8 - Chan)), 0, 0) ;
-		IF_myASSERT(debugRESULT, iRV == erSUCCESS) ;
-		vActuatorReportChan(Chan) ;
-	}
+int xActuatorsConfigMode(rule_t * psR) {
+	int iRV = erSUCCESS;
+	uint8_t	AI = psR->ActIdx ;
+	uint8_t EI = psR->actPar0[AI];
 
-#elif		(halXXX_XXX_OUT > 0) && (HW_VARIANT == HW_WROVERKIT || HW_VARIANT == HW_DOITDEVKIT)
-	for (uint8_t Chan = 0; Chan < NumActuator; ++Chan) {
-		xActuatorLoad(Chan, 2, tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP), tBASE+(Chan*tSTEP)) ;
-		vActuatorReportChan(Chan) ;
-	}
-#endif
+	int Xmax = table_work[EI].var.def.cv.vc ;
+	int Xcur = psR->actPar1[AI]; 						// get # of selected end-point(s)
+	if (Xcur == 255) Xcur = 0;							// full range requested?, start from 0
+	else if (Xcur >= Xmax) ERR_EXIT("Invalid EP Index", erSCRIPT_INV_INDEX)
+	else Xmax = Xcur ;									// only do the specific endpoint
+
+	do {
+		uint32_t tXX = tBASE+(Xcur*tSTEP);
+		int iRV =xActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
+		IF_myASSERT(debugRESULT, iRV == erSUCCESS);
+		vActuatorReportChan(Xcur);
+	} while (++Xcur < Xmax);
+exit:
+	return iRV;
 }
 
 void vActuatorTestReport(uint8_t Chan, char * pcMess) {
