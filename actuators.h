@@ -149,43 +149,43 @@ void vActuatorUpdateTiming(act_info_t * pAI) ;
 void vActuatorSetDC(uint8_t Chan, int8_t CurDC) ;
 void vActuatorUpdateCurDC(act_info_t * pAI) ;
 
-int32_t	xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) ;
+int	xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) ;
 
 // Hardware dependent functions
-int32_t	xActuatorConfig(uint8_t Chan) ;
-void	vActuatorsConfig(void) ;
+int	xActuatorConfig(uint8_t Chan) ;
+void vActuatorsConfig(void) ;
 
-int32_t	xActuatorSetAlertStage(uint8_t Chan, uint8_t State) ;
-int32_t	xActuatorSetAlertDone(uint8_t Chan, uint8_t State) ;
-int32_t	xActuatorSetFrequency(uint8_t Chan, uint32_t Frequency) ;
+int	xActuatorSetAlertStage(uint8_t Chan, uint8_t State) ;
+int	xActuatorSetAlertDone(uint8_t Chan, uint8_t State) ;
+int	xActuatorSetFrequency(uint8_t Chan, uint32_t Frequency) ;
 
 void	vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) ;
-int32_t	xActuateGetLevelDIG(uint8_t eChan) ;
-int32_t	xActuatorSetStartStage(uint8_t Chan, uint8_t Stage) ;
-int32_t	vActuatorSetMinMaxDC(uint8_t Chan, int8_t iMin, int8_t iMax) ;
-int32_t	xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
+int	xActuateGetLevelDIG(uint8_t eChan) ;
+int	xActuatorSetStartStage(uint8_t Chan, uint8_t Stage) ;
+int	vActuatorSetMinMaxDC(uint8_t Chan, int8_t iMin, int8_t iMax) ;
+int	xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
 
-int32_t	xActuatorStart(uint8_t Chan, uint32_t Repeats) ;
-int32_t	xActuatorStop(uint8_t Chan) ;
+int	xActuatorStart(uint8_t Chan, uint32_t Repeats) ;
+int	xActuatorStop(uint8_t Chan) ;
 
 uint32_t xActuatorPause(uint8_t Chan) ;
-int32_t	xActuatorUnPause(uint8_t Chan, uint32_t CurRpt) ;
+int	xActuatorUnPause(uint8_t Chan, uint32_t CurRpt) ;
 
-int32_t	xActuatorBlock(uint8_t Chan) ;
-int32_t	xActuatorUnBlock(uint8_t Chan) ;
+int	xActuatorBlock(uint8_t Chan) ;
+int	xActuatorUnBlock(uint8_t Chan) ;
 
-int32_t	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
+int	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
 int	xActuatorStartSequence(uint8_t Chan, uint8_t Seq) ;
 int	xActuatorLoadSequences(uint8_t Chan, uint8_t * paSeq) ;
 int	xActuatorQueSequences(uint8_t Chan, uint8_t * paSeq) ;
-int	xActuatorUpdate(uint8_t Chan, int32_t Rpt, int32_t tFI, int32_t tON, int32_t tFO, int32_t tOFF) ;
-int32_t	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int32_t Adjust) ;
+int	xActuatorUpdate(uint8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) ;
+int	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int Adjust) ;
 
-int32_t	xActuatorToggle(uint8_t Act) ;
-int32_t	xActuatorBreath(uint8_t Chan) ;
-int32_t	vActuatorPanic(uint8_t Chan) ;
-int32_t	vActuatorOn(uint8_t Act) ;
-int32_t	vActuatorOff(uint8_t Act) ;
+int	xActuatorToggle(uint8_t Act) ;
+int	xActuatorBreath(uint8_t Chan) ;
+int	vActuatorPanic(uint8_t Chan) ;
+int	vActuatorOn(uint8_t Act) ;
+int	vActuatorOff(uint8_t Act) ;
 
 // ############################## Rules interface to Actuator table ################################
 
@@ -193,20 +193,20 @@ uint64_t xActuatorGetRemainingTime(uint8_t Chan) ;
 uint64_t xActuatorGetMaxRemainingTime (void) ;
 uint32_t xActuatorRunningCount (void) ;
 
-double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
-int32_t	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
-int32_t	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
+double dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
+int	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
+int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
 
 // ######################################## status reporting #######################################
 
-void	vActuatorReportSeq(uint8_t Seq) ;
-void	vActuatorReportChan(uint8_t Chan) ;
-void	vTaskActuatorReport(void) ;
+void vActuatorReportSeq(uint8_t Seq) ;
+void vActuatorReportChan(uint8_t Chan) ;
+void vTaskActuatorReport(void) ;
 
 // ##################################### functional tests ##########################################
 
-void	vActuatorTest(void)  ;
 int xActuatorsConfigMode(rule_t * psR);
+void vActuatorTest(void);
 
 #ifdef __cplusplus
 }
