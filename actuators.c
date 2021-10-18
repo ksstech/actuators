@@ -1019,24 +1019,14 @@ void vTaskActuatorInit(void * pvPara) {
 #define	tSTEP		(500 * SCALE)
 #define	tLATCH		5000
 
-int xActuatorsConfigMode(rule_t * psR) {
+int xActuatorsConfigMode(rule_t * psR, int Xcur, int Xmax) {
 	int iRV = erSUCCESS;
-	uint8_t	AI = psR->ActIdx ;
-	uint8_t EI = psR->actPar0[AI];
-
-	int Xmax = table_work[EI].var.def.cv.vc ;
-	int Xcur = psR->actPar1[AI]; 						// get # of selected end-point(s)
-	if (Xcur == 255) Xcur = 0;							// full range requested?, start from 0
-	else if (Xcur >= Xmax) ERR_EXIT("Invalid EP Index", erSCRIPT_INV_INDEX)
-	else Xmax = Xcur ;									// only do the specific endpoint
-
 	do {
 		uint32_t tXX = tBASE+(Xcur*tSTEP);
-		int iRV =xActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
+		iRV =xActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
 		IF_myASSERT(debugRESULT, iRV == erSUCCESS);
 		vActuatorReportChan(Xcur);
 	} while (++Xcur < Xmax);
-exit:
 	return iRV;
 }
 
