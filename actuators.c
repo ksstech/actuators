@@ -801,7 +801,7 @@ uint64_t xActuatorGetMaxRemainingTime (void) {
 void vActuatorReportSeq(uint8_t Seq) {
 	act_seq_t * psAS = &sAS[Seq] ;
 	if (Seq == 0) {
-		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", xpfSGR(colourFG_CYAN, 0, 0, 0), xpfSGR(attrRESET, 0, 0, 0)) ;
+		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", colourFG_CYAN, attrRESET) ;
 	}
 	printfx(" %2d | %'#5u|%'#7u|%'#7u|%'#7u|%'#7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF) ;
 }
@@ -811,7 +811,7 @@ void vActuatorReportChan(uint8_t Chan) {
 	bool bLevel = xActuateGetLevelDIG(Chan) ;
 	if (Chan == 0) {
 		printfx("%C Ch| LBb |Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\n",
-				xpfSGR(colourFG_CYAN, 0, 0, 0), xpfSGR(attrRESET, 0, 0, 0)) ;
+				colourFG_CYAN, attrRESET);
 	}
 	printfx(" %2d| %c%c%c | %s | %'#5d |%'#7d|%'#7d|%'#7d|%'#7d|%'#7d| %3d %3d %3d | %3d %3d %3d|",
 						psAI->ChanNum,
