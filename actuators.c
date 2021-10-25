@@ -908,7 +908,7 @@ void IRAM_ATTR vActuatorUpdateTiming(act_info_t * pAI) {
 void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_PRINT(debugTRACK && ioB1GET(ioStart), debugAPPL_MESS_UP) ;
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE_MASK) ;
-	xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY) ;
+	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY) ;
 	vActuatorsConfig() ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S0, stMICROS, "ActS0_FI", 1, 10) ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S1, stMICROS, "ActS1_ON", 1, 10) ;
@@ -1067,7 +1067,7 @@ void vActuatorTestReport(uint8_t Chan, char * pcMess) {
 void vActuatorTest(void) {
 // Test PHYSical level functioning
 #if		(debugPHYS) || (debugFUNC) || (debugUSER)
-	xRtosWaitStatus(flagAPP_I2C_READY, portMAX_DELAY) ;
+	bRtosWaitStatusALL(flagAPP_I2C_READY, portMAX_DELAY) ;
 #endif
 
 #if		(debugPHYS)
