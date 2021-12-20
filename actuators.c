@@ -909,7 +909,6 @@ void IRAM_ATTR vActuatorUpdateTiming(act_info_t * pAI) {
 }
 
 void IRAM_ATTR vTaskActuator(void * pvPara) {
-	IF_PRINT(debugTRACK && ioB1GET(ioStart), debugAPPL_MESS_UP) ;
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE_MASK) ;
 	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY) ;
 	vActuatorsConfig() ;
@@ -1008,8 +1007,7 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 			xRtosClearStateRUN(taskACTUATE_MASK) ;			// clear RUN state & wait at top....
 		}
 	}
-	IF_PRINT(debugTRACK && ioB1GET(ioRstrt), debugAPPL_MESS_DN) ;
-	vTaskDelete(NULL) ;
+	vRtosTaskDelete(NULL) ;
 }
 
 void vTaskActuatorInit(void * pvPara) {
