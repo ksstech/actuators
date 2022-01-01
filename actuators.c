@@ -162,7 +162,7 @@ void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 
 #if		(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
-	#if	(halHAS_PCA9555 == 1)							// To minimise I2C traffic, update bit array but do NOT write to device
+	#if	(halHAS_PCA9555 == 1)		// To minimise I2C traffic, update bit array but do NOT write to device
 		pca9555DIG_OUT_SetState(ActInit[eChan].halGPIO, NewState, 0) ;
 	#else
 		myASSERT(0) ;
@@ -256,68 +256,41 @@ int	xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
  * @param Chan		logical (soft) PWM channel
  */
 void IRAM_ATTR vActuatorSetDC(uint8_t eChan, int8_t CurDC) {
-	act_info_t * pAI = &sAI[eChan] ;
-	pAI->CurDC	= CurDC ;
+	act_info_t * pAI = &sAI[eChan];
+	pAI->CurDC	= CurDC;
 
 	switch(ActInit[eChan].Type) {
-#if		(halXXX_DIG_OUT > 0)						// All (GPIO + I2C + SPI) DIGital type actuators
-	#if	(halSOC_DIG_OUT > 0)
+#if		(halXXX_DIG_OUT > 0)		// All (SOC + I2C + SPI) DIGital type actuators
 	case actSOC_DIG:
-	#endif
-
-	#if	(halI2C_DIG_OUT > 0) && (halHAS_PCA9555 == 1)
 	case actI2C_DIG:
-	#endif
-
-	#if	(halSPI_DIG_OUT > 0)
 	case actSPI_DIG:
-	#endif
-
 		switch(pAI->StageNow) {
-		case actSTAGE_FI: pAI->Match	= pAI->MaxDC - pAI->CurDC ;	break ;
-		case actSTAGE_ON: pAI->Match	= pAI->MinDC ;				break ;
-		case actSTAGE_FO: pAI->Match	= pAI->MaxDC - pAI->CurDC ;	break ;
-		case actSTAGE_OFF: pAI->Match	= pAI->MaxDC ;				break ;
+		case actSTAGE_FI: pAI->Match	= pAI->MaxDC - pAI->CurDC ;	break;
+		case actSTAGE_ON: pAI->Match	= pAI->MinDC ;				break;
+		case actSTAGE_FO: pAI->Match	= pAI->MaxDC - pAI->CurDC ;	break;
+		case actSTAGE_OFF: pAI->Match	= pAI->MaxDC ;				break;
 		}
 		vActuateSetLevelDIG(eChan, (pAI->Count >= pAI->Match) ? 1 : 0) ;
 		break ;
 #endif
 
-#if		(halXXX_PWM_OUT > 0)						// All (GPIO + I2C + SPI) PWM type actuators
-	#if	(halSOC_PWM_OUT > 0)
+#if		(halXXX_PWM_OUT > 0)		// All (SOC + I2C + SPI) PWM type actuators
 	case actSOC_PWM:
 		pAI->Match = u32ScaleValue(CurDC, pAI->MinDC, pAI->MaxDC, halPWM_MIN_FREQ, halPWM_MAX_FREQ) ;
 		halGPIO_PWM_OUT_SetCycle(ActInit[eChan].halGPIO, pAI->Match) ;
 		break ;
-	#endif
-
-	#if	(halI2C_PWM_OUT > 0)
-	case actSOC_ANA:	myASSERT(0);		break ;
-	#endif
-
-	#if	(halSPI_PWM_OUT > 0)
-	case actSOC_ANA:	myASSERT(0);		break ;
-	#endif
-#endif
-
-#if		(halXXX_ANA_OUT > 0)						// All (GPIO + I2C + SPI) ANAlog type actuators
-	#if	(halSOC_ANA_OUT > 0)
+	case actSOC_ANA:
 	case actSOC_ANA:
 		myASSERT(0);
-		break ;
-	#endif
+		break;
+#endif
 
-	#if	(halI2C_ANA_OUT > 0)
+#if		(halXXX_ANA_OUT > 0)		// All (SOC + I2C + SPI) ANAlog type actuators
+	case actSOC_ANA:
 	case actI2C_ANA:
-		myASSERT(0);
-		break ;
-	#endif
-
-	#if	(halSPI_ANA_OUT > 0)
 	case actSPI_ANA:
 		myASSERT(0);
-		break ;
-	#endif
+		break;
 #endif
 
 	default:
@@ -949,7 +922,8 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_ON:							// remain on 100% for tON mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S1) ;
 				if (pAI->tON > 0) {
-					if (pAI->tNOW == 0) vActuatorSetDC(Chan, pAI->MaxDC) ;
+					if (pAI->tNOW == 0)
+						vActuatorSetDC(Chan, pAI->MaxDC) ;
 					vActuatorUpdateTiming(pAI) ;
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S1) ;
 					break ;
@@ -971,7 +945,8 @@ void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S3) ;
 				if (pAI->tOFF > 0) {
-					if (pAI->tNOW == 0) vActuatorSetDC(Chan, pAI->MinDC) ;
+					if (pAI->tNOW == 0)
+						vActuatorSetDC(Chan, pAI->MinDC) ;
 					vActuatorUpdateTiming(pAI) ;
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S3) ;
 					break ;
