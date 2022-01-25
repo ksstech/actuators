@@ -1044,7 +1044,7 @@ void vActuatorTestReport(uint8_t Chan, char * pcMess) {
 void vActuatorTest(void) {
 // Test PHYSical level functioning
 #if		(debugPHYS) || (debugFUNC) || (debugUSER)
-	bRtosWaitStatusALL(flagAPP_I2C_READY, portMAX_DELAY) ;
+	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);
 #endif
 
 #if		(debugPHYS)
