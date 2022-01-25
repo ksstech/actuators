@@ -883,13 +883,13 @@ void IRAM_ATTR vActuatorUpdateTiming(act_info_t * pAI) {
 
 void IRAM_ATTR vTaskActuator(void * pvPara) {
 	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE_MASK) ;
-	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY) ;
-	vActuatorsConfig() ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S0, stMICROS, "ActS0_FI", 1, 10) ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S1, stMICROS, "ActS1_ON", 1, 10) ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10) ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10) ;
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100) ;
+	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY) ;
+	vActuatorsConfig() ;
 	xRtosSetStateRUN(taskACTUATE_MASK) ;
 
 	while(bRtosVerifyState(taskACTUATE_MASK)) {
