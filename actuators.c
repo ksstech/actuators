@@ -136,16 +136,42 @@ act_seq_t	sAS[actNUM_SEQUENCES]	= {
 	{ 3,	0,		1000,	0,		1000,	} ,		// 0.50 Hz	x3	6Sec
 };
 
-// ################################# local/static functions ########################################
+// ###################################### Forward declarations #####################################
 
-int	xActuatorLogError(const char * pFname, uint8_t eChan) {
-	SL_LOG(SL_SEV_ERROR, "type=%d '%s'", ActInit[eChan].Type, ActTypeNames[ActInit[eChan].Type]) ;
-	return erFAILURE ;
+static int xActuateGetLevelDIG(uint8_t eChan);
+
+// #################################### Common support functions ###################################
+
+static int xActuatorLogError(const char * pFname, uint8_t eChan) {
+	SL_LOG(SL_SEV_ERROR, pFname, "#=%d t=%d (s)", eChan, ActInit[eChan].Type, ActTypeNames[ActInit[eChan].Type]);
+	return erFAILURE;
 }
 
-// ##################### Hardware dependent (DIG/PWM/ANA) Actuator functions #######################
+static void vActuatorReportChan(uint8_t Chan) {
+	if (Chan == 0) {
+		printfx("%C Ch| LBb |Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\n",
+				colourFG_CYAN, attrRESET);
+	}
+	act_info_t * psAI = &sAI[Chan];
+	bool bLevel = xActuateGetLevelDIG(Chan);
+	printfx(" %2d| %c%c%c | %s | %'#5d |%'#7d|%'#7d|%'#7d|%'#7d|%'#7d| %3d %3d %3d | %3d %3d %3d|",
+						psAI->ChanNum,
+						bLevel ? CHR_1 : CHR_0,
+						psAI->Blocked ? CHR_B : CHR_SPACE,
+						psAI->Busy ? CHR_b : CHR_SPACE,
+						StageNames[psAI->StageNow], psAI->Rpt,
+						psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW,
+						psAI->Divisor, psAI->Count, psAI->Match, psAI->MinDC, psAI->CurDC, psAI->MaxDC);
+	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
+		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx)
+			printfx("%02x ", psAI->Seq[Idx]);
+	}
+	printfx("\n");
+}
 
-void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
+// ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
+
+static void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
