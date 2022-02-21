@@ -68,9 +68,6 @@ extern "C" {
  */
 #define	actDIG_DEF_FREQ				33
 
-#define	actMIN_DUTYCYCLE			0
-#define	actMAX_DUTYCYCLE			100
-
 #define	actMAX_SEQUENCE				8
 #define actNUM_SEQUENCES			10
 
@@ -123,8 +120,8 @@ typedef struct act_info_t {								// Actuator structure
 			uint8_t	alertStart	: 1 ;
 			uint8_t	alertStop	: 1 ;
 			uint8_t	Blocked		: 1 ;
-			uint8_t	Busy		: 1 ;					// rudimentary lock between tasks/cores
 			uint8_t	Spare		: 1 ;
+			volatile uint8_t Busy : 1;				// rudimentary lock between tasks/cores
 		} ;
 		uint8_t		flags ;
 	} ;
@@ -141,45 +138,21 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
 
 // ################################ GLOBAL Functions Prototypes ####################################
 
-void vTaskActuator(void * pvParameters) ;
-void vTaskActuatorInit(void * pvAlertFunc) ;
+void vTaskActuatorInit(void * pvPara);
 
-void vActuatorUpdateTiming(act_info_t * pAI) ;
-
-void vActuatorSetDC(uint8_t Chan, int8_t CurDC) ;
-void vActuatorUpdateCurDC(act_info_t * pAI) ;
-
-int	xActuatorAlert(act_info_t * pAI, uint8_t Type, uint8_t Level) ;
-
-// Hardware dependent functions
-int	xActuatorConfig(uint8_t Chan) ;
-void vActuatorsConfig(void) ;
-
-int	xActuatorSetAlertStage(uint8_t Chan, uint8_t State) ;
-int	xActuatorSetAlertDone(uint8_t Chan, uint8_t State) ;
-int	xActuatorSetFrequency(uint8_t Chan, uint32_t Frequency) ;
-
-void	vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) ;
-int	xActuateGetLevelDIG(uint8_t eChan) ;
-int	xActuatorSetStartStage(uint8_t Chan, uint8_t Stage) ;
-int	vActuatorSetMinMaxDC(uint8_t Chan, int8_t iMin, int8_t iMax) ;
-int	xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
-
-int	xActuatorStart(uint8_t Chan, uint32_t Repeats) ;
-int	xActuatorStop(uint8_t Chan) ;
-
-uint32_t xActuatorPause(uint8_t Chan) ;
-int	xActuatorUnPause(uint8_t Chan, uint32_t CurRpt) ;
-
+int	xActuatorSetAlertStage(uint8_t Chan, int State) ;
+int	xActuatorSetAlertDone(uint8_t Chan, int State) ;
+int	xActuatorSetStartStage(uint8_t Chan, int Stage) ;
+int	vActuatorSetMinMaxDC(uint8_t Chan, int iMin, int iMax) ;
 int	xActuatorBlock(uint8_t Chan) ;
 int	xActuatorUnBlock(uint8_t Chan) ;
 
 int	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
-int	xActuatorStartSequence(uint8_t Chan, uint8_t Seq) ;
+int	xActuatorStartSequence(uint8_t Chan, int Seq) ;
 int	xActuatorLoadSequences(uint8_t Chan, uint8_t * paSeq) ;
 int	xActuatorQueSequences(uint8_t Chan, uint8_t * paSeq) ;
 int	xActuatorUpdate(uint8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) ;
-int	xActuatorAdjust(uint8_t Chan, uint32_t Stage, int Adjust) ;
+int	xActuatorAdjust(uint8_t Chan, int Stage, int Adjust) ;
 
 int	xActuatorToggle(uint8_t Act) ;
 int	xActuatorBreath(uint8_t Chan) ;
@@ -199,8 +172,6 @@ int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
 
 // ######################################## status reporting #######################################
 
-void vActuatorReportSeq(uint8_t Seq) ;
-void vActuatorReportChan(uint8_t Chan) ;
 void vTaskActuatorReport(void) ;
 
 // ##################################### functional tests ##########################################
