@@ -441,7 +441,7 @@ static int xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
 	psAI->Busy = 0;
-	IF_PRINT(debugTRACK && ioB1GET(ioActuate), "[ACT] SetTiming C=%d  %u -> %u -> %u -> %u\n", Chan, tFI, tON, tFO, tOFF);
+	IF_P(debugTRACK && ioB1GET(ioActuate), "[ACT] SetTiming C=%d  %u -> %u -> %u -> %u\n", Chan, tFI, tON, tFO, tOFF);
 	return erSUCCESS;
 }
 
@@ -568,7 +568,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
 	// ensure I2C config is done before initialising
-	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);
+	vRtosWaitStatus(flagAPP_I2C);
 	for(uint8_t Chan = 0; Chan < NumActuator; xActuatorConfig(Chan++));
 	xRtosSetStateRUN(taskACTUATE_MASK);
 
@@ -1029,7 +1029,7 @@ void vActuatorTestReport(uint8_t Chan, char * pcMess) {
 void vActuatorTest(void) {
 // Test PHYSical level functioning
 #if	(debugPHYS || debugFUNC || debugUSER)
-	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);
+	vRtosWaitStatus(flagAPP_I2C);
 #endif
 
 #if	(debugPHYS)
