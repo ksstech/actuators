@@ -453,7 +453,7 @@ static int xActuatorStart(uint8_t Chan, uint32_t Repeats) {
 	vActuatorSetDC(Chan, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetStateRUN(taskACTUATE_MASK);
-	IF_PRINT(debugTRACK && ioB1GET(ioActuate), "[ACT] Start C=%d R=%d\n", Chan, Repeats);
+	IF_P(debugTRACK && ioB1GET(ioActuate), "[ACT] Start C=%d R=%d\n", Chan, Repeats);
 	return erSUCCESS;
 }
 
@@ -465,7 +465,7 @@ static int xActuatorStop(uint8_t Chan) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(Chan, 0);
-	IF_PRINT(debugTRACK && ioB1GET(ioActuate), "[ACT] Stop C=%d\n", Chan);
+	IF_P(debugTRACK && ioB1GET(ioActuate), "[ACT] Stop C=%d\n", Chan);
 	return erSUCCESS;
 }
 
@@ -677,13 +677,13 @@ uint64_t xActuatorGetRemainingTime(uint8_t Chan) {
 	// calculate remaining time for full repeats
 	taskDISABLE_INTERRUPTS();
 	uint64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
-	IF_PRINT(debugREMTIME, "Ch#%d: %llu", Chan, u64Value);
+	IF_P(debugREMTIME, "Ch#%d: %llu", Chan, u64Value);
 
 	// now add remaining time in current stage
 	uint8_t Stage = psAI->StageNow;
 	do {
 		u64Value	+= (Stage == psAI->StageNow) ? psAI->tXXX[Stage] - psAI->tNOW : psAI->tXXX[Stage];
-		IF_PRINT(debugREMTIME, " -> s(%d): %llu", Stage, u64Value);
+		IF_P(debugREMTIME, " -> s(%d): %llu", Stage, u64Value);
 		++Stage;
 		Stage %= actSTAGE_NUM;
 	} while (Stage != psAI->StageBeg);
@@ -692,10 +692,10 @@ uint64_t xActuatorGetRemainingTime(uint8_t Chan) {
 	for (int Idx = 0; psAI->Seq[Idx] < NO_MEM(sAS); ++Idx) {
 		act_seq_t * psAS = &sAS[psAI->Seq[Idx]];
 		u64Value	+= psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
-		IF_PRINT(debugREMTIME, " -> I(%d): %llu", Idx, u64Value);
+		IF_P(debugREMTIME, " -> I(%d): %llu", Idx, u64Value);
 	}
 	taskENABLE_INTERRUPTS();
-	IF_PRINT(debugREMTIME, "\n");
+	IF_P(debugREMTIME, "\n");
 	return u64Value;
 }
 
@@ -781,7 +781,7 @@ int	vActuatorSetMinMaxDC(uint8_t Chan, int iMin, int iMax) {
 		SWAP(iMin, iMax, uint8_t);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
-	IF_PRINT(debugDUTY_CYCLE, "Done C=%d  Min=%d -> %d  Max=%d -> %d\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
+	IF_P(debugDUTY_CYCLE, "Done C=%d  Min=%d -> %d  Max=%d -> %d\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	return erSUCCESS;
 }
 
@@ -907,9 +907,9 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	} else {
 		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan);
 		px64Var->val.x64.x32[0].u32 = (uint32_t) x64Value.f64;
-		IF_PRINT(debugREMTIME, "F64=%f", x64Value.f64);
+		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
-	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-oldACT_T_FI, px64Var->val.x64.x32[0].u32);
+	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-oldACT_T_FI, px64Var->val.x64.x32[0].u32);
 #elif	(SW_AEP == 2)
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
 		x64Value.f64 				= psAI->tXXX[Field-selACT_FIRST];
@@ -917,9 +917,9 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	} else {
 		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan);
 		px64Var->val.x64.x32[0].u32 = (uint32_t) x64Value.f64;
-		IF_PRINT(debugREMTIME, "F64=%f", x64Value.f64);
+		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
-	IF_PRINT(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32);
+	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32);
 #endif
 	return x64Value.f64;
 }
@@ -929,13 +929,13 @@ int	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		return erFAILURE;
 #if		(SW_AEP == 1)
 	sAI[Chan].tXXX[Field-oldACT_T_FI] = px64Var->val.x64.x32[0].u32;
-	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
 #elif	(SW_AEP == 2)
 	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->val.x64.x32[0].u32;
 #else
 	#error "NO/invalid AEP selected"
 #endif
-	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
 	return erSUCCESS;
 }
 
@@ -950,7 +950,7 @@ int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		CurVal	= 0;
 	}
 	sAI[Chan].tXXX[Field-oldACT_T_FI] = CurVal;
-	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
 #elif	(SW_AEP == 2)
 	uint32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST];
 	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
@@ -959,7 +959,7 @@ int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		CurVal	= 0;
 	}
 	sAI[Chan].tXXX[Field-selACT_FIRST] = CurVal;
-	IF_PRINT(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
 #else
 	#error "NO/invalid AEP selected"
 #endif
