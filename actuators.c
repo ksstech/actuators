@@ -2,8 +2,12 @@
  * actuators.c - actuator support for LEDs, SSRs, Relays etc with hard & soft PWM support
  */
 
-#include	"hal_variables.h"
+#include	<string.h>
+#include	<float.h>
+#include	<limits.h>
+
 #include 	"actuators.h"
+#include	"hal_variables.h"
 #include	"endpoints.h"
 #include	"options.h"
 #include	"rules_engine.h"
@@ -20,10 +24,6 @@
 #endif
 
 #include	"esp_attr.h"
-
-#include	<string.h>
-#include	<float.h>
-#include	<limits.h>
 
 // ############################### BUILD: debug configuration options ##############################
 
@@ -45,6 +45,13 @@
 #define	debugRESULT					(debugFLAG_GLOBAL & debugFLAG & 0x8000)
 
 // ############################################ Macros #############################################
+
+#define	halPWM_MAX_COUNT			(1 << 24)			// 24 bit register
+#define	halPWM_DEF_FREQ				1000
+
+#define	halPWM_CLOCK_HZ				configCLOCKS_PER_SEC
+#define	halPWM_MIN_FREQ				((halPWM_CLOCK_HZ / halPWM_MAX_COUNT) + 1)
+#define	halPWM_MAX_FREQ				(halPWM_CLOCK_HZ / 8)
 
 #define	stACT_ALL_MASK (1<<stACT_S0 | 1<<stACT_S1 | 1<<stACT_S2 | 1<<stACT_S3 | 1<<stACT_SX)
 
@@ -171,6 +178,7 @@ static void vActuatorReportChan(uint8_t Chan) {
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
 
+#if	(halXXX_DIG_OUT > 0)		// All (SOC + I2C + SPI) DIGital type actuators
 static void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
@@ -199,6 +207,7 @@ static void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 		xActuatorLogError(__FUNCTION__, eChan);
 	}
 }
+#endif
 
 static int xActuateGetLevelDIG(uint8_t eChan) {
 	int iRV = erFAILURE;
@@ -232,13 +241,14 @@ static int xActuateGetLevelDIG(uint8_t eChan) {
 }
 
 /**
- * vActuatorSetFrequency() - configure channel for a specific [soft] PWM frequency
- * @brief		The timer will be stopped and a new frequency will be configured
- * 				The timer will NOT be restarted until a new duty cycle is configured
- * @param[in]	Chan - logical PWM channel
- * @param[in]	Frequency - desired frequency trimmed to be within the supported range
- * @return		none
+ * @brief	configure channel for a specific [soft] PWM frequency
+ * @brief	The timer will be stopped and a new frequency will be configured
+ * 			The timer will NOT be restarted until a new duty cycle is configured
+ * @param	Chan - logical PWM channel
+ * @param	Frequency - desired frequency trimmed to be within the supported range
+ * @return	none
  */
+#if	(halXXX_DIG_OUT > 0)		// All (SOC + I2C + SPI) DIGital type actuators
 static int xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
 	switch(ActInit[eChan].Type) {			// handle hardware dependent component
 	#if	(halXXX_DIG_OUT > 0)
@@ -265,6 +275,7 @@ static int xActuatorSetFrequency(uint8_t eChan, uint32_t Frequency) {
 	}
 	return erSUCCESS;
 }
+#endif
 
 /**
  * vActuatorSetDC() - Recalc & set duty cycle (brightness/speed level)
