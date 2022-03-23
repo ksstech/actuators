@@ -183,7 +183,7 @@ static void IRAM_ATTR vActuateSetLevelDIG(uint8_t eChan, uint8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		halGPIO_DIG_OUT_SetState(ActInit[eChan].halGPIO, NewState);
+		halGPDO_SetState(ActInit[eChan].halGPIO, NewState);
 		break;
 	#endif
 
@@ -214,7 +214,7 @@ static int xActuateGetLevelDIG(uint8_t eChan) {
 	switch(ActInit[eChan].Type) {						// handle hardware dependent component
 #if		(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		iRV = halGPIO_DIG_OUT_GetState(ActInit[eChan].halGPIO);
+		iRV = halGPDO_GetState(ActInit[eChan].halGPIO);
 		break;
 #endif
 
@@ -385,7 +385,7 @@ static int xActuatorConfig(uint8_t Chan) {
 	switch(ActInit[Chan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		halGPIO_DIG_OUT_Config(ActInit[Chan].halGPIO);
+		halGPDO_Config(ActInit[Chan].halGPIO);
 		xActuatorSetFrequency(Chan, actDIG_DEF_FREQ);
 		break;
 	#endif
