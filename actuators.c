@@ -460,7 +460,7 @@ static int xActuatorSetTiming(uint8_t Chan, uint32_t tFI, uint32_t tON, uint32_t
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
 	psAI->Busy = 0;
-	IF_P(debugTRACK && ioB1GET(ioActuate), "[ACT] SetTiming C=%d  %u -> %u -> %u -> %u\n", Chan, tFI, tON, tFO, tOFF);
+	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] SetTiming C=%d  %u -> %u -> %u -> %u\n", Chan, tFI, tON, tFO, tOFF);
 	return erSUCCESS;
 }
 
@@ -472,7 +472,7 @@ static int xActuatorStart(uint8_t Chan, uint32_t Repeats) {
 	vActuatorSetDC(Chan, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetStateRUN(taskACTUATE_MASK);
-	IF_P(debugTRACK && ioB1GET(ioActuate), "[ACT] Start C=%d R=%d\n", Chan, Repeats);
+	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] Start C=%d R=%d\n", Chan, Repeats);
 	return erSUCCESS;
 }
 
@@ -484,7 +484,7 @@ static int xActuatorStop(uint8_t Chan) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(Chan, 0);
-	IF_P(debugTRACK && ioB1GET(ioActuate), "[ACT] Stop C=%d\n", Chan);
+	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] Stop C=%d\n", Chan);
 	return erSUCCESS;
 }
 
@@ -493,11 +493,13 @@ static uint32_t xActuatorPause(uint8_t Chan) {
 	uint32_t CurRpt = sAI[Chan].Rpt;
 	sAI[Chan].Rpt = 0;
 	taskENABLE_INTERRUPTS();
+	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] Pause C=%d Rpt=%d\n", Chan, CurRpt);
 	return CurRpt;
 }
 
 static int xActuatorUnPause(uint8_t Chan, uint32_t CurRpt) {
 	sAI[Chan].Rpt = CurRpt;
+	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] UnPause C=%d Rpt=%d\n", Chan, CurRpt);
 	return erSUCCESS;
 }
 
@@ -790,9 +792,9 @@ int	vActuatorSetMinMaxDC(uint8_t Chan, int iMin, int iMax) {
 	IF_RETURN(psAI->Blocked, erINVALID_STATE);
 	if (iMin > iMax)
 		SWAP(iMin, iMax, uint8_t);
+	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC C=%d  Min=%d->%d  Max=%d->%d\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
-	IF_P(debugDUTY_CYCLE, "Done C=%d  Min=%d -> %d  Max=%d -> %d\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	return erSUCCESS;
 }
 
