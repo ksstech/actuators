@@ -532,10 +532,10 @@ static int IRAM_ATTR xActuatorNextSequence(act_info_t * psAI) {
 				psAI->Seq[Idx] = psAI->Seq[Idx+1];
 			psAI->Seq[Idx] = 0xFF;
 		} else {
-			myASSERT(0); 								// what do we need to do if the START failed???
+			// what do we need to do if the START failed???
 		}
 	} else {
-		myASSERT(0); 									// what do we need to do if the SETTIMING failed???
+		// what do we need to do if the SETTIMING failed???
 	}
 	return iRV;
 }
