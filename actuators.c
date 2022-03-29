@@ -1,29 +1,29 @@
 /*
- * actuators.c - actuator support for LEDs, SSRs, Relays etc with hard & soft PWM support
+ * Copyright (c) 2016-22 Andre M. Maree - KSS Technologies (Pty) Ltd.
  */
 
-#include	<string.h>
-#include	<float.h>
-#include	<limits.h>
+#include <string.h>
+#include <float.h>
+#include <limits.h>
 
-#include 	"actuators.h"
-#include	"hal_variables.h"
-#include	"endpoints.h"
-#include	"options.h"
-#include	"rules_engine.h"
+#include "actuators.h"
+#include "hal_variables.h"
+#include "endpoints.h"
+#include "options.h"
+#include "rules_engine.h"
 
-#include	"printfx.h"
-#include	"syslog.h"
-#include	"systiming.h"
-#include	"x_errors_events.h"
+#include "printfx.h"
+#include "syslog.h"
+#include "systiming.h"
+#include "x_errors_events.h"
 
-#include	"hal_gpio.h"
+#include "hal_gpio.h"
 
 #if		(halHAS_PCA9555 > 0)
-	#include	"pca9555.h"
+	#include "pca9555.h"
 #endif
 
-#include	"esp_attr.h"
+#include "esp_attr.h"
 
 // ############################### BUILD: debug configuration options ##############################
 
@@ -938,15 +938,15 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 int	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
 		return erFAILURE;
-#if		(SW_AEP == 1)
+	#if	(SW_AEP == 1)
 	sAI[Chan].tXXX[Field-oldACT_T_FI] = px64Var->val.x64.x32[0].u32;
 	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
-#elif	(SW_AEP == 2)
+	#elif (SW_AEP == 2)
 	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->val.x64.x32[0].u32;
-#else
-	#error "NO/invalid AEP selected"
-#endif
 	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
+	#else
+	#error "NO/invalid AEP selected"
+	#endif
 	return erSUCCESS;
 }
 
