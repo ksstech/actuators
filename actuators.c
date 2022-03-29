@@ -176,6 +176,14 @@ static void vActuatorReportChan(uint8_t Chan) {
 	printfx("\n");
 }
 
+static void vActuatorReportSeq(uint8_t Seq) {
+	act_seq_t * psAS = &sAS[Seq];
+	if (Seq == 0) {
+		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", colourFG_CYAN, attrRESET);
+	}
+	printfx(" %2d | %'#5u|%'#7u|%'#7u|%'#7u|%'#7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+}
+
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
 
 #if	(halXXX_DIG_OUT > 0)		// All (SOC + I2C + SPI) DIGital type actuators
@@ -505,14 +513,6 @@ static int xActuatorAddSequences(uint8_t Chan, int Idx, uint8_t * paSeq) {
 	}
 	IF_EXEC_1(debugTRACK && ioB1GET(ioActuate), vActuatorReportChan, Chan);
 	return Idx;
-}
-
-static void vActuatorReportSeq(uint8_t Seq) {
-	act_seq_t * psAS = &sAS[Seq];
-	if (Seq == 0) {
-		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", colourFG_CYAN, attrRESET);
-	}
-	printfx(" %2d | %'#5u|%'#7u|%'#7u|%'#7u|%'#7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 }
 
 static int IRAM_ATTR xActuatorNextSequence(act_info_t * psAI) {
