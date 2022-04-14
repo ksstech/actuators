@@ -161,7 +161,7 @@ static void vActuatorReportChan(uint8_t Chan) {
 	}
 	act_info_t * psAI = &sAI[Chan];
 	bool bLevel = xActuateGetLevelDIG(Chan);
-	printfx(" %2d| %c%c%c | %s | %'#5d |%'#7d|%'#7d|%'#7d|%'#7d|%'#7d| %3d %3d %3d | %3d %3d %3d|",
+	printfx(" %2d| %c%c%c | %s | %#`5d |%#`7d|%#`7d|%#`7d|%#`7d|%#`7d| %3d %3d %3d | %3d %3d %3d|",
 						psAI->ChanNum,
 						bLevel ? CHR_1 : CHR_0,
 						psAI->Blocked ? CHR_B : CHR_SPACE,
@@ -181,7 +181,7 @@ static void vActuatorReportSeq(uint8_t Seq) {
 	if (Seq == 0) {
 		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", colourFG_CYAN, attrRESET);
 	}
-	printfx(" %2d | %'#5u|%'#7u|%'#7u|%'#7u|%'#7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	printfx(" %2d | %#`5u|%#`7u|%#`7u|%#`7u|%#`7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 }
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
@@ -922,7 +922,7 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		px64Var->val.x64.x32[0].u32 = (uint32_t) x64Value.f64;
 		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
-	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-oldACT_T_FI, px64Var->val.x64.x32[0].u32);
+	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-oldACT_T_FI, px64Var->val.x64.x32[0].u32);
 #elif	(SW_AEP == 2)
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
 		x64Value.f64 				= psAI->tXXX[Field-selACT_FIRST];
@@ -932,7 +932,7 @@ double	dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		px64Var->val.x64.x32[0].u32 = (uint32_t) x64Value.f64;
 		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
-	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32);
+	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32);
 #endif
 	return x64Value.f64;
 }
@@ -942,10 +942,10 @@ int	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		return erFAILURE;
 	#if	(SW_AEP == 1)
 	sAI[Chan].tXXX[Field-oldACT_T_FI] = px64Var->val.x64.x32[0].u32;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
 	#elif (SW_AEP == 2)
 	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->val.x64.x32[0].u32;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
 	#else
 	#error "NO/invalid AEP selected"
 	#endif
@@ -963,7 +963,7 @@ int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		CurVal	= 0;
 	}
 	sAI[Chan].tXXX[Field-oldACT_T_FI] = CurVal;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
 #elif	(SW_AEP == 2)
 	uint32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST];
 	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
@@ -972,7 +972,7 @@ int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) {
 		CurVal	= 0;
 	}
 	sAI[Chan].tXXX[Field-selACT_FIRST] = CurVal;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
 #else
 	#error "NO/invalid AEP selected"
 #endif
@@ -1063,7 +1063,7 @@ void vActuatorTest(void) {
 			xActuatorStart(eChan, UINT32_MAX);
 			for(int8_t CurDC = 0; CurDC <= 100;  CurDC = (CurDC == 0) ? 1 : CurDC * 2) {
 				vActuatorSetDC(eChan, CurDC);
-				SL_INFO("DIG: Chan=%d  Freq=%'u  Lev=%'u\n", eChan, Freq, CurDC);
+				SL_INFO("DIG: Chan=%d  Freq=%`u  Lev=%`u\n", eChan, Freq, CurDC);
 				getchar();
 			}
 		}
