@@ -358,17 +358,10 @@ static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 }
 
 static int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
-	#if	(SW_AEP == 1)
-	if (Chan >= NumActuator || OUTSIDE(oldACT_T_FI, Field, oldACT_T_REM, u8_t) || sAI[Chan].Blocked) {
+	if (Chan >= NumActuator || OUTSIDE(selACT_T_FI, Field, selACT_T_REM, u8_t) || sAI[Chan].Blocked) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
 		return erFAILURE;
 	}
-	#elif (SW_AEP == 2)
-	if (Chan >= NumActuator || OUTSIDE(selACT_FIRST, Field, selACT_LAST, u8_t) || sAI[Chan].Blocked) {
-		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
-		return erFAILURE;
-	}
-	#endif
 	return erSUCCESS;
 }
 
@@ -913,67 +906,37 @@ double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	px64Var->def.cv.vc	= 1;
 	act_info_t * psAI = &sAI[Chan];
 	x64_t x64Value;
-	#if	(SW_AEP == 1)
-	if (Field < oldACT_T_REM) {							// all these are real tXXX fields/stages
-		x64Value.f64 				= psAI->tXXX[Field-oldACT_T_FI];
-		px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-oldACT_T_FI];
-	} else {
-		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan);
-		px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
-		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
-	}
-	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-oldACT_T_FI, px64Var->val.x64.x32[0].u32);
-	#elif (SW_AEP == 2)
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
-		x64Value.f64 				= psAI->tXXX[Field-selACT_FIRST];
-		px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-selACT_FIRST];
+		x64Value.f64 				= psAI->tXXX[Field-selACT_T_FI];
+		px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-selACT_T_FI];
 	} else {
 		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan);
 		px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
 		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
-	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32);
-	#endif
+	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	return x64Value.f64;
 }
 
 int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
 		return erFAILURE;
-	#if	(SW_AEP == 1)
-	sAI[Chan].tXXX[Field-oldACT_T_FI] = px64Var->val.x64.x32[0].u32;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
-	#elif (SW_AEP == 2)
-	sAI[Chan].tXXX[Field-selACT_FIRST] = px64Var->val.x64.x32[0].u32;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
-	#else
-	#error "NO/invalid AEP selected"
-	#endif
+	sAI[Chan].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
 	return erSUCCESS;
 }
 
 int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
 		return erFAILURE;
-	#if (SW_AEP == 1)
-	u32_t CurVal = sAI[Chan].tXXX[Field-oldACT_T_FI];
+	u32_t CurVal = sAI[Chan].tXXX[Field-selACT_T_FI];
 	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
 		CurVal	+= px64Var->val.x64.x32[0].i32;
 	} else {
 		CurVal	= 0;
 	}
-	sAI[Chan].tXXX[Field-oldACT_T_FI] = CurVal;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
-	#elif (SW_AEP == 2)
-	u32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST];
-	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
-		CurVal	+= px64Var->val.x64.x32[0].i32;
-	} else {
-		CurVal	= 0;
-	}
-	sAI[Chan].tXXX[Field-selACT_FIRST] = CurVal;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
-	#endif
+	sAI[Chan].tXXX[Field-selACT_T_FI] = CurVal;
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
 	return erSUCCESS;
 }
 
