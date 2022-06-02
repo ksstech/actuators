@@ -3,8 +3,6 @@
  */
 
 #include <string.h>
-#include <float.h>
-#include <limits.h>
 
 #include "actuators.h"
 #include "hal_variables.h"
@@ -19,7 +17,7 @@
 
 #include "hal_gpio.h"
 
-#if		(halHAS_PCA9555 > 0)
+#if (halHAS_PCA9555 > 0)
 	#include "pca9555.h"
 #endif
 
@@ -154,11 +152,10 @@ static int xActuatorLogError(const char * pFname, u8_t eChan) {
 	return erFAILURE;
 }
 
-	if (Chan == 0) {
 static void vActuatorReportChan(u8_t Chan) {
+	if (Chan == 0)
 		printfx("%C Ch| LBb |Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\n",
 				colourFG_CYAN, attrRESET);
-	}
 	act_info_t * psAI = &sAI[Chan];
 	bool bLevel = xActuateGetLevelDIG(Chan);
 	printfx(" %2d| %c%c%c | %s | %#`5d |%#`7d|%#`7d|%#`7d|%#`7d|%#`7d| %3d %3d %3d | %3d %3d %3d|",
@@ -651,7 +648,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			psAI->Busy = 0;
 		}
 
-#if		(halHAS_PCA9555 == 1)
+		#if	(halHAS_PCA9555 == 1)
 		/* Considering that we might be running actuator task every 1mS and
 		 * that it is possible for every I2C connected actuator pin to change
 		 * state every 1mS, we could be trying to write each bit each 1mS,
@@ -666,7 +663,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		 * diode absence or failure we regularly perform a check to verify the actual I2C device state
 		 * against what we believe it should be */
 		pca9555Check(ACTUATE_TASK_PERIOD);
-#endif
+		#endif
 
 		IF_SYSTIMER_STOP(debugTIMING, stACT_SX);
 		if (ActuatorsRunning) {							// Some active actuators, delay till next cycle
@@ -791,8 +788,8 @@ int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax) {
 	act_info_t	* psAI = &sAI[Chan];
 	IF_RETURN(psAI->Blocked, erINVALID_STATE);
 	if (iMin > iMax)
-	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC C=%d  Min=%d->%d  Max=%d->%d\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 		SWAP(iMin, iMax, u8_t);
+	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
 	return erSUCCESS;
@@ -913,7 +910,7 @@ double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	px64Var->def.cv.vc	= 1;
 	act_info_t * psAI = &sAI[Chan];
 	x64_t x64Value;
-#if		(SW_AEP == 1)
+	#if	(SW_AEP == 1)
 	if (Field < oldACT_T_REM) {							// all these are real tXXX fields/stages
 		x64Value.f64 				= psAI->tXXX[Field-oldACT_T_FI];
 		px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-oldACT_T_FI];
@@ -923,7 +920,7 @@ double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
 	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-oldACT_T_FI, px64Var->val.x64.x32[0].u32);
-#elif	(SW_AEP == 2)
+	#elif (SW_AEP == 2)
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
 		x64Value.f64 				= psAI->tXXX[Field-selACT_FIRST];
 		px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-selACT_FIRST];
@@ -933,7 +930,7 @@ double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
 	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\n", __FUNCTION__, Chan, Field, Field-selACT_FIRST, px64Var->val.x64.x32[0].u32);
-#endif
+	#endif
 	return x64Value.f64;
 }
 
@@ -955,7 +952,7 @@ int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
 		return erFAILURE;
-#if		(SW_AEP == 1)
+	#if (SW_AEP == 1)
 	u32_t CurVal = sAI[Chan].tXXX[Field-oldACT_T_FI];
 	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
 		CurVal	+= px64Var->val.x64.x32[0].i32;
@@ -964,7 +961,7 @@ int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	}
 	sAI[Chan].tXXX[Field-oldACT_T_FI] = CurVal;
 	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-oldACT_T_FI, sAI[Chan].tXXX[Field-oldACT_T_FI]);
-#elif	(SW_AEP == 2)
+	#elif (SW_AEP == 2)
 	u32_t CurVal = sAI[Chan].tXXX[Field-selACT_FIRST];
 	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
 		CurVal	+= px64Var->val.x64.x32[0].i32;
@@ -973,9 +970,7 @@ int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	}
 	sAI[Chan].tXXX[Field-selACT_FIRST] = CurVal;
 	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\n", Field, Field-selACT_FIRST, sAI[Chan].tXXX[Field-selACT_FIRST]);
-#else
-	#error "NO/invalid AEP selected"
-#endif
+	#endif
 	return erSUCCESS;
 }
 
@@ -1012,7 +1007,7 @@ void vActuatorTestReport(u8_t Chan, char * pcMess) {
 				pcMess, Chan, psAI->StageNow, psAI->Rpt,
 				psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW);
 	switch(ActInit[Chan].Type) {
-#if	(halXXX_DIG_OUT > 0)
+	#if	(halXXX_DIG_OUT > 0)
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 	#endif
@@ -1041,20 +1036,20 @@ void vActuatorTestReport(u8_t Chan, char * pcMess) {
 
 void vActuatorTest(void) {
 // Test PHYSical level functioning
-#if	(debugPHYS || debugFUNC || debugUSER)
+	#if	(debugPHYS || debugFUNC || debugUSER)
 	vRtosWaitStatus(flagAPP_I2C);
-#endif
+	#endif
 
-#if	(debugPHYS)
+	#if	(debugPHYS)
 	for(u8_t Chan = 0; Chan < NumActuator; ++Chan) {
 		xActuatorConfig(Chan);
 		vActuateSetLevelDIG(Chan, 1);
 		vTaskDelay(1000);
 		vActuateSetLevelDIG(Chan, 0);
 	}
-#endif
+	#endif
 
-#if	(debugFUNC)
+	#if	(debugFUNC)
 	for(u8_t eChan = 0; eChan < NumActuator; ++eChan) {
 		xActuatorConfig(eChan);
 		for(u32_t Freq = actDIG_MIN_FREQ;  Freq <= actDIG_MAX_FREQ; Freq *= 5) {
@@ -1068,9 +1063,9 @@ void vActuatorTest(void) {
 			}
 		}
 	}
-#endif
+	#endif
 
-#if	(debugUSER)
+	#if	(debugUSER)
 	for(u8_t eChan = 0; eChan < NumActuator; ++eChan) {
 		xActuatorConfig(eChan);
 		xActuatorSetFrequency(eChan, 1000);
@@ -1087,5 +1082,5 @@ void vActuatorTest(void) {
 		vActuatorTestReport(eChan, "5s per phase, 0->100%");
 		vTaskDelay(pdMS_TO_TICKS(20000));
 	}
-#endif
+	#endif
 }
