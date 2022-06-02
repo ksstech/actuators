@@ -424,7 +424,7 @@ static int xActuatorConfig(u8_t Chan) {
 	psAI->ChanNum	= Chan;
 	psAI->ConfigOK	= 1;
 	vActuatorSetDC(Chan, 0);
-	IF_EXEC_1(debugTRACK && ioB1GET(ioActuate), vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate) > 1, vActuatorReportChan, Chan);
 	return erSUCCESS;
 }
 
@@ -481,7 +481,7 @@ static int xActuatorStop(u8_t Chan) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(Chan, 0);
-	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] Stop C=%d\n", Chan);
+	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Stop Ch=%d\n", Chan);
 	return erSUCCESS;
 }
 
@@ -490,13 +490,13 @@ static u32_t xActuatorPause(u8_t Chan) {
 	u32_t CurRpt = sAI[Chan].Rpt;
 	sAI[Chan].Rpt = 0;
 	taskENABLE_INTERRUPTS();
-	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] Pause C=%d Rpt=%d\n", Chan, CurRpt);
+	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Pause Ch=%d Rpt=%d\n", Chan, CurRpt);
 	return CurRpt;
 }
 
 static int xActuatorUnPause(u8_t Chan, u32_t CurRpt) {
 	sAI[Chan].Rpt = CurRpt;
-	IF_PT(debugTRACK && ioB1GET(ioActuate), "[ACT] UnPause C=%d Rpt=%d\n", Chan, CurRpt);
+	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] UnPause Ch=%d Rpt=%d\n", Chan, CurRpt);
 	return erSUCCESS;
 }
 
@@ -510,14 +510,14 @@ static int xActuatorAddSequences(u8_t Chan, int Idx, u8_t * paSeq) {
 			break; 										// and go no further
 		}
 	}
-	IF_EXEC_1(debugTRACK && ioB1GET(ioActuate), vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
 	return Idx;
 }
 
 static int IRAM_ATTR xActuatorNextSequence(act_info_t * psAI) {
 	u8_t	NxtSeq = psAI->Seq[0];
 	IF_RETURN(NxtSeq >= NO_MEM(sAS), erFAILURE);
-	IF_EXEC_1(debugTRACK && ioB1GET(ioActuate), vActuatorReportSeq, NxtSeq);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportSeq, NxtSeq);
 	act_seq_t * psAS = &sAS[NxtSeq];
 	// load values from sequence #
 	int iRV = xActuatorSetTiming(psAI->ChanNum, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
@@ -743,7 +743,7 @@ int	xActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t t
 		iRV = xActuatorSetTiming(Chan, tFI, tON, tFO, tOFF);
 		if (iRV == erSUCCESS) {
 			iRV = xActuatorStart(Chan, Rpt);
-			IF_EXEC_1(debugTRACK && ioB1GET(ioActuate), vActuatorReportChan, Chan);
+			IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
 		}
 	}
 	if (iRV < erSUCCESS)
@@ -880,7 +880,7 @@ int	xActuatorAdjust(u8_t Chan, int Stage, int Adjust) {
 	}
 	psAI->Busy = 0;
 //	taskENABLE_INTERRUPTS();
-	IF_EXEC_1(debugTRACK && ioB1GET(ioActuate), vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
 	return erSUCCESS;
 }
 
