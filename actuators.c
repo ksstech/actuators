@@ -1057,7 +1057,7 @@ void vActuatorTest(void) {
 #if	(debugFUNC)
 	for(u8_t eChan = 0; eChan < NumActuator; ++eChan) {
 		xActuatorConfig(eChan);
-		for(uint32_t Freq = actDIG_MIN_FREQ;  Freq <= actDIG_MAX_FREQ; Freq *= 5) {
+		for(u32_t Freq = actDIG_MIN_FREQ;  Freq <= actDIG_MAX_FREQ; Freq *= 5) {
 			xActuatorSetFrequency(eChan, Freq);
 			xActuatorSetTiming(eChan, 0, 0, UINT32_MAX, 0);
 			xActuatorStart(eChan, UINT32_MAX);
