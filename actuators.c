@@ -158,7 +158,8 @@ static void vActuatorReportChan(u8_t Chan) {
 				colourFG_CYAN, attrRESET);
 	act_info_t * psAI = &sAI[Chan];
 	bool bLevel = xActuateGetLevelDIG(Chan);
-	printfx(" %2d| %c%c%c | %s | %#`5d |%#`7d|%#`7d|%#`7d|%#`7d|%#`7d| %3d %3d %3d | %3d %3d %3d|",
+	printfx_lock();
+	printfx_nolock(" %2d| %c%c%c | %s | %#`5d |%#`7d|%#`7d|%#`7d|%#`7d|%#`7d| %3d %3d %3d | %3d %3d %3d|",
 						psAI->ChanNum,
 						bLevel ? CHR_1 : CHR_0,
 						psAI->Blocked ? CHR_B : CHR_SPACE,
@@ -168,17 +169,19 @@ static void vActuatorReportChan(u8_t Chan) {
 						psAI->Divisor, psAI->Count, psAI->Match, psAI->MinDC, psAI->CurDC, psAI->MaxDC);
 	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
 		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx)
-			printfx("%02x ", psAI->Seq[Idx]);
+			printfx_nolock("%02x ", psAI->Seq[Idx]);
 	}
-	printfx("\n");
+	printfx_nolock("\n");
+	printfx_unlock();
 }
 
 static void vActuatorReportSeq(u8_t Seq) {
 	act_seq_t * psAS = &sAS[Seq];
-	if (Seq == 0) {
-		printfx("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", colourFG_CYAN, attrRESET);
-	}
-	printfx(" %2d | %#`5u|%#`7u|%#`7u|%#`7u|%#`7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	printfx_lock();
+	if (Seq == 0)
+		printfx_nolock("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\n", colourFG_CYAN, attrRESET);
+	printfx_nolock(" %2d | %#`5u|%#`7u|%#`7u|%#`7u|%#`7u|\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	printfx_unlock();
 }
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
