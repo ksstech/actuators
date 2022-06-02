@@ -53,8 +53,7 @@ extern "C" {
 
 // ####################################### MACROS ##################################################
 
-#define	ACTUATE_PRIORITY			8
-#define	ACTUATE_STACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 256))
+#define	ACTUATE_STACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 512))
 #define	ACTUATE_TASK_PERIOD			2
 
 #define	actDIG_CLOCK_HZ				configTICK_RATE_HZ
@@ -91,47 +90,47 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, } ;// 
 // ########################################## Structures ##########################################
 
 typedef struct {
-	uint8_t		Type	: 4;		// Max = 8
-	uint8_t		halGPIO	: 4;		// Max = 15 (AC_0x)
+	u8_t	Type	: 4;			// Max = 8
+	u8_t	halGPIO	: 4;			// Max = 15 (AC_0x)
 } act_init_t ;
 DUMB_STATIC_ASSERT(sizeof(act_init_t) == 1) ;
 
-typedef struct act_info_t {								// Actuator structure
-	union {												// all values in TICKS not mSec
-		struct { uint32_t	tFI, tON, tFO, tOFF, Rpt, tNOW ; } ;
-		uint32_t tXXX[actSTAGE_NUM + 2] ;				// +2 for tNOW & Rpt
+typedef struct act_info_t {			// Actuator structure
+	union {							// all values in TICKS not mSec
+		struct { u32_t	tFI, tON, tFO, tOFF, Rpt, tNOW ; } ;
+		u32_t tXXX[actSTAGE_NUM + 2];	// +2 for tNOW & Rpt
 	} ;
-	uint8_t		Seq[actMAX_SEQUENCE] ;					// number of queued sequences
-	uint32_t	Divisor ;								// number of clocks in a cycle
-	uint32_t	Match ;									// level for switching 0/1 output
-	uint32_t	Count ;
-	uint8_t		MinDC ;									// 0% = OFF
-	uint8_t		MaxDC ;									// 100% = ON
-	uint8_t		DelDC ;									// MaxDC - MinDC
-	uint8_t		CurDC ;									// Current DutyCycle 0 -> 100%
-	uint8_t		StageBeg ;								// Stage to start a cycle with, primarily for lead/trail OFF
-	uint8_t		StageNow ;								// Current stage for actuator
-	uint8_t		ChanNum ;
+	u8_t	Seq[actMAX_SEQUENCE];	// number of queued sequences
+	u32_t	Divisor;				// number of clocks in a cycle
+	u32_t	Match;					// level for switching 0/1 output
+	u32_t	Count;
+	u8_t	MinDC;					// 0% = OFF
+	u8_t	MaxDC;					// 100% = ON
+	u8_t	DelDC;					// MaxDC - MinDC
+	u8_t	CurDC;					// Current DutyCycle 0 -> 100%
+	u8_t	StageBeg;				// Stage to start a cycle with, primarily for lead/trail OFF
+	u8_t	StageNow;				// Current stage for actuator
+	u8_t	ChanNum;
 	union {
 		struct {
-			uint8_t	ConfigOK	: 1 ;
-			uint8_t	alertStage	: 1 ;
-			uint8_t	alertDone	: 1 ;
-			uint8_t	alertStart	: 1 ;
-			uint8_t	alertStop	: 1 ;
-			uint8_t	Blocked		: 1 ;
-			uint8_t	Spare		: 1 ;
-			volatile uint8_t Busy : 1;				// rudimentary lock between tasks/cores
+			u8_t	ConfigOK	: 1;
+			u8_t	alertStage	: 1;
+			u8_t	alertDone	: 1;
+			u8_t	alertStart	: 1;
+			u8_t	alertStop	: 1;
+			u8_t	Blocked		: 1;
+			u8_t	Spare		: 1;
+			volatile u8_t Busy : 1;	// rudimentary lock between tasks/cores
 		} ;
-		uint8_t		flags ;
-	} ;
+		u8_t	flags;
+	};
 } act_info_t ;
-DUMB_STATIC_ASSERT(sizeof(act_info_t) == 52) ;
+DUMB_STATIC_ASSERT(sizeof(act_info_t) == 52);
 
-typedef struct act_seq_t {							// Sequence structure
-	uint32_t	Rpt, tFI, tON, tFO, tOFF ;
-} act_seq_t ;
-DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
+typedef struct act_seq_t {			// Sequence structure
+	u32_t	Rpt, tFI, tON, tFO, tOFF;
+} act_seq_t;
+DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20);
 
 // ################################### Public Variables ############################################
 
@@ -140,35 +139,35 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20) ;
 
 void vTaskActuatorInit(void * pvPara);
 
-int	xActuatorSetAlertStage(uint8_t Chan, int State) ;
-int	xActuatorSetAlertDone(uint8_t Chan, int State) ;
-int	xActuatorSetStartStage(uint8_t Chan, int Stage) ;
-int	vActuatorSetMinMaxDC(uint8_t Chan, int iMin, int iMax) ;
-int	xActuatorBlock(uint8_t Chan) ;
-int	xActuatorUnBlock(uint8_t Chan) ;
+int	xActuatorSetAlertStage(u8_t Chan, int State) ;
+int	xActuatorSetAlertDone(u8_t Chan, int State) ;
+int	xActuatorSetStartStage(u8_t Chan, int Stage) ;
+int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax) ;
+int	xActuatorBlock(u8_t Chan) ;
+int	xActuatorUnBlock(u8_t Chan) ;
 
-int	xActuatorLoad(uint8_t Chan, uint32_t Rpt, uint32_t tFI, uint32_t tON, uint32_t tFO, uint32_t tOFF) ;
-int	xActuatorStartSequence(uint8_t Chan, int Seq) ;
-int	xActuatorLoadSequences(uint8_t Chan, uint8_t * paSeq) ;
-int	xActuatorQueSequences(uint8_t Chan, uint8_t * paSeq) ;
-int	xActuatorUpdate(uint8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) ;
-int	xActuatorAdjust(uint8_t Chan, int Stage, int Adjust) ;
+int	xActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) ;
+int	xActuatorStartSequence(u8_t Chan, int Seq) ;
+int	xActuatorLoadSequences(u8_t Chan, u8_t * paSeq) ;
+int	xActuatorQueSequences(u8_t Chan, u8_t * paSeq) ;
+int	xActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) ;
+int	xActuatorAdjust(u8_t Chan, int Stage, int Adjust) ;
 
-int	xActuatorToggle(uint8_t Act) ;
-int	xActuatorBreath(uint8_t Chan) ;
-int	vActuatorPanic(uint8_t Chan) ;
-int	vActuatorOn(uint8_t Act) ;
-int	vActuatorOff(uint8_t Act) ;
+int	xActuatorToggle(u8_t Act) ;
+int	xActuatorBreath(u8_t Chan) ;
+int	vActuatorPanic(u8_t Chan) ;
+int	vActuatorOn(u8_t Act) ;
+int	vActuatorOff(u8_t Act) ;
 
 // ############################## Rules interface to Actuator table ################################
 
-uint64_t xActuatorGetRemainingTime(uint8_t Chan) ;
-uint64_t xActuatorGetMaxRemainingTime (void) ;
-uint32_t xActuatorRunningCount (void) ;
+u64_t xActuatorGetRemainingTime(u8_t Chan) ;
+u64_t xActuatorGetMaxRemainingTime (void) ;
+u32_t xActuatorRunningCount (void) ;
 
-double dActuatorGetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
-int	xActuatorSetFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
-int	xActuatorUpdateFieldValue(uint8_t Chan, uint8_t Field, v64_t * px64Var) ;
+double dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
+int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
+int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
 
 // ######################################## status reporting #######################################
 
