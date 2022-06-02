@@ -727,7 +727,7 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 }
 
 void vTaskActuatorInit(void * pvPara) {
-	xRtosTaskCreate(vTaskActuator, "Actuator", ACTUATE_STACK_SIZE, pvPara, ACTUATE_PRIORITY, NULL, tskNO_AFFINITY);
+	xRtosTaskCreate(vTaskActuator, "Actuator", ACTUATE_STACK_SIZE, pvPara, 8, NULL, tskNO_AFFINITY);
 }
 
 /* ############################ Actuator alerting support functions ################################
