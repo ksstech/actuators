@@ -113,16 +113,16 @@ typedef struct act_info_t {			// Actuator structure
 	u8_t	ChanNum;
 	union {
 		struct {
-			u8_t	ConfigOK	: 1;
-			u8_t	alertStage	: 1;
-			u8_t	alertDone	: 1;
-			u8_t	alertStart	: 1;
-			u8_t	alertStop	: 1;
-			u8_t	Blocked		: 1;
-			u8_t	Spare		: 1;
-			volatile u8_t Busy : 1;	// rudimentary lock between tasks/cores
-		} ;
-		u8_t	flags;
+			volatile u8_t ConfigOK	: 1;
+			volatile u8_t alertStage: 1;
+			volatile u8_t alertDone	: 1;
+			volatile u8_t alertStart: 1;
+			volatile u8_t alertStop	: 1;
+			volatile u8_t Blocked	: 1;
+			volatile u8_t Spare	: 1;
+			volatile u8_t Busy	: 1;	// rudimentary lock between tasks/cores
+		};
+		volatile u8_t flags;
 	};
 } act_info_t ;
 DUMB_STATIC_ASSERT(sizeof(act_info_t) == 52);
@@ -143,21 +143,23 @@ int	xActuatorSetAlertStage(u8_t Chan, int State) ;
 int	xActuatorSetAlertDone(u8_t Chan, int State) ;
 int	xActuatorSetStartStage(u8_t Chan, int Stage) ;
 int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax) ;
-int	xActuatorBlock(u8_t Chan) ;
-int	xActuatorUnBlock(u8_t Chan) ;
+void vActuatorBlock(u8_t Chan) ;
+void vActuatorUnBlock(u8_t Chan) ;
 
-int	xActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) ;
-int	xActuatorStartSequence(u8_t Chan, int Seq) ;
-int	xActuatorLoadSequences(u8_t Chan, u8_t * paSeq) ;
-int	xActuatorQueSequences(u8_t Chan, u8_t * paSeq) ;
-int	xActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) ;
-int	xActuatorAdjust(u8_t Chan, int Stage, int Adjust) ;
+void vActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) ;
+void vActuatorStartSequence(u8_t Chan, int Seq) ;
+void xActuatorLoadSequences(u8_t Chan, u8_t * paSeq) ;
+void vActuatorQueSequences(u8_t Chan, u8_t * paSeq) ;
+void vActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) ;
+void vActuatorAdjust(u8_t Chan, int Stage, int Adjust) ;
 
-int	xActuatorToggle(u8_t Act) ;
-int	xActuatorBreath(u8_t Chan) ;
-int	vActuatorPanic(u8_t Chan) ;
-int	vActuatorOn(u8_t Act) ;
-int	vActuatorOff(u8_t Act) ;
+
+void vActuatorConfig(u8_t Chan);
+void vActuatorToggle(u8_t Act);
+void vActuatorBreath(u8_t Chan);
+void vActuatorPanic(u8_t Chan);
+void vActuatorOn(u8_t Act);
+void vActuatorOff(u8_t Act);
 
 // ############################## Rules interface to Actuator table ################################
 

@@ -1,4 +1,5 @@
 /*
+ * actuators.c - a soft PWM module to control GPIO outputs driving LEDs and relays
  * Copyright (c) 2016-22 Andre M. Maree - KSS Technologies (Pty) Ltd.
  */
 
@@ -184,9 +185,54 @@ static void vActuatorReportSeq(u8_t Seq) {
 	printfx_unlock();
 }
 
+inline void vActuatorBusy(act_info_t * psAI) {
+//	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
+	while (psAI->Busy)
+		vTaskDelay(pdMS_TO_TICKS(2));
+	psAI->Busy = 1;
+}
+
+inline void vActuatorRelease(act_info_t	* psAI) {
+	psAI->Busy = 0;
+//	taskENABLE_INTERRUPTS();
+}
+
+/**
+ * @brief	UNTESTED
+ * @param	psAI
+ * @return
+ */
+static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
+	epi_t	sEI = { 0 };
+	event_t	sEvent	= { 0 };
+	alert_t	sAlert	= { 0 };
+	ubuf_t	sBuf	= { 0 };
+	vEpGetInfoWithIndex(&sEI, URI_ACT);
+	IF_RETURN_X(sEI.psES == NULL, erFAILURE);
+	sEI.psEvent		= &sEvent;
+	sEI.psAlert		= &sAlert;
+	sEI.psUB		= &sBuf;
+	// configure the type, level and supporting field/channel info
+	sAlert.Type		= Type;
+	sAlert.Level	= Level;
+	sAlert.pvValue	= psAI;
+	return xEpGenerateAlert(&sEI);
+}
+
+static int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
+	if (Chan >= NumActuator || OUTSIDE(selACT_T_FI, Field, selACT_T_REM, u8_t) || sAI[Chan].Blocked) {
+		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
+		return erFAILURE;
+	}
+	return erSUCCESS;
+}
+
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
 
 #if	(halXXX_DIG_OUT > 0)		// All (SOC + I2C + SPI) DIGital type actuators
+/**
+ * @brief	LL=NL
+ */
 static void IRAM_ATTR vActuateSetLevelDIG(u8_t eChan, u8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
@@ -217,30 +263,33 @@ static void IRAM_ATTR vActuateSetLevelDIG(u8_t eChan, u8_t NewState) {
 }
 #endif
 
+/**
+ * @brief	LL=NL
+ */
 static int xActuateGetLevelDIG(u8_t eChan) {
 	int iRV = erFAILURE;
 	switch(ActInit[eChan].Type) {						// handle hardware dependent component
-#if		(halSOC_DIG_OUT > 0)
+	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
 		iRV = halGPDO_GetState(ActInit[eChan].halGPIO);
 		break;
-#endif
+	#endif
 
-#if		(halSOC_PWM_OUT > 0)
+	#if	(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
 		iRV = halGPIO_PWM_OUT_GetState(ActInit[eChan].halGPIO);
 		break;
-#endif
-
-#if		(halI2C_DIG_OUT > 0)
-	case actI2C_DIG:
-	#if	(halHAS_PCA9555 == 1)
-		iRV = pca9555DIG_OUT_GetState(ActInit[eChan].halGPIO);
-	#else
-		myASSERT(0);
 	#endif
+
+	#if	(halI2C_DIG_OUT > 0)
+	case actI2C_DIG:
+		#if	(halHAS_PCA9555 == 1)
+		iRV = pca9555DIG_OUT_GetState(ActInit[eChan].halGPIO);
+		#else
+		myASSERT(0);
+		#endif
 		break;
-#endif
+	#endif
 
 	default:
 		xActuatorLogError(__FUNCTION__, eChan);
@@ -249,7 +298,7 @@ static int xActuateGetLevelDIG(u8_t eChan) {
 }
 
 /**
- * @brief	configure channel for a specific [soft] PWM frequency
+ * @brief	LL=NL configure channel for a specific [soft] PWM frequency
  * @brief	The timer will be stopped and a new frequency will be configured
  * 			The timer will NOT be restarted until a new duty cycle is configured
  * @param	Chan - logical PWM channel
@@ -257,7 +306,7 @@ static int xActuateGetLevelDIG(u8_t eChan) {
  * @return	none
  */
 #if	(halXXX_DIG_OUT > 0)		// All (SOC + I2C + SPI) DIGital type actuators
-static int xActuatorSetFrequency(u8_t eChan, u32_t Frequency) {
+static void vActuatorSetFrequency(u8_t eChan, u32_t Frequency) {
 	switch(ActInit[eChan].Type) {			// handle hardware dependent component
 	#if	(halXXX_DIG_OUT > 0)
 	case actSOC_DIG:
@@ -278,16 +327,14 @@ static int xActuatorSetFrequency(u8_t eChan, u32_t Frequency) {
 		break;
 	#endif
 
-	default:
-		return xActuatorLogError(__FUNCTION__, eChan);
+	default: xActuatorLogError(__FUNCTION__, eChan);
 	}
-	return erSUCCESS;
 }
 #endif
 
 /**
- * vActuatorSetDC() - Recalc & set duty cycle (brightness/speed level)
- * @param Chan		logical (soft) PWM channel
+ * @brief	LL=NL Recalc & set duty cycle (brightness/speed level)
+ * @param	logical (soft) PWM channel
  */
 static void IRAM_ATTR vActuatorSetDC(u8_t eChan, int8_t CurDC) {
 	act_info_t * psAI = &sAI[eChan];
@@ -299,10 +346,18 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eChan, int8_t CurDC) {
 	case actI2C_DIG:
 	case actSPI_DIG:
 		switch(psAI->StageNow) {
-		case actSTAGE_FI: psAI->Match	= psAI->MaxDC - psAI->CurDC; 	break;
-		case actSTAGE_ON: psAI->Match	= psAI->MinDC; 				break;
-		case actSTAGE_FO: psAI->Match	= psAI->MaxDC - psAI->CurDC; 	break;
-		case actSTAGE_OFF: psAI->Match	= psAI->MaxDC; 				break;
+		case actSTAGE_FI:
+			psAI->Match	= psAI->MaxDC - psAI->CurDC;
+			break;
+		case actSTAGE_ON:
+			psAI->Match	= psAI->MinDC;
+			break;
+		case actSTAGE_FO:
+			psAI->Match	= psAI->MaxDC - psAI->CurDC;
+			break;
+		case actSTAGE_OFF:
+			psAI->Match	= psAI->MaxDC;
+			break;
 		}
 		vActuateSetLevelDIG(eChan, (psAI->Count >= psAI->Match) ? 1 : 0);
 		break;
@@ -333,97 +388,6 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eChan, int8_t CurDC) {
 	IF_EXEC_1(debugDUTY, vActuatorReportChan, eChan);
 }
 
-// ################################# local/static functions ########################################
-
-/**
- * @brief		UNTESTED
- * @param		psAI
- * @return
- */
-static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
-	epi_t	sEI = { 0 };
-	event_t	sEvent	= { 0 };
-	alert_t	sAlert	= { 0 };
-	ubuf_t	sBuf	= { 0 };
-	vEpGetInfoWithIndex(&sEI, URI_ACT);
-	IF_RETURN_X(sEI.psES == NULL, erFAILURE);
-	sEI.psEvent		= &sEvent;
-	sEI.psAlert		= &sAlert;
-	sEI.psUB		= &sBuf;
-	// configure the type, level and supporting field/channel info
-	sAlert.Type		= Type;
-	sAlert.Level	= Level;
-	sAlert.pvValue	= psAI;
-	return xEpGenerateAlert(&sEI);
-}
-
-static int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
-	if (Chan >= NumActuator || OUTSIDE(selACT_T_FI, Field, selACT_T_REM, u8_t) || sAI[Chan].Blocked) {
-		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
-		return erFAILURE;
-	}
-	return erSUCCESS;
-}
-
-static void IRAM_ATTR vActuatorUpdateCurDC(act_info_t * psAI) {
-	psAI->CurDC	= psAI->MinDC;
-	psAI->Match	= psAI->tNOW;
-	if (psAI->tXXX[psAI->StageNow]) {
-		psAI->CurDC	+= ((psAI->tNOW * psAI->DelDC) / psAI->tXXX[psAI->StageNow]);
-		psAI->Match	= psAI->tNOW / ( psAI->tXXX[psAI->StageNow] / psAI->Divisor);
-	}
-}
-
-/**
- * @brief		configure the hardware pin associated with a channel
- *				Uses the definitions in the hal_gpio module to define the specific pin,
- * 				its configuration and (optionally) the associated timer module for hard PWM
- * @param[in]	Channel
- * @return		None
- */
-static int xActuatorConfig(u8_t Chan) {
-	IF_RETURN_X(sAI[Chan].Blocked, erFAILURE);
-	switch(ActInit[Chan].Type) {					// handle hardware dependent component
-	#if	(halSOC_DIG_OUT > 0)
-	case actSOC_DIG:
-		halGPDO_Config(ActInit[Chan].halGPIO);
-		xActuatorSetFrequency(Chan, actDIG_DEF_FREQ);
-		break;
-	#endif
-
-	#if	(halSOC_PWM_OUT > 0)
-	case actSOC_PWM:
-		halGPIO_PWM_OUT_Config(ActInit[Chan].halGPIO);
-		xActuatorSetFrequency(Chan, halPWM_DEF_FREQ);
-		break;
-	#endif
-
-	#if	(halI2C_DIG_OUT > 0)
-	case actI2C_DIG:
-	#if	 (halHAS_PCA9555 == 1)
-		pca9555DIG_OUT_Config(ActInit[Chan].halGPIO);
-		xActuatorSetFrequency(Chan, actDIG_DEF_FREQ);
-	#else
-		myASSERT(0);
-	#endif
-		break;
-	#endif
-
-	default:
-		return xActuatorLogError(__FUNCTION__, Chan);
-	}
-	act_info_t * psAI = &sAI[Chan];
-	memset(psAI->Seq, 0xFF, SO_MEM(act_info_t, Seq));
-	psAI->CurDC		= psAI->MinDC		= 0;
-	psAI->MaxDC		= psAI->DelDC		= 100;
-	psAI->StageBeg	= psAI->StageNow	= actSTAGE_FI;
-	psAI->ChanNum	= Chan;
-	psAI->ConfigOK	= 1;
-	vActuatorSetDC(Chan, 0);
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate) > 1, vActuatorReportChan, Chan);
-	return erSUCCESS;
-}
-
 /* ########################## Hardware INDEPENDENT Actuator functions ##############################
 * To provide transparent "soft" PWM support for DIGital OUTput pins.
 *	Background as follows:
@@ -437,39 +401,43 @@ static int xActuatorConfig(u8_t Chan) {
 */
 
 /**
- * ActuatorSetTiming()
- * @brief		timing values are supplied in mSec, converted and stored as ticks
- * @param[in]	Chan, tOFF, tFI, tON, tFO
- * @return		erFAILURE or erSUCCESS
+ * @brief	LowLevel-NoLocking timing values are supplied in mSec, converted and stored as ticks
+ * @param	Chan, tOFF, tFI, tON, tFO
+ * @return	erFAILURE or erSUCCESS
  */
-static int xActuatorSetTiming(u8_t Chan, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
+static void vActuatorSetTiming(u8_t Chan, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
 	act_info_t	* psAI = &sAI[Chan];
-	while (psAI->Busy)
-		vTaskDelay(pdMS_TO_TICKS(1));
-	psAI->Busy = 1;
 	// set configuration to max 1 day...
 	psAI->tFI = pdMS_TO_TICKS(tFI > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFI);
 	psAI->tON = pdMS_TO_TICKS(tON > MILLIS_IN_DAY ? MILLIS_IN_DAY : tON);
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
-	psAI->Busy = 0;
 	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u\n", Chan, tFI, tON, tFO, tOFF);
-	return erSUCCESS;
 }
 
-static int xActuatorStart(u8_t Chan, u32_t Repeats) {
+/**
+ * @brief	LL-NL
+ */
+static void vActuatorStart(u8_t Chan, u32_t Repeats) {
 	act_info_t	* psAI = &sAI[Chan];
 	psAI->tNOW = psAI->Count = 0;
 	psAI->StageNow = psAI->StageBeg;
-	vActuatorUpdateCurDC(psAI);
+	psAI->CurDC	= psAI->MinDC;
+	psAI->Match	= psAI->tNOW;
+	if (psAI->tXXX[psAI->StageNow]) {
+		psAI->CurDC	+= ((psAI->tNOW * psAI->DelDC) / psAI->tXXX[psAI->StageNow]);
+		psAI->Match	= psAI->tNOW / ( psAI->tXXX[psAI->StageNow] / psAI->Divisor);
+	}
 	vActuatorSetDC(Chan, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetStateRUN(taskACTUATE_MASK);
 	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Start Ch=%d Rpt=%d\n", Chan, Repeats);
-	return erSUCCESS;
 }
 
-static int xActuatorStop(u8_t Chan) {
+/**
+ * @brief	LL-NL
+ */
+static void vActuatorStop(u8_t Chan) {
 	act_info_t * psAI = &sAI[Chan];
 	// reset ONLY the tXXX values (incl Rpt + tNow)
 	memset(&psAI->tXXX, 0, sizeof(sAI[0].tXXX));
@@ -478,25 +446,12 @@ static int xActuatorStop(u8_t Chan) {
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(Chan, 0);
 	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Stop Ch=%d\n", Chan);
-	return erSUCCESS;
 }
 
-static u32_t xActuatorPause(u8_t Chan) {
-	taskDISABLE_INTERRUPTS();
-	u32_t CurRpt = sAI[Chan].Rpt;
-	sAI[Chan].Rpt = 0;
-	taskENABLE_INTERRUPTS();
-	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Pause Ch=%d Rpt=%d\n", Chan, CurRpt);
-	return CurRpt;
-}
-
-static int xActuatorUnPause(u8_t Chan, u32_t CurRpt) {
-	sAI[Chan].Rpt = CurRpt;
-	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] UnPause Ch=%d Rpt=%d\n", Chan, CurRpt);
-	return erSUCCESS;
-}
-
-static int xActuatorAddSequences(u8_t Chan, int Idx, u8_t * paSeq) {
+/**
+ * @brief	LL-NL
+ */
+static void vActuatorAddSequences(u8_t Chan, int Idx, u8_t * paSeq) {
 	act_info_t * psAI = &sAI[Chan];
 	for (; Idx < actMAX_SEQUENCE; ++Idx) {
 		if (*paSeq < NO_MEM(sAS)) {						// if a valid SEQuence number
@@ -507,34 +462,12 @@ static int xActuatorAddSequences(u8_t Chan, int Idx, u8_t * paSeq) {
 		}
 	}
 	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
-	return Idx;
 }
 
-static int IRAM_ATTR xActuatorNextSequence(act_info_t * psAI) {
-	u8_t	NxtSeq = psAI->Seq[0];
-	IF_RETURN_X(NxtSeq >= NO_MEM(sAS), erFAILURE);
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportSeq, NxtSeq);
-	act_seq_t * psAS = &sAS[NxtSeq];
-	// load values from sequence #
-	int iRV = xActuatorSetTiming(psAI->ChanNum, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
-	if (iRV == erSUCCESS) {
-		iRV = xActuatorStart(psAI->ChanNum, psAS->Rpt);
-		if (iRV == erSUCCESS) {
-			int Idx;
-			for (Idx = 0;  Idx < (actMAX_SEQUENCE - 1); ++Idx)
-				psAI->Seq[Idx] = psAI->Seq[Idx+1];
-			psAI->Seq[Idx] = 0xFF;
-		} else {
-			// what do we need to do if the START failed???
-		}
-	} else {
-		// what do we need to do if the SETTIMING failed???
-	}
-	return iRV;
-}
-
-static int IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
-	int iRV = erSUCCESS;
+/**
+ * @brief	LL-NL
+ */
+static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
 	if ((psAI->alertStage == 1) && (psAI->tXXX[psAI->StageNow] > 0))
 		xActuatorAlert(psAI, alertTYPE_ACT_STAGE, alertLEVEL_INFO);
 	if (++psAI->StageNow == actSTAGE_NUM)
@@ -545,16 +478,25 @@ static int IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
 			if (psAI->Rpt == 0) {						// all repeats done?
 				if (psAI->alertDone)					// yes, check if we should raise alert
 					xActuatorAlert(psAI, alertTYPE_ACT_DONE, alertLEVEL_WARNING);
-				if (psAI->Seq[0] != 0xFF) 				// another sequence in the queue?
-					iRV = xActuatorNextSequence(psAI); 	// yes, load it
-				else 									// no, all sequences done
-					iRV = xActuatorStop(psAI->ChanNum);	// stop & reset all values..
+				if (psAI->Seq[0] != 0xFF) {				// another sequence in the queue?
+					act_seq_t * psAS = &sAS[psAI->Seq[0]];	// load values from sequence #
+					vActuatorSetTiming(psAI->ChanNum, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+					vActuatorStart(psAI->ChanNum, psAS->Rpt);
+					int Idx;
+					for (Idx = 0;  Idx < (actMAX_SEQUENCE - 1); ++Idx)
+						psAI->Seq[Idx] = psAI->Seq[Idx+1];
+					psAI->Seq[Idx] = 0xFF;
+				} else { 								// no, all sequences done
+					vActuatorStop(psAI->ChanNum);		// stop & reset all values..
+				}
 			}
 		}
 	}
-	return iRV;
 }
 
+/**
+ * @brief	LL-NL
+ */
 static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
 	psAI->Count	+= ACTUATE_TASK_PERIOD;
 	if (psAI->Count >= psAI->Divisor)
@@ -575,7 +517,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
 	// ensure I2C config is done before initialising
 	vRtosWaitStatus(flagAPP_I2C);
-	for(u8_t Chan = 0; Chan < NumActuator; xActuatorConfig(Chan++));
+	for(u8_t Chan = 0; Chan < NumActuator; vActuatorConfig(Chan++));
 	xRtosSetStateRUN(taskACTUATE_MASK);
 
 	while(bRtosVerifyState(taskACTUATE_MASK)) {
@@ -585,7 +527,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		ActuatorsRunning = 0;
 		for (u8_t Chan = 0; Chan < NumActuator;  ++Chan, ++psAI) {
 			if (psAI->Rpt == 0 ||						// no repeats left
-				psAI->Blocked ||							// Reserved for something else
+				psAI->Blocked ||						// Reserved for something else
 				psAI->ConfigOK == 0) {					// not yet configured
 				continue;
 			}
@@ -673,6 +615,58 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 
 // ######################################### Public APIs ###########################################
 
+void vActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
+	IF_RETURN(Chan >= NumActuator || sAI[Chan].ConfigOK == 0 || sAI[Chan].Blocked);
+	vActuatorBusy(&sAI[Chan]);
+	vActuatorStop(Chan);
+	vActuatorSetTiming(Chan, tFI, tON, tFO, tOFF);
+	vActuatorStart(Chan, Rpt);
+	vActuatorRelease(&sAI[Chan]);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
+}
+
+void vActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) {
+	act_info_t * psAI = &sAI[Chan];
+	IF_RETURN(Chan >= NumActuator || psAI->Blocked);
+	vActuatorBusy(psAI);
+	u32_t CurRpt = sAI[Chan].Rpt;
+	sAI[Chan].Rpt = 0;
+	// XXX: Add range checking to not wrap around any member
+	psAI->tFI += (tFI * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
+	psAI->tON += (tON * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
+	psAI->tFO += (tFO * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
+	psAI->tOFF += (tOFF * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
+	sAI[Chan].Rpt = (CurRpt == 0xFFFFFFFF) ? CurRpt : CurRpt + Rpt;
+	vActuatorRelease(psAI);
+}
+
+void vActuatorAdjust(u8_t Chan, int Stage, int Adjust) {
+	act_info_t * psAI = &sAI[Chan];
+	IF_RETURN(Chan >= NumActuator || OUTSIDE(0, Stage, actSTAGE_OFF, int) || psAI->Blocked);
+	Adjust = (Adjust * configTICK_RATE_HZ) / MILLIS_IN_SECOND; 	// convert adjustment to Ticks
+	vActuatorBusy(psAI);
+	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
+	u32_t NewVal = CurVal + Adjust;
+	if (Adjust < 0) {
+		psAI->tXXX[Stage]	= NewVal < CurVal ? NewVal : 0;
+	} else {
+		psAI->tXXX[Stage]	= NewVal > CurVal ? NewVal : UINT32_MAX;
+	}
+	vActuatorRelease(psAI);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
+}
+
+int	xActuatorToggle(u8_t Chan) {
+	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+	act_info_t * psAI = &sAI[Chan];
+	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
+	vActuatorBusy(psAI);
+	SWAP(psAI->tFI, psAI->tFO, u32_t);
+	SWAP(psAI->tON, psAI->tOFF, u32_t);
+	vActuatorRelease(psAI);
+	return erSUCCESS;
+}
+
 u32_t xActuatorRunningCount (void) { return ActuatorsRunning; }
 
 u64_t xActuatorGetRemainingTime(u8_t Chan) {
@@ -730,30 +724,13 @@ void vTaskActuatorInit(void * pvPara) {
  * Event Blocked due to any reason, especially pending restart
  */
 
-int	xActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
-	IF_RETURN_X(sAI[Chan].ConfigOK == 0, erINVALID_CONFIG);
-	IF_RETURN_X(sAI[Chan].Blocked, erINVALID_STATE);
-	int iRV = xActuatorStop(Chan);
-	if (iRV == erSUCCESS) {
-		iRV = xActuatorSetTiming(Chan, tFI, tON, tFO, tOFF);
-		if (iRV == erSUCCESS) {
-			iRV = xActuatorStart(Chan, Rpt);
-			IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
-		}
-	}
-	if (iRV < erSUCCESS)
-		xSyslogError(__FUNCTION__, iRV);
-	return iRV;
-}
+void vActuatorBreath(u8_t Chan) { vActuatorLoad(Chan, UINT32_MAX, 750, 750, 750, 750); }
 
-int	xActuatorBreath(u8_t Chan) { return xActuatorLoad(Chan, UINT32_MAX, 750, 750, 750, 750); }
+void vActuatorPanic(u8_t Chan) { vActuatorLoad(Chan, UINT32_MAX, 150, 150, 150, 150); }
 
-int	vActuatorPanic(u8_t Chan) { return xActuatorLoad(Chan, UINT32_MAX, 150, 150, 150, 150); }
+void vActuatorOn(u8_t Chan) { vActuatorLoad(Chan, UINT32_MAX, 0, UINT32_MAX, 0, 0); }
 
-int	vActuatorOn(u8_t Chan) { return xActuatorLoad(Chan, UINT32_MAX, 0, UINT32_MAX, 0, 0); }
-
-int	vActuatorOff(u8_t Chan) { return xActuatorLoad(Chan, UINT32_MAX, 0, 0, 0, UINT32_MAX); }
+void vActuatorOff(u8_t Chan) { vActuatorLoad(Chan, UINT32_MAX, 0, 0, 0, UINT32_MAX); }
 
 int	xActuatorSetAlertStage(u8_t Chan, int OnOff) {
 	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
@@ -791,16 +768,14 @@ int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax) {
 	return erSUCCESS;
 }
 
-int	xActuatorBlock(u8_t Chan) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+void vActuatorBlock(u8_t Chan) {
+	IF_RETURN(Chan >= NumActuator);
 	sAI[Chan].Blocked = 1;
-	return erSUCCESS;
 }
 
-int	xActuatorUnBlock(u8_t Chan) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+void vActuatorUnBlock(u8_t Chan) {
+	IF_RETURN(Chan >= NumActuator);
 	sAI[Chan].Blocked = 0;
-	return erSUCCESS;
 }
 
 /**
@@ -811,16 +786,10 @@ int	xActuatorUnBlock(u8_t Chan) {
  * @param	paSeq		pointer to array of sequence numbers
  * @return
  */
-int	xActuatorLoadSequences(u8_t Chan, u8_t * paSeq) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
-	IF_RETURN_X(sAI[Chan].Blocked, erINVALID_STATE);
-	return xActuatorAddSequences(Chan, 0, paSeq);
-}
-
-int	xActuatorStartSequence(u8_t Chan, int Seq) {
-	IF_RETURN_X(OUTSIDE(0, Seq, actMAX_SEQUENCE-1, int), erINVALID_PARA);
-	act_seq_t * psAS = &sAS[Seq];
-	return xActuatorLoad(Chan, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+void xActuatorLoadSequences(u8_t Chan, u8_t * paSeq) {
+	IF_RETURN(Chan >= NumActuator);
+	IF_RETURN(sAI[Chan].Blocked);
+	vActuatorAddSequences(Chan, 0, paSeq);
 }
 
 /**
@@ -830,69 +799,73 @@ int	xActuatorStartSequence(u8_t Chan, int Seq) {
  * @param	paSeq		pointer to array of sequence numbers
  * @return	erFAILURE if none appended else number of sequences appended
  */
-int	xActuatorQueSequences(u8_t Chan, u8_t * paSeq) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
-	IF_RETURN_X(sAI[Chan].Blocked, erINVALID_STATE);
+void vActuatorQueSequences(u8_t Chan, u8_t * paSeq) {
+	IF_RETURN(Chan >= NumActuator);
+	IF_RETURN(sAI[Chan].Blocked);
 	for (int Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
 		if (sAI[Chan].Seq[Idx] == 0xFF) {
-			return xActuatorAddSequences(Chan, Idx, paSeq);
+			vActuatorAddSequences(Chan, Idx, paSeq);
+			return;
 		}
 	}
-	return erFAILURE;
 }
 
-int	xActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
-	act_info_t * psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
-	u32_t CurRpt = xActuatorPause(Chan);
-	while (psAI->Busy)
-		vTaskDelay(pdMS_TO_TICKS(1));
-	psAI->Busy = 1;
-	// XXX: Add range checking to not wrap around any member
-	psAI->tFI += (tFI * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
-	psAI->tON += (tON * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
-	psAI->tFO += (tFO * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
-	psAI->tOFF += (tOFF * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
-	psAI->Busy = 0;
-	return xActuatorUnPause(Chan, (CurRpt == 0xFFFFFFFF) ? CurRpt : CurRpt + Rpt);
+void vActuatorStartSequence(u8_t Chan, int Seq) {
+	IF_RETURN(OUTSIDE(0, Seq, actMAX_SEQUENCE-1, int));
+	act_seq_t * psAS = &sAS[Seq];
+	vActuatorLoad(Chan, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 }
 
-int	xActuatorAdjust(u8_t Chan, int Stage, int Adjust) {
-	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(0, Stage, actSTAGE_OFF, int), erINVALID_PARA);
-	act_info_t * psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
-//	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
-	Adjust = (Adjust * configTICK_RATE_HZ) / MILLIS_IN_SECOND; 	// convert adjustment to Ticks
-	while (psAI->Busy)
-		vTaskDelay(pdMS_TO_TICKS(1));
-	psAI->Busy = 1;
-	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
-	u32_t NewVal = CurVal + Adjust;
-	if (Adjust < 0) {
-		psAI->tXXX[Stage]	= NewVal < CurVal ? NewVal : 0;
-	} else {
-		psAI->tXXX[Stage]	= NewVal > CurVal ? NewVal : UINT32_MAX;
+// ############################## High level public API functions ##################################
+
+/**
+ * @brief		configure the hardware pin associated with a channel
+ *				Uses the definitions in the hal_gpio module to define the specific pin,
+ * 				its configuration and (optionally) the associated timer module for hard PWM
+ * @param[in]	Channel
+ * @return		None
+ */
+void vActuatorConfig(u8_t Chan) {
+	IF_RETURN(sAI[Chan].Blocked);
+	switch(ActInit[Chan].Type) {					// handle hardware dependent component
+	#if	(halSOC_DIG_OUT > 0)
+	case actSOC_DIG:
+		halGPDO_Config(ActInit[Chan].halGPIO);
+		vActuatorSetFrequency(Chan, actDIG_DEF_FREQ);
+		break;
+	#endif
+
+	#if	(halSOC_PWM_OUT > 0)
+	case actSOC_PWM:
+		halGPIO_PWM_OUT_Config(ActInit[Chan].halGPIO);
+		vActuatorSetFrequency(Chan, halPWM_DEF_FREQ);
+		break;
+	#endif
+
+	#if	(halI2C_DIG_OUT > 0)
+	case actI2C_DIG:
+	#if	 (halHAS_PCA9555 == 1)
+		pca9555DIG_OUT_Config(ActInit[Chan].halGPIO);
+		vActuatorSetFrequency(Chan, actDIG_DEF_FREQ);
+	#else
+		myASSERT(0);
+	#endif
+		break;
+	#endif
+
+	default:
+		xActuatorLogError(__FUNCTION__, Chan);
+		return;
 	}
-	psAI->Busy = 0;
-//	taskENABLE_INTERRUPTS();
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
-	return erSUCCESS;
-}
-
-int	xActuatorToggle(u8_t Chan) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
 	act_info_t * psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
-//	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
-	while (psAI->Busy)
-		vTaskDelay(pdMS_TO_TICKS(1));
-	psAI->Busy = 1;
-	SWAP(psAI->tFI, psAI->tFO, u32_t);
-	SWAP(psAI->tON, psAI->tOFF, u32_t);
-	psAI->Busy = 0;
-//	taskENABLE_INTERRUPTS();
-	return erSUCCESS;
+	memset(psAI->Seq, 0xFF, SO_MEM(act_info_t, Seq));
+	psAI->CurDC		= psAI->MinDC		= 0;
+	psAI->MaxDC		= psAI->DelDC		= 100;
+	psAI->StageBeg	= psAI->StageNow	= actSTAGE_FI;
+	psAI->ChanNum	= Chan;
+	psAI->ConfigOK	= 1;
+	vActuatorSetDC(Chan, 0);
+	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate) > 1, vActuatorReportChan, Chan);
 }
 
 // ############################## Rules interface to Actuator table ################################
@@ -948,14 +921,12 @@ int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 #define	tSTEP		(500 * SCALE)
 
 int xActuatorsConfigMode(rule_t * psR, int Xcur, int Xmax) {
-	int iRV = erSUCCESS;
 	do {
 		u32_t tXX = tBASE + (Xcur * tSTEP);
-		iRV =xActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
-		IF_myASSERT(debugRESULT, iRV == erSUCCESS);
+		vActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
 		vActuatorReportChan(Xcur);
 	} while (++Xcur < Xmax);
-	return iRV;
+	return erSUCCESS;
 }
 
 void vTaskActuatorReport(void) {
@@ -1008,7 +979,7 @@ void vActuatorTest(void) {
 
 	#if	(debugPHYS)
 	for(u8_t Chan = 0; Chan < NumActuator; ++Chan) {
-		xActuatorConfig(Chan);
+		vActuatorConfig(Chan);
 		vActuateSetLevelDIG(Chan, 1);
 		vTaskDelay(1000);
 		vActuateSetLevelDIG(Chan, 0);
@@ -1017,11 +988,11 @@ void vActuatorTest(void) {
 
 	#if	(debugFUNC)
 	for(u8_t eChan = 0; eChan < NumActuator; ++eChan) {
-		xActuatorConfig(eChan);
+		vActuatorConfig(eChan);
 		for(u32_t Freq = actDIG_MIN_FREQ;  Freq <= actDIG_MAX_FREQ; Freq *= 5) {
-			xActuatorSetFrequency(eChan, Freq);
-			xActuatorSetTiming(eChan, 0, 0, UINT32_MAX, 0);
-			xActuatorStart(eChan, UINT32_MAX);
+			vActuatorSetFrequency(eChan, Freq);
+			vActuatorSetTiming(eChan, 0, 0, UINT32_MAX, 0);
+			vActuatorStart(eChan, UINT32_MAX);
 			for(int8_t CurDC = 0; CurDC <= 100;  CurDC = (CurDC == 0) ? 1 : CurDC * 2) {
 				vActuatorSetDC(eChan, CurDC);
 				SL_INFO("DIG: Chan=%d  Freq=%`u  Lev=%`u\n", eChan, Freq, CurDC);
@@ -1033,18 +1004,18 @@ void vActuatorTest(void) {
 
 	#if	(debugUSER)
 	for(u8_t eChan = 0; eChan < NumActuator; ++eChan) {
-		xActuatorConfig(eChan);
-		xActuatorSetFrequency(eChan, 1000);
+		vActuatorConfig(eChan);
+		vActuatorSetFrequency(eChan, 1000);
 
-		xActuatorLoad(eChan, 1, 1000, 1000, 1000, 1000);
+		vActuatorLoad(eChan, 1, 1000, 1000, 1000, 1000);
 		vActuatorTestReport(eChan, "1s On/Off each, 0->100%");
 		vTaskDelay(pdMS_TO_TICKS(4000));
 
-		xActuatorLoad(eChan, 1, 2000, 2000, 2000, 2000);
+		vActuatorLoad(eChan, 1, 2000, 2000, 2000, 2000);
 		vActuatorTestReport(eChan, "2s per phase, 0->100%");
 		vTaskDelay(pdMS_TO_TICKS(8000));
 
-		xActuatorLoad(eChan, 1, 5000, 5000, 5000, 5000);
+		vActuatorLoad(eChan, 1, 5000, 5000, 5000, 5000);
 		vActuatorTestReport(eChan, "5s per phase, 0->100%");
 		vTaskDelay(pdMS_TO_TICKS(20000));
 	}
