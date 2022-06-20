@@ -1,9 +1,7 @@
 /*
  * actuators.c - a soft PWM module to control GPIO outputs driving LEDs and relays
- * Copyright (c) 2016-22 Andre M. Maree - KSS Technologies (Pty) Ltd.
+ * Copyright (c) 2016-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
-
-#include <string.h>
 
 #include "actuators.h"
 #include "hal_variables.h"
@@ -34,9 +32,8 @@
 #define	debugDUTY					(debugFLAG & 0x0008)
 
 #define	debugDUTY_CYCLE				(debugFLAG & 0x0010)
-#define	debugREMTIME				(debugFLAG & 0x0080)
-
-#define	debugFUNCTIONS				(debugFLAG & 0x0100)
+#define	debugREMTIME				(debugFLAG & 0x0020)
+#define	debugFUNCTIONS				(debugFLAG & 0x0040)
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
