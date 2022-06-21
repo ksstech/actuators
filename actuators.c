@@ -57,7 +57,7 @@ const char * const StageNames[]	= { "FI ", "ON ", "FO ", "OFF" };
 const char * const ActTypeNames[]	= { "SoC/DIG", "SoC/PWM", "SoC/ANA", "I2C/DIG", "I2C/PWM", "I2C/ANA", "SPI/DIG", "SPI/PWM", "SPI/ANA" };
 
 act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
-#if		(HW_VARIANT == HW_AC00)
+#if		(halVARIANT == HW_AC00)
 	{	actI2C_DIG,	7,	},
 	{	actI2C_DIG,	6,	},
 	{	actI2C_DIG,	5,	},
@@ -76,7 +76,7 @@ act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-#elif	(HW_VARIANT == HW_AC01)
+#elif	(halVARIANT == HW_AC01)
 	{	actI2C_DIG,	0,	},
 	{	actI2C_DIG,	1,	},
 	{	actI2C_DIG,	2,	},
@@ -95,17 +95,17 @@ act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-#elif	(HW_VARIANT == HW_EM1P2) || (HW_VARIANT == HW_EM3P2)
+#elif	(halVARIANT == HW_EM1P2) || (halVARIANT == HW_EM3P2)
 //	{	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
-#elif	(HW_VARIANT == HW_WROVERKIT)			// WROVER-KIT
+#elif	(halVARIANT == HW_WROVERKIT)			// WROVER-KIT
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
 
-#elif	(HW_VARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
+#elif	(halVARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
 	{	actSOC_DIG,	0,	},
 
-#elif	(HW_VARIANT == HW_EBOX)
+#elif	(halVARIANT == HW_EBOX)
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 
