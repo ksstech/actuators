@@ -217,7 +217,7 @@ static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 }
 
 static int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
-	if (Chan >= NumActuator || OUTSIDE(selACT_T_FI, Field, selACT_T_REM, u8_t) || sAI[Chan].Blocked) {
+	if (Chan >= NumActuator || OUTSIDE(selACT_T_FI, Field, selACT_T_REM) || sAI[Chan].Blocked) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
 		return erFAILURE;
 	}
@@ -639,7 +639,7 @@ void vActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) {
 
 void vActuatorAdjust(u8_t Chan, int Stage, int Adjust) {
 	act_info_t * psAI = &sAI[Chan];
-	IF_RETURN(Chan >= NumActuator || OUTSIDE(0, Stage, actSTAGE_OFF, int) || psAI->Blocked);
+	IF_RETURN(Chan >= NumActuator || OUTSIDE(0, Stage, actSTAGE_OFF) || psAI->Blocked);
 	Adjust = (Adjust * configTICK_RATE_HZ) / MILLIS_IN_SECOND; 	// convert adjustment to Ticks
 	vActuatorBusy(psAI);
 	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
@@ -746,7 +746,7 @@ int	xActuatorSetAlertDone(u8_t Chan, int OnOff) {
 }
 
 int	xActuatorSetStartStage(u8_t Chan, int Stage) {
-	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(actSTAGE_FI, Stage, actSTAGE_OFF, int), erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(actSTAGE_FI, Stage, actSTAGE_OFF), erINVALID_PARA);
 	act_info_t	* psAI = &sAI[Chan];
 	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
 	psAI->StageBeg = Stage;
@@ -754,7 +754,7 @@ int	xActuatorSetStartStage(u8_t Chan, int Stage) {
 }
 
 int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax) {
-	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(0, iMin, 100, int) || OUTSIDE(0, iMax, 100, int), erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(0, iMin, 100) || OUTSIDE(0, iMax, 100), erINVALID_PARA);
 	act_info_t	* psAI = &sAI[Chan];
 	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
 	if (iMin > iMax)
@@ -808,7 +808,7 @@ void vActuatorQueSequences(u8_t Chan, u8_t * paSeq) {
 }
 
 void vActuatorStartSequence(u8_t Chan, int Seq) {
-	IF_RETURN(OUTSIDE(0, Seq, actMAX_SEQUENCE-1, int));
+	IF_RETURN(OUTSIDE(0, Seq, actMAX_SEQUENCE-1));
 	act_seq_t * psAS = &sAS[Seq];
 	vActuatorLoad(Chan, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 }
