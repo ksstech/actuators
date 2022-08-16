@@ -870,10 +870,7 @@ void vActuatorConfig(u8_t Chan) {
 double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
 		return 0.0;
-	px64Var->def.cv.vs	= vs32B;
-	px64Var->def.cv.vt	= vtVALUE;
-	px64Var->def.cv.vf	= vfUXX;
-	px64Var->def.cv.vc	= 1;
+	px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1);
 	act_info_t * psAI = &sAI[Chan];
 	x64_t x64Value;
 	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
