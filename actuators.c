@@ -169,7 +169,7 @@ static void vActuatorReportChan(u8_t Chan) {
 		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx)
 			printfx_nolock("%02x ", psAI->Seq[Idx]);
 	}
-	printfx_nolock("\r\n");
+	printfx_nolock(strCRLF);
 	printfx_unlock();
 }
 
@@ -692,7 +692,7 @@ u64_t xActuatorGetRemainingTime(u8_t Chan) {
 		IF_P(debugREMTIME, " -> I(%d): %llu", Idx, u64Value);
 	}
 	taskENABLE_INTERRUPTS();
-	IF_P(debugREMTIME, "\r\n");
+	IF_P(debugREMTIME, strCRLF);
 	return u64Value;
 }
 
