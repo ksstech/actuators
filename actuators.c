@@ -654,9 +654,9 @@ void vActuatorAdjust(u8_t Chan, int Stage, int Adjust) {
 }
 
 int	xActuatorToggle(u8_t Chan) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator, erINV_PARA);
 	act_info_t * psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
+	IF_RETURN_X(psAI->Blocked, erINV_STATE);
 	vActuatorBusy(psAI);
 	SWAP(psAI->tFI, psAI->tFO, u32_t);
 	SWAP(psAI->tON, psAI->tOFF, u32_t);
@@ -667,7 +667,7 @@ int	xActuatorToggle(u8_t Chan) {
 u32_t xActuatorRunningCount (void) { return ActuatorsRunning; }
 
 u64_t xActuatorGetRemainingTime(u8_t Chan) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator, erINV_PARA);
 	act_info_t * psAI = &sAI[Chan];
 	IF_RETURN_X(psAI->Rpt == UINT32_MAX, UINT64_MAX);		// indefinite/unlimited repeat ?
 	IF_RETURN_X(psAI->Rpt == 0, 0);
@@ -730,33 +730,33 @@ void vActuatorOn(u8_t Chan) { vActuatorLoad(Chan, UINT32_MAX, 0, UINT32_MAX, 0, 
 void vActuatorOff(u8_t Chan) { vActuatorLoad(Chan, UINT32_MAX, 0, 0, 0, UINT32_MAX); }
 
 int	xActuatorSetAlertStage(u8_t Chan, int OnOff) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator, erINV_PARA);
 	act_info_t	* psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
+	IF_RETURN_X(psAI->Blocked, erINV_STATE);
 	psAI->alertStage = OnOff ? 1 : 0;
 	return erSUCCESS;
 }
 
 int	xActuatorSetAlertDone(u8_t Chan, int OnOff) {
-	IF_RETURN_X(Chan >= NumActuator, erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator, erINV_PARA);
 	act_info_t	* psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
+	IF_RETURN_X(psAI->Blocked, erINV_STATE);
 	psAI->alertDone = OnOff ? 1 : 0;
 	return erSUCCESS;
 }
 
 int	xActuatorSetStartStage(u8_t Chan, int Stage) {
-	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(actSTAGE_FI, Stage, actSTAGE_OFF), erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(actSTAGE_FI, Stage, actSTAGE_OFF), erINV_PARA);
 	act_info_t	* psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
+	IF_RETURN_X(psAI->Blocked, erINV_STATE);
 	psAI->StageBeg = Stage;
 	return erSUCCESS;
 }
 
 int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax) {
-	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(0, iMin, 100) || OUTSIDE(0, iMax, 100), erINVALID_PARA);
+	IF_RETURN_X(Chan >= NumActuator || OUTSIDE(0, iMin, 100) || OUTSIDE(0, iMax, 100), erINV_PARA);
 	act_info_t	* psAI = &sAI[Chan];
-	IF_RETURN_X(psAI->Blocked, erINVALID_STATE);
+	IF_RETURN_X(psAI->Blocked, erINV_STATE);
 	if (iMin > iMax)
 		SWAP(iMin, iMax, u8_t);
 	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d\r\n", Chan, iMin, psAI->MinDC, iMax, psAI->MaxDC);
