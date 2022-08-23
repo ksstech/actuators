@@ -604,7 +604,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		if (ActuatorsRunning) {							// Some active actuators, delay till next cycle
 			vTaskDelayUntil(&ActLWtime, pdMS_TO_TICKS(ACTUATE_TASK_PERIOD));
 		} else {										// NO active actuators
-			xRtosClearStateRUN(taskACTUATE_MASK); 			// clear RUN state & wait at top....
+			xRtosClearStateRUN(taskACTUATE_MASK); 		// clear RUN state & wait at top....
 		}
 	}
 	vRtosTaskDelete(NULL);
