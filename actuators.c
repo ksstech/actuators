@@ -413,7 +413,7 @@ static void vActuatorSetTiming(u8_t Chan, u32_t tFI, u32_t tON, u32_t tFO, u32_t
 	psAI->tON = pdMS_TO_TICKS(tON > MILLIS_IN_DAY ? MILLIS_IN_DAY : tON);
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
-	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u\r\n", Chan, tFI, tON, tFO, tOFF);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u\r\n", Chan, tFI, tON, tFO, tOFF);
 }
 
 /**
@@ -432,7 +432,7 @@ static void vActuatorStart(u8_t Chan, u32_t Repeats) {
 	vActuatorSetDC(Chan, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetStateRUN(taskACTUATE_MASK);
-	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Start Ch=%d Rpt=%d\r\n", Chan, Repeats);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%d Rpt=%d\r\n", Chan, Repeats);
 }
 
 /**
@@ -446,7 +446,7 @@ static void vActuatorStop(u8_t Chan) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(Chan, 0);
-	IF_PT(debugTRACK && ioB2GET(dbgActuate), "[ACT] Stop Ch=%d\r\n", Chan);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Stop Ch=%d\r\n", Chan);
 }
 
 /**
@@ -462,7 +462,7 @@ static void vActuatorAddSequences(u8_t Chan, int Idx, u8_t * paSeq) {
 			break; 										// and go no further
 		}
 	}
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, Chan);
 }
 
 /**
@@ -623,7 +623,7 @@ void vActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t 
 	vActuatorSetTiming(Chan, tFI, tON, tFO, tOFF);
 	vActuatorStart(Chan, Rpt);
 	vActuatorRelease(&sAI[Chan]);
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, Chan);
 }
 
 void vActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF) {
@@ -654,7 +654,7 @@ void vActuatorAdjust(u8_t Chan, int Stage, int Adjust) {
 		psAI->tXXX[Stage]	= NewVal > CurVal ? NewVal : UINT32_MAX;
 	}
 	vActuatorRelease(psAI);
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate), vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, Chan);
 }
 
 int	xActuatorToggle(u8_t Chan) {
@@ -866,7 +866,7 @@ void vActuatorConfig(u8_t Chan) {
 	psAI->ChanNum	= Chan;
 	psAI->ConfigOK	= 1;
 	vActuatorSetDC(Chan, 0);
-	IF_EXEC_1(debugTRACK && ioB2GET(dbgActuate) > 1, vActuatorReportChan, Chan);
+	IF_EXEC_1(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, Chan);
 }
 
 // ############################## Rules interface to Actuator table ################################
