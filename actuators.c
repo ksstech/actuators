@@ -61,7 +61,6 @@
 const char * const StageNames[]	= { "FI ", "ON ", "FO ", "OFF" };
 const char * const ActTypeNames[]	= { "SoC/DIG", "SoC/PWM", "SoC/ANA", "I2C/DIG", "I2C/PWM", "I2C/ANA", "SPI/DIG", "SPI/PWM", "SPI/ANA" };
 
-act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
 /* Objective is to facilitate a number of predefined sequences with a simple single actuation command.
  * SEQUENCE Ch# m0 m1 m2 m3 etc mZ will result in the first mode (m0) being loaded immediately with the
  * rest of the mode numbers going into a queue to be loaded sequentially after completion of the previous
