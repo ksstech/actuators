@@ -17,6 +17,10 @@
 
 #include "hal_gpio.h"
 
+#if (halUSE_I2C > 0)
+	#include "hal_i2c.h"
+#endif
+
 #if (halHAS_PCA9555 > 0)
 	#include "pca9555.h"
 #endif
@@ -517,8 +521,10 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
-	// ensure I2C config is done before initialising
-	vRtosWaitStatus(flagAPP_I2C);
+	#if (halUSE_I2C == 1)
+	if (i2cDevCount)
+		vRtosWaitStatus(flagAPP_I2C);		// ensure I2C config done before initialising
+	#endif
 	for(u8_t Chan = 0; Chan < NumActuator; vActuatorConfig(Chan++));
 	xRtosSetStateRUN(taskACTUATE_MASK);
 
