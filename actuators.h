@@ -53,8 +53,8 @@ extern "C" {
 
 // ####################################### MACROS ##################################################
 
-#define	ACTUATE_STACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 512))
-#define	ACTUATE_TASK_PERIOD			2
+#define	actuateSTACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 512))
+#define	actuateTASK_PERIOD			2
 
 #define	actDIG_CLOCK_HZ				configTICK_RATE_HZ
 #define	actDIG_MIN_COUNT			1		// steps to go 0 -> 100%
