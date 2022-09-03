@@ -57,6 +57,25 @@ const char * const StageNames[]	= { "FI ", "ON ", "FO ", "OFF" };
 const char * const ActTypeNames[]	= { "SoC/DIG", "SoC/PWM", "SoC/ANA", "I2C/DIG", "I2C/PWM", "I2C/ANA", "SPI/DIG", "SPI/PWM", "SPI/ANA" };
 
 act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
+/* Objective is to facilitate a number of predefined sequences with a simple single actuation command.
+ * SEQUENCE Ch# m0 m1 m2 m3 etc mZ will result in the first mode (m0) being loaded immediately with the
+ * rest of the mode numbers going into a queue to be loaded sequentially after completion of the previous
+ */
+const act_seq_t sAS[actNUM_SEQUENCES] = {
+//	  Rpt	tFI		tON		tFO		tOFF
+	{ 5,	0,		1000,	0,		1000,	} ,		// 0.50Hz	x5	10Sec		OK
+	{ 1,	0,		0,		0,		25000, 	} ,		// OFF		x1	25Sec		BUSY
+	{ 5,	0,		1000,	0,		1000,	} ,		// 0.50Hz	x5	10Sec		OK
+	{ 1,	0,		0,		0,		275000, } ,		// OFF		x1	275Sec		BUSY
+	{ 30,	0,		500,	0,		500,	} ,		// 1.00Hz	x30 30Sec		WARNING
+	{ 15,	500,	0,		500,	0,		} ,		// 1.00Hz	x15	15Sec		WAIT !!!
+	{ 8,	0,		250,	0,		250,	} ,		// 2.00 Hz	x8	4Sec
+	{ 6,	0,		500,	0,		500,	} ,		// 1.00 Hz	x6	6Sec
+	{ 4,	0,		750,	0,		750,	} ,		// 0.67 Hz	x4	6Sec
+	{ 3,	0,		1000,	0,		1000,	} ,		// 0.50 Hz	x3	6Sec
+};
+
+const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 #if		(halVARIANT == HW_AC00)
 	{	actI2C_DIG,	7,	},
 	{	actI2C_DIG,	6,	},
@@ -124,24 +143,6 @@ StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
 u8_t	ActuatorsRunning = 0;
 act_info_t	sAI[halXXX_XXX_OUT];
 
-/* Objective is to facilitate a number of predefined sequences with a simple single actuation command.
- * SEQUENCE Ch# m0 m1 m2 m3 etc mZ will result in the first mode (m0) being loaded immediately with the
- * rest of the mode numbers going into a queue to be loaded sequentially after completion of the previous
- */
-act_seq_t	sAS[actNUM_SEQUENCES]	= {
-//	  Rpt	tFI		tON		tFO		tOFF
-	{ 5,	0,		1000,	0,		1000,	} ,		// 0.50Hz	x5	10Sec		OK
-	{ 1,	0,		0,		0,		25000, 	} ,		// OFF		x1	25Sec		BUSY
-	{ 5,	0,		1000,	0,		1000,	} ,		// 0.50Hz	x5	10Sec		OK
-	{ 1,	0,		0,		0,		275000, } ,		// OFF		x1	275Sec		BUSY
-	{ 30,	0,		500,	0,		500,	} ,		// 1.00Hz	x30 30Sec		WARNING
-	{ 15,	500,	0,		500,	0,		} ,		// 1.00Hz	x15	15Sec		WAIT !!!
-	{ 8,	0,		250,	0,		250,	} ,		// 2.00 Hz	x8	4Sec
-	{ 6,	0,		500,	0,		500,	} ,		// 1.00 Hz	x6	6Sec
-	{ 4,	0,		750,	0,		750,	} ,		// 0.67 Hz	x4	6Sec
-	{ 3,	0,		1000,	0,		1000,	} ,		// 0.50 Hz	x3	6Sec
-};
-
 // ###################################### Forward declarations #####################################
 
 static int xActuateGetLevelDIG(u8_t eChan);
@@ -177,7 +178,7 @@ static void vActuatorReportChan(u8_t Chan) {
 }
 
 static void vActuatorReportSeq(u8_t Seq) {
-	act_seq_t * psAS = &sAS[Seq];
+	const act_seq_t * psAS = &sAS[Seq];
 	printfx_lock();
 	if (Seq == 0)
 		printfx_nolock("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n", colourFG_CYAN, attrRESET);
@@ -479,7 +480,7 @@ static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
 				if (psAI->alertDone)					// yes, check if we should raise alert
 					xActuatorAlert(psAI, alertTYPE_ACT_DONE, alertLEVEL_WARNING);
 				if (psAI->Seq[0] != 0xFF) {				// another sequence in the queue?
-					act_seq_t * psAS = &sAS[psAI->Seq[0]];	// load values from sequence #
+					const act_seq_t * psAS = &sAS[psAI->Seq[0]];	// load values from sequence #
 					vActuatorSetTiming(psAI->ChanNum, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 					vActuatorStart(psAI->ChanNum, psAS->Rpt);
 					int Idx;
@@ -690,7 +691,7 @@ u64_t xActuatorGetRemainingTime(u8_t Chan) {
 
 	// now add the time for the (optional) sequences
 	for (int Idx = 0; psAI->Seq[Idx] < NO_MEM(sAS); ++Idx) {
-		act_seq_t * psAS = &sAS[psAI->Seq[Idx]];
+		const act_seq_t * psAS = &sAS[psAI->Seq[Idx]];
 		u64Value	+= psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
 		IF_P(debugREMTIME, " -> I(%d): %llu", Idx, u64Value);
 	}
@@ -812,7 +813,7 @@ void vActuatorQueSequences(u8_t Chan, u8_t * paSeq) {
 
 void vActuatorStartSequence(u8_t Chan, int Seq) {
 	IF_RETURN(OUTSIDE(0, Seq, actMAX_SEQUENCE-1));
-	act_seq_t * psAS = &sAS[Seq];
+	const act_seq_t * psAS = &sAS[Seq];
 	vActuatorLoad(Chan, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 }
 
