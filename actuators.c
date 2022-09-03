@@ -3,8 +3,9 @@
  * Copyright (c) 2016-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "actuators.h"
 #include "hal_variables.h"
+
+#include "actuators.h"
 #include "endpoints.h"
 #include "options.h"
 #include "rules_engine.h"
@@ -140,7 +141,7 @@ StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
  * to the number of actuators serviced during that task cycle. At the end of the task cycle, if NO
  * actuators were serviced, the task RUN status is cleared, only to be restarted with the next LOAD.
  */
-u8_t	ActuatorsRunning = 0;
+u8_t ActuatorsRunning = 0;
 act_info_t	sAI[halXXX_XXX_OUT];
 
 // ###################################### Forward declarations #####################################
@@ -314,7 +315,7 @@ static void vActuatorSetFrequency(u8_t eChan, u32_t Frequency) {
 	case actI2C_DIG:
 	case actSPI_DIG:
 		FIT2RANGE(actDIG_MIN_FREQ, Frequency, actDIG_MAX_FREQ, u32_t);
-		sAI[eChan].Divisor	= (MILLIS_IN_SECOND / ACTUATE_TASK_PERIOD) / Frequency;
+		sAI[eChan].Divisor	= (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
  		break;
 	#endif
 
@@ -499,10 +500,10 @@ static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
  * @brief	LL-NL
  */
 static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
-	psAI->Count	+= ACTUATE_TASK_PERIOD;
+	psAI->Count	+= actuateTASK_PERIOD;
 	if (psAI->Count >= psAI->Divisor)
 		psAI->Count	= 0;
-	psAI->tNOW	+= ACTUATE_TASK_PERIOD;
+	psAI->tNOW	+= actuateTASK_PERIOD;
 	if (psAI->tNOW >= psAI->tXXX[psAI->StageNow]) {
 		psAI->tNOW = psAI->Count = 0;
 		xActuatorNextStage(psAI);
@@ -601,12 +602,12 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		 * across. the solenoid connectors, as close as possible to the source. To diagnose possible
 		 * diode absence or failure we regularly perform a check to verify the actual I2C device state
 		 * against what we believe it should be */
-		pca9555Check(ACTUATE_TASK_PERIOD);
+		pca9555Check(actuateTASK_PERIOD);
 		#endif
 
 		IF_SYSTIMER_STOP(debugTIMING, stACT_SX);
 		if (ActuatorsRunning) {							// Some active actuators, delay till next cycle
-			vTaskDelayUntil(&ActLWtime, pdMS_TO_TICKS(ACTUATE_TASK_PERIOD));
+			vTaskDelayUntil(&ActLWtime, pdMS_TO_TICKS(actuateTASK_PERIOD));
 		} else {										// NO active actuators
 			xRtosClearStateRUN(taskACTUATE_MASK); 		// clear RUN state & wait at top....
 		}
