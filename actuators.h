@@ -137,7 +137,7 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20);
 
 // ################################ GLOBAL Functions Prototypes ####################################
 
-void vTaskActuatorInit(void * pvPara);
+void vTaskActuatorInit(void);
 
 int	xActuatorSetAlertStage(u8_t Chan, int State) ;
 int	xActuatorSetAlertDone(u8_t Chan, int State) ;

@@ -112,6 +112,9 @@ act_init_t	ActInit[halXXX_XXX_OUT] = {						// Static configuration info
 #endif
 };
 
+StaticTask_t ttsACT = { 0 };
+StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
+
 /* In order to optimise MCU utilization, especially since the actuator task is set to run EVERY 1mS,
  * we try to only start the task if there is something to do. Hence, the task is started every time
  * a LOAD command is executed. During the running of the task the 'ActuatorsRunning' variable is set
@@ -710,8 +713,8 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 	return u64Max * MICROS_IN_MILLISEC;
 }
 
-void vTaskActuatorInit(void * pvPara) {
-	xRtosTaskCreate(vTaskActuator, "Actuator", ACTUATE_STACK_SIZE, pvPara, 8, NULL, tskNO_AFFINITY);
+void vTaskActuatorInit(void) {
+	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, 8, tsbACT, &ttsACT, tskNO_AFFINITY);
 }
 
 /* ############################ Actuator alerting support functions ################################
