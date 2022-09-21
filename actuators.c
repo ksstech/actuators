@@ -674,7 +674,7 @@ int	xActuatorToggle(u8_t Chan) {
 	return erSUCCESS;
 }
 
-u32_t xActuatorRunningCount (void) { return ActuatorsRunning; }
+int xActuatorRunningCount (void) { return ActuatorsRunning; }
 
 u64_t xActuatorGetRemainingTime(u8_t Chan) {
 	IF_RETURN_X(Chan >= NumActuator, erINV_PARA);

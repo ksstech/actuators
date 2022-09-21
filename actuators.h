@@ -165,7 +165,7 @@ void vActuatorOff(u8_t Act);
 
 u64_t xActuatorGetRemainingTime(u8_t Chan) ;
 u64_t xActuatorGetMaxRemainingTime (void) ;
-u32_t xActuatorRunningCount (void) ;
+int xActuatorRunningCount (void) ;
 
 double dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
 int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
