@@ -165,7 +165,7 @@ static void vActuatorReportChan(u8_t Chan) {
 	act_info_t * psAI = &sAI[Chan];
 	bool bLevel = xActuateGetLevelDIG(Chan);
 	printfx_lock();
-	printfx_nolock(" %2d| %c%c%c | %s | %#`5d |%#`7d|%#`7d|%#`7d|%#`7d|%#`7d| %3d %3d %3d | %3d %3d %3d|",
+	printfx_nolock(" %2d| %c%c%c | %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|",
 						psAI->ChanNum,
 						bLevel ? CHR_1 : CHR_0,
 						psAI->Blocked ? CHR_B : CHR_SPACE,
@@ -186,7 +186,7 @@ static void vActuatorReportSeq(u8_t Seq) {
 	printfx_lock();
 	if (Seq == 0)
 		printfx_nolock("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n", colourFG_CYAN, attrRESET);
-	printfx_nolock(" %2d | %#`5u|%#`7u|%#`7u|%#`7u|%#`7u|\r\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	printfx_nolock(" %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 	printfx_unlock();
 }
 
@@ -891,7 +891,7 @@ double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 		px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
 		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
 	}
-	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%`u\r\n", __FUNCTION__, Chan, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
+	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, Chan, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	return x64Value.f64;
 }
 
@@ -899,7 +899,7 @@ int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
 		return erFAILURE;
 	sAI[Chan].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
 	return erSUCCESS;
 }
 
@@ -913,7 +913,7 @@ int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 		CurVal	= 0;
 	}
 	sAI[Chan].tXXX[Field-selACT_T_FI] = CurVal;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%`u\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
+	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
 	return erSUCCESS;
 }
 
@@ -999,7 +999,7 @@ void vActuatorTest(void) {
 			vActuatorStart(eChan, UINT32_MAX);
 			for(int8_t CurDC = 0; CurDC <= 100;  CurDC = (CurDC == 0) ? 1 : CurDC * 2) {
 				vActuatorSetDC(eChan, CurDC);
-				SL_INFO("DIG: Chan=%d  Freq=%`u  Lev=%`u\r\n", eChan, Freq, CurDC);
+				SL_INFO("DIG: Chan=%d  Freq=%'u  Lev=%'u\r\n", eChan, Freq, CurDC);
 				getchar();
 			}
 		}
