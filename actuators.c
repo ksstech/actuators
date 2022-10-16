@@ -125,9 +125,6 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
 
-#elif	(halVARIANT == HW_DOITDEVKIT)			// DoIT DevKIt v1
-	{	actSOC_DIG,	0,	},
-
 #elif	(halVARIANT == HW_EBOX)
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
