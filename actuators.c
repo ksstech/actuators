@@ -3,11 +3,11 @@
  * Copyright (c) 2016-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
+#include "main.h"
 #include "hal_variables.h"
 
 #include "actuators.h"
 #include "endpoints.h"
-#include "options.h"
 #include "rules_engine.h"
 
 #include "printfx.h"
@@ -80,7 +80,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
-#if		(halVARIANT == HW_AC00)
+	#if	(cmakeVARIANT == HW_AC00)
 	{	actI2C_DIG,	7,	},
 	{	actI2C_DIG,	6,	},
 	{	actI2C_DIG,	5,	},
@@ -99,7 +99,7 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-#elif	(halVARIANT == HW_AC01)
+	#elif (cmakeVARIANT == HW_AC01)
 	{	actI2C_DIG,	0,	},
 	{	actI2C_DIG,	1,	},
 	{	actI2C_DIG,	2,	},
@@ -118,14 +118,14 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-#elif	(halVARIANT == HW_EM1P2) || (halVARIANT == HW_EM3P2)
+	#elif (cmakeVARIANT == HW_EM1P2) || (cmakeVARIANT == HW_EM3P2)
 //	{	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
-#elif	(halVARIANT == HW_WROVERKIT)			// WROVER-KIT
+	#elif (cmakeVARIANT == HW_WROVERKIT)			// WROVER-KIT
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
 
-#elif	(halVARIANT == HW_EBOX)
+	#elif (cmakeVARIANT == HW_EBOX)
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 
@@ -204,7 +204,7 @@ inline void vActuatorRelease(act_info_t	* psAI) {
  * @param	psAI
  * @return
  */
-static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
+int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	epi_t	sEI = { 0 };
 	event_t	sEvent	= { 0 };
 	alert_t	sAlert	= { 0 };
@@ -221,12 +221,16 @@ static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	return xEpGenerateAlert(&sEI);
 }
 
-static int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
-	if (Chan >= NumActuator || OUTSIDE(selACT_T_FI, Field, selACT_T_REM) || sAI[Chan].Blocked) {
+int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
+	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
+	if (Chan >= NumActuator || sAI[Chan].Blocked || OUTSIDE(selACT_T_FI, Field, selACT_T_REM)) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
 		return erFAILURE;
 	}
 	return erSUCCESS;
+	#else
+	return erFAILURE;
+	#endif
 }
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
@@ -875,43 +879,51 @@ void vActuatorConfig(u8_t Chan) {
 // ############################## Rules interface to Actuator table ################################
 
 double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
-	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
-		return 0.0;
-	px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1);
-	act_info_t * psAI = &sAI[Chan];
-	x64_t x64Value;
-	if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
-		x64Value.f64 				= psAI->tXXX[Field-selACT_T_FI];
-		px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-selACT_T_FI];
-	} else {
-		x64Value.f64 = (double) xActuatorGetRemainingTime(Chan);
-		px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
-		IF_P(debugREMTIME, "F64=%f", x64Value.f64);
+	x64_t x64Value = { .f64 = 0.0 };
+	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
+	if (xActuatorVerifyParameters(Chan, Field) != erFAILURE) {
+		px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1);
+		act_info_t * psAI = &sAI[Chan];
+		if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
+			x64Value.f64 				= psAI->tXXX[Field-selACT_T_FI];
+			px64Var->val.x64.x32[0].u32 = psAI->tXXX[Field-selACT_T_FI];
+		} else {
+			x64Value.f64 = (double) xActuatorGetRemainingTime(Chan);
+			px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
+			IF_P(debugREMTIME, "F64=%f", x64Value.f64);
+		}
+		IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, Chan, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	}
-	IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, Chan, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
+	#endif
 	return x64Value.f64;
 }
 
 int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
-	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
-		return erFAILURE;
-	sAI[Chan].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
-	return erSUCCESS;
+	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
+	if (xActuatorVerifyParameters(Chan, Field) != erFAILURE) {
+		sAI[Chan].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
+		IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
+		return erSUCCESS;
+	}
+	#endif
+	return erFAILURE;
 }
 
 int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
-	if (xActuatorVerifyParameters(Chan, Field) == erFAILURE)
-		return erFAILURE;
-	u32_t CurVal = sAI[Chan].tXXX[Field-selACT_T_FI];
-	if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
-		CurVal	+= px64Var->val.x64.x32[0].i32;
-	} else {
-		CurVal	= 0;
+	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
+	if (xActuatorVerifyParameters(Chan, Field) != erFAILURE) {
+		u32_t CurVal = sAI[Chan].tXXX[Field-selACT_T_FI];
+		if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
+			CurVal	+= px64Var->val.x64.x32[0].i32;
+		} else {
+			CurVal	= 0;
+		}
+		sAI[Chan].tXXX[Field-selACT_T_FI] = CurVal;
+		IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
+		return erSUCCESS;
 	}
-	sAI[Chan].tXXX[Field-selACT_T_FI] = CurVal;
-	IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[Chan].tXXX[Field-selACT_T_FI]);
-	return erSUCCESS;
+	#endif
+	return erFAILURE;
 }
 
 /**
