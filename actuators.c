@@ -5,17 +5,13 @@
 
 #include "main.h"
 #include "hal_variables.h"
+#include "hal_gpio.h"
 
 #include "actuators.h"
-#include "endpoints.h"
-#include "rules_engine.h"
-
 #include "printfx.h"
 #include "syslog.h"
 #include "systiming.h"
 #include "x_errors_events.h"
-
-#include "hal_gpio.h"
 
 #if (halUSE_I2C > 0)
 	#include "hal_i2c.h"
@@ -46,6 +42,9 @@
 #define	debugRESULT					(debugFLAG_GLOBAL & debugFLAG & 0x8000)
 
 // ############################################ Macros #############################################
+
+#define	actuateSTACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 512))
+#define	actuateTASK_PERIOD			2
 
 #define	halPWM_MAX_COUNT			(1 << 24)			// 24 bit register
 #define	halPWM_DEF_FREQ				1000

@@ -3,8 +3,12 @@
 set( srcs "actuators.c" )
 set( include_dirs "." )
 set( priv_include_dirs )
-set( requires rtos-support statistics )
-set( priv_requires common driver endpoints hal_esp32 pca9555 printfx rules syslog systiming )
+set( requires )
+set( priv_requires
+#	hal_esp32 
+	pca9555 
+	common printfx syslog systiming 
+)
 
 idf_component_register(
 	SRCS ${srcs} 

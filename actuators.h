@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include	"hal_config.h"
-#include	"FreeRTOS_Support.h"
-#include	"complex_vars.h"			// struct_union x_time definitions time stdint
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,11 +49,9 @@ extern "C" {
 
 // ####################################### MACROS ##################################################
 
-#define	actuateSTACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 512))
-#define	actuateTASK_PERIOD			2
-
 #define	actDIG_CLOCK_HZ				configTICK_RATE_HZ
 #define	actDIG_MIN_COUNT			1		// steps to go 0 -> 100%
+
 #define	actDIG_MIN_FREQ				1
 #define	actDIG_MAX_FREQ				(actDIG_CLOCK_HZ / actDIG_MIN_COUNT)
 /* default was 10, timing worked exactly but flashing is prominent
