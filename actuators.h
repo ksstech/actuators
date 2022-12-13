@@ -83,10 +83,10 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, } ;// 
 
 // ########################################## Structures ##########################################
 
-typedef struct {
+typedef struct act_init_t {
 	u8_t	Type	: 4;			// Max = 8
 	u8_t	halGPIO	: 4;			// Max = 15 (AC_0x)
-} act_init_t ;
+} act_init_t;
 DUMB_STATIC_ASSERT(sizeof(act_init_t) == 1) ;
 
 typedef struct act_info_t {			// Actuator structure
@@ -128,6 +128,7 @@ DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20);
 
 // ################################### Public Variables ############################################
 
+extern u8_t	NumActuator, NumSequences;
 
 // ################################ GLOBAL Functions Prototypes ####################################
 
@@ -161,9 +162,10 @@ u64_t xActuatorGetRemainingTime(u8_t Chan) ;
 u64_t xActuatorGetMaxRemainingTime (void) ;
 int xActuatorRunningCount (void) ;
 
-double dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
-int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
-int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) ;
+struct v64_t;
+double dActuatorGetFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var) ;
+int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var) ;
+int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var) ;
 
 // ######################################## status reporting #######################################
 

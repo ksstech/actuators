@@ -5,9 +5,8 @@ set( include_dirs "." )
 set( priv_include_dirs )
 set( requires )
 set( priv_requires
-#	hal_esp32 
-	pca9555 
-	common printfx syslog systiming 
+	pca9555 common printfx syslog systiming
+	endpoints hal_esp32 rules 
 )
 
 idf_component_register(

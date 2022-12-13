@@ -3,12 +3,13 @@
  * Copyright (c) 2016-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "main.h"
 #include "hal_variables.h"
 #include "hal_gpio.h"
 
 #include "actuators.h"
+#include "endpoints.h"
 #include "printfx.h"
+#include "rules.h"
 #include "syslog.h"
 #include "systiming.h"
 #include "x_errors_events.h"
@@ -127,7 +128,6 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	#elif (cmakeVARIANT == HW_EBOX)
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
-
 #endif
 };
 
@@ -140,6 +140,8 @@ StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
  * to the number of actuators serviced during that task cycle. At the end of the task cycle, if NO
  * actuators were serviced, the task RUN status is cleared, only to be restarted with the next LOAD.
  */
+u8_t NumSequences = actNUM_SEQUENCES;
+u8_t NumActuator = halXXX_XXX_OUT;
 u8_t ActuatorsRunning = 0;
 act_info_t	sAI[halXXX_XXX_OUT];
 
@@ -186,7 +188,8 @@ static void vActuatorReportSeq(u8_t Seq) {
 	printfx_unlock();
 }
 
-inline void vActuatorBusy(act_info_t * psAI) {
+//inline void vActuatorBusy(act_info_t * psAI) {
+void vActuatorBusy(act_info_t * psAI) {
 //	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
 	while (psAI->Busy)
 		vTaskDelay(pdMS_TO_TICKS(2));
@@ -514,7 +517,6 @@ static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
 }
 
 static void IRAM_ATTR vTaskActuator(void * pvPara) {
-	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE_MASK);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S0, stMICROS, "ActS0_FI", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S1, stMICROS, "ActS1_ON", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
@@ -525,6 +527,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		vRtosWaitStatus(flagAPP_I2C);		// ensure I2C config done before initialising
 	#endif
 	for(u8_t Chan = 0; Chan < NumActuator; vActuatorConfig(Chan++));
+	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE_MASK);
 	xRtosSetStateRUN(taskACTUATE_MASK);
 
 	while(bRtosVerifyState(taskACTUATE_MASK)) {
