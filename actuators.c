@@ -4,6 +4,8 @@
  */
 
 #include "hal_variables.h"
+
+#if (halXXX_XXX_OUT > 0)
 #include "hal_gpio.h"
 
 #include "actuators.h"
@@ -224,7 +226,7 @@ int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 }
 
 int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
-	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
+	#if (halXXX_XXX_OUT > 0)
 	if (Chan >= NumActuator || sAI[Chan].Blocked || OUTSIDE(selACT_T_FI, Field, selACT_T_REM)) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", Chan, Field, sAI[Chan].Blocked);
 		return erFAILURE;
@@ -1036,3 +1038,5 @@ void vActuatorTest(void) {
 	}
 	#endif
 }
+
+#endif
