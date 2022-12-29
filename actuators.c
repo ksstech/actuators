@@ -989,7 +989,8 @@ void vActuatorTestReport(u8_t Chan, char * pcMess) {
 void vActuatorTest(void) {
 // Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
-	vRtosWaitStatus(flagAPP_I2C);
+	if (i2cDevCount)
+		vRtosWaitStatus(flagAPP_I2C);
 	#endif
 
 	#if	(debugPHYS)
