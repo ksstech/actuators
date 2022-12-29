@@ -3,11 +3,9 @@
  * Copyright (c) 2016-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "hal_variables.h"
-
+#include "main.h"
 #if (halXXX_XXX_OUT > 0)
 #include "hal_gpio.h"
-
 #include "actuators.h"
 #include "endpoints.h"
 #include "printfx.h"
