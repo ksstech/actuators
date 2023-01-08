@@ -124,11 +124,7 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
-
-	#elif (cmakeVARIANT == HW_EBOX)
-	{	actSOC_DIG,	0,	},
-	{	actSOC_DIG,	1,	},
-#endif
+	#endif
 };
 
 StaticTask_t ttsACT = { 0 };
