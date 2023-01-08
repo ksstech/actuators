@@ -120,7 +120,12 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 
 	#elif (cmakeVARIANT == HW_EM1P2) || (cmakeVARIANT == HW_EM3P2)
 //	{	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
-	#elif (cmakeVARIANT == HW_WROVERKIT)			// WROVER-KIT
+	#elif (cmakeVARIANT == HW_KC868A4)					// Kincony KC868-A4
+	{	actSOC_DIG,	0,	},
+	{	actSOC_DIG,	1,	},
+	{	actSOC_DIG,	2,	},
+	{	actSOC_DIG,	3,	},
+	#elif (cmakeVARIANT == HW_WROVERKIT)				// WROVER-KIT
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
@@ -241,7 +246,7 @@ static void IRAM_ATTR vActuateSetLevelDIG(u8_t eChan, u8_t NewState) {
 	switch(ActInit[eChan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		halGPDO_SetState(ActInit[eChan].halGPIO, NewState);
+		halGDO_SetState(ActInit[eChan].halGPIO, NewState);
 		break;
 	#endif
 
@@ -275,7 +280,7 @@ static int xActuateGetLevelDIG(u8_t eChan) {
 	switch(ActInit[eChan].Type) {						// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		iRV = halGPDO_GetState(ActInit[eChan].halGPIO);
+		iRV = halGDO_GetState(ActInit[eChan].halGPIO);
 		break;
 	#endif
 
@@ -836,7 +841,7 @@ void vActuatorConfig(u8_t Chan) {
 	switch(ActInit[Chan].Type) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		halGPDO_Config(ActInit[Chan].halGPIO);
+		halGDO_Config(ActInit[Chan].halGPIO);
 		vActuatorSetFrequency(Chan, actDIG_DEF_FREQ);
 		break;
 	#endif
