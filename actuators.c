@@ -80,7 +80,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
-	#if	(cmakeVARIANT == HW_AC00)
+	#if	(cmakePLTFRM == HW_AC00)
 	{	actI2C_DIG,	7,	},
 	{	actI2C_DIG,	6,	},
 	{	actI2C_DIG,	5,	},
@@ -99,7 +99,7 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-	#elif (cmakeVARIANT == HW_AC01)
+	#elif (cmakePLTFRM == HW_AC01)
 	{	actI2C_DIG,	0,	},
 	{	actI2C_DIG,	1,	},
 	{	actI2C_DIG,	2,	},
@@ -118,14 +118,14 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-	#elif (cmakeVARIANT == HW_EM1P2) || (cmakeVARIANT == HW_EM3P2)
+	#elif (cmakePLTFRM == HW_EM1P2) || (cmakePLTFRM == HW_EM3P2)
 //	{	actSOC_DIG,	halSOC_DIG_OUT_0,	}, // cannot use, pin conflicts with SCL
-	#elif (cmakeVARIANT == HW_KC868A4)					// Kincony KC868-A4
+	#elif (cmakePLTFRM == HW_KC868A4)					// Kincony KC868-A4
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
 	{	actSOC_DIG,	3,	},
-	#elif (cmakeVARIANT == HW_WROVERKIT)				// WROVER-KIT
+	#elif (cmakePLTFRM == HW_DK41)				// WROVER-KIT
 	{	actSOC_DIG,	0,	},
 	{	actSOC_DIG,	1,	},
 	{	actSOC_DIG,	2,	},
