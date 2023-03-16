@@ -527,7 +527,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	if (i2cDevCount)
 		vRtosWaitStatus(flagAPP_I2C);		// ensure I2C config done before initialising
 	#endif
-	vTaskSetThreadLocalStoragePointer(NULL, 1, (void *)taskACTUATE_MASK);
+	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
 	xRtosSetStateRUN(taskACTUATE_MASK);
 	// Mask must be set above BEFORE configuration
 	for(u8_t Chan = 0; Chan < NumActuator; vActuatorConfig(Chan++));
