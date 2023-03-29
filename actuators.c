@@ -3,11 +3,13 @@
  * Copyright (c) 2016-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "main.h"
+#include "hal_config.h"
+
 #if (halXXX_XXX_OUT > 0)
-#include "hal_gpio.h"
 #include "actuators.h"
 #include "endpoints.h"
+#include "hal_gpio.h"
+#include "options.h"
 #include "printfx.h"
 #include "rules.h"
 #include "syslog.h"

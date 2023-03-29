@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "definitions.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
