@@ -5,7 +5,7 @@ set( include_dirs "." )
 set( priv_include_dirs )
 set( requires )
 set( priv_requires
-	pca9555 common main printfx syslog systiming
+	pca9555 pcf8574 common main printfx syslog systiming
 	endpoints hal_esp32 rules 
 )
 
