@@ -960,9 +960,12 @@ static void vActuatorReportChan(u8_t Chan) {
 	if (Chan == 0)
 		printfx_nolock("%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n", colourFG_CYAN, attrRESET);
 	printfx_nolock(" %2d|",psAI->ChanNum);
+	#if (halSOC_ANA_OUT > 0)
 	if (ActInit[Chan].ioType == actSOC_ANA) {
 		printfx_nolock(" %4hhu|", halGAO_ReadRAW(ActInit[Chan].ioNum));
-	} else {
+	} else
+	#endif
+	{
 		bool bLevel = xActuateGetLevelDIG(Chan);
 		printfx_nolock(" %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
 	}
