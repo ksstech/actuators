@@ -1002,7 +1002,7 @@ double	dActuatorGetFieldValue(u8_t Chan, u8_t Field, v64_t * px64Var) {
 	x64_t x64Value = { .f64 = 0.0 };
 	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
 	if (xActuatorVerifyParameters(Chan, Field) != erFAILURE) {
-		px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1);
+		px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1, 0);
 		act_info_t * psAI = &sAI[Chan];
 		if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
 			x64Value.f64 				= psAI->tXXX[Field-selACT_T_FI];
