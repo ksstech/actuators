@@ -200,6 +200,11 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actSOC_DIG,	0, },
 	{	actSOC_DIG,	1, },
 	{	actSOC_DIG,	2, },
+
+	#elif (cmakePLTFRM == HW_SP2PM)						// Shelly Plus 2PM
+	{	actSOC_DIG,	0, },								// Red LED
+	{	actSOC_DIG,	2, },								// Relay 1
+	{	actSOC_DIG,	3, },								// Relay 2
 	#endif
 };
 
