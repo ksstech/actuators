@@ -193,6 +193,8 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	pcf8574IO11, },
 	{	actI2C_DIG,	pcf8574IO12, },
 	{	actI2C_DIG,	pcf8574IO13, },
+//	{	actI2C_DIG,	pcf8574IO14, },						// not used
+//	{	actI2C_DIG,	pcf8574IO15, },
 	{	actSOC_ANA,	0, },
 	{	actSOC_ANA,	1, },
 
