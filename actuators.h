@@ -35,8 +35,8 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, };// A
 // ########################################## Structures ##########################################
 
 typedef struct act_init_t {
-	u8_t	ioType : 4;			// Max = 8
-	u8_t	ioNum : 4;			// Max = 15 (AC_0x)
+	u8_t ioType:4;					// Max = 8
+	u8_t ioNum:4;					// Max = 16 (PCA9555)
 } act_init_t;
 DUMB_STATIC_ASSERT(sizeof(act_init_t) == 1);
 
