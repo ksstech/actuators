@@ -638,14 +638,15 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
+	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
+
 	#if (halUSE_I2C == 1)
 	if (i2cDevCount)
 		bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
 	#endif
-	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
-	xRtosTaskSetRUN(taskACTUATE_MASK);
-	// Mask must be set above BEFORE configuration
-	for(u8_t Chan = 0; Chan < NumActuator; vActuatorConfig(Chan++));
+
+	xRtosTaskSetRUN(taskACTUATE_MASK); 					// Mask must be set above BEFORE configuration
+	for(u8_t Chan = 0; Chan < halXXX_XXX_OUT; vActuatorConfig(Chan++));
 
 	while(bRtosTaskWaitOK(taskACTUATE_MASK, portMAX_DELAY)) {
 		TickType_t	ActLWtime = xTaskGetTickCount();    // Get the ticks as starting reference
