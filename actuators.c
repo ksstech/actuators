@@ -93,19 +93,18 @@
 
 // ############################################ Macros #############################################
 
-#define	actFREQ_MIN					1
-#define	actFREQ_MAX					configTICK_RATE_HZ
-#define	actFREQ_DEF					33
-/* default was 10, timing worked exactly but flashing is prominent
+/* DIGital default was 10, timing worked exactly but flashing is prominent
  * 25 reduces flashing, provides more steps in intensity, smoother FI & FO
  * 50 is very smooth, no/minimal flicker, but slightly abrupt at end of FO
  * 100 is smooth but FI/FO look abrupt at start & end
  */
+#define	actFREQ_DEF_DIG				33
 #define	actFREQ_DEF_ANA				250
+#define	halFREQ_DEF_PWM				1000
+#define	actFREQ_MIN					1
+#define	actFREQ_MAX					configTICK_RATE_HZ
 
 #define	halPWM_MAX_COUNT			(1 << 24)			// 24 bit register
-#define	halPWM_DEF_FREQ				1000
-
 #define	halPWM_CLOCK_HZ				configCLOCKS_PER_SEC
 #define	halPWM_MIN_FREQ				((halPWM_CLOCK_HZ / halPWM_MAX_COUNT) + 1)
 #define	halPWM_MAX_FREQ				(halPWM_CLOCK_HZ / 8)
@@ -193,8 +192,6 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	pcf8574IO11, },
 	{	actI2C_DIG,	pcf8574IO12, },
 	{	actI2C_DIG,	pcf8574IO13, },
-//	{	actI2C_DIG,	pcf8574IO14, },						// not used
-//	{	actI2C_DIG,	pcf8574IO15, },
 	{	actSOC_ANA,	0, },
 	{	actSOC_ANA,	1, },
 
@@ -213,7 +210,7 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 StaticTask_t ttsACT = { 0 };
 StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
 
-/* In order to optimise MCU utilization, especially since the actuator task is set to run EVERY 1mS,
+/* In order to optimise MCU utilisation, especially since the actuator task is set to run EVERY 1mS,
  * we try to only start the task if there is something to do. Hence, the task is started every time
  * a LOAD command is executed. During the running of the task the 'ActuatorsRunning' variable is set
  * to the number of actuators serviced during that task cycle. At the end of the task cycle, if NO
@@ -221,7 +218,7 @@ StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
  */
 u8_t NumActuator = halXXX_XXX_OUT;
 u8_t ActuatorsRunning = 0;
-act_info_t	sAI[halXXX_XXX_OUT];
+act_info_t sAI[halXXX_XXX_OUT];
 
 // ###################################### Forward declarations #####################################
 
@@ -529,9 +526,7 @@ static void vActuatorConfig(u8_t Chan) {
 		break;
 	#endif
 
-	default:
-		xActuatorLogError(__FUNCTION__, Chan);
-		return;
+	default: xActuatorLogError(__FUNCTION__, Chan); return;
 	}
 	act_info_t * psAID = &sAI[Chan];
 	memset(psAID->Seq, 0xFF, SO_MEM(act_info_t, Seq));
@@ -659,7 +654,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
 	#if (halUSE_I2C == 1)
 	if (i2cDevCount)
-		bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
+		bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
 	#endif
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
 	xRtosTaskSetRUN(taskACTUATE_MASK);
