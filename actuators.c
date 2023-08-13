@@ -504,7 +504,12 @@ static void vActuatorConfig(u8_t Chan) {
 	case actI2C_DIG: vActuatorSetFrequency(Chan, actFREQ_DEF_DIG); break;
 	#endif
 
+	#if	(halI2C_PWM_OUT > 0)							// Not yet supported/tested
+	case actI2C_PWM: vActuatorSetFrequency(Chan, actFREQ_DEF_PWM); break;
+	#endif
 
+	#if	(halI2C_ANA_OUT > 0)							// Not yet supported/tested
+	case actI2C_ANA: vActuatorSetFrequency(Chan, actFREQ_DEF_ANA); break;
 	#endif
 
 	default: xActuatorLogError(__FUNCTION__, Chan); return;
