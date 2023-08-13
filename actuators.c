@@ -490,21 +490,18 @@ static void vActuatorConfig(u8_t Chan) {
 	switch(psAIS->ioType) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
 	case actSOC_DIG:
-		halGDO_Config(psAIS->ioNum);
 		vActuatorSetFrequency(Chan, actFREQ_DEF);
 		break;
 	#endif
 
 	#if	(halSOC_PWM_OUT > 0)
 	case actSOC_PWM:
-		halGPIO_PWM_OUT_Config(psAIS->ioNum);
 		vActuatorSetFrequency(Chan, halPWM_DEF_FREQ);
 		break;
 	#endif
 
 	#if	(halSOC_ANA_OUT > 0)
 	case actSOC_ANA:
-		halGAO_Init(psAIS->ioNum);
 		vActuatorSetFrequency(Chan, actFREQ_DEF_ANA);
 		break;
 	#endif
@@ -512,11 +509,9 @@ static void vActuatorConfig(u8_t Chan) {
 	#if	(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 		#if	 (halHAS_PCA9555 > 0)
-		pca9555DIG_OUT_Config(psAIS->ioNum);
 		vActuatorSetFrequency(Chan, actFREQ_DEF);
 
 		#elif (halHAS_PCF8574 > 0)
-		pcf8574DIG_IO_SetDirection(psAIS->ioNum, 0);
 		vActuatorSetFrequency(Chan, actFREQ_DEF);
 
 		#else
