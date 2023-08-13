@@ -489,35 +489,22 @@ static void vActuatorConfig(u8_t Chan) {
 	IF_RETURN(sAI[Chan].Blocked);
 	switch(psAIS->ioType) {					// handle hardware dependent component
 	#if	(halSOC_DIG_OUT > 0)
-	case actSOC_DIG:
-		vActuatorSetFrequency(Chan, actFREQ_DEF);
-		break;
+	case actSOC_DIG: vActuatorSetFrequency(Chan, actFREQ_DEF_DIG); break;
 	#endif
 
 	#if	(halSOC_PWM_OUT > 0)
-	case actSOC_PWM:
-		vActuatorSetFrequency(Chan, halPWM_DEF_FREQ);
-		break;
+	case actSOC_PWM: vActuatorSetFrequency(Chan, halFREQ_DEF_PWM); break;
 	#endif
 
 	#if	(halSOC_ANA_OUT > 0)
-	case actSOC_ANA:
-		vActuatorSetFrequency(Chan, actFREQ_DEF_ANA);
-		break;
+	case actSOC_ANA: vActuatorSetFrequency(Chan, actFREQ_DEF_ANA); break;
 	#endif
 
 	#if	(halI2C_DIG_OUT > 0)
-	case actI2C_DIG:
-		#if	 (halHAS_PCA9555 > 0)
-		vActuatorSetFrequency(Chan, actFREQ_DEF);
+	case actI2C_DIG: vActuatorSetFrequency(Chan, actFREQ_DEF_DIG); break;
+	#endif
 
-		#elif (halHAS_PCF8574 > 0)
-		vActuatorSetFrequency(Chan, actFREQ_DEF);
 
-		#else
-		myASSERT(0);
-		#endif
-		break;
 	#endif
 
 	default: xActuatorLogError(__FUNCTION__, Chan); return;
