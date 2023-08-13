@@ -273,6 +273,7 @@ int xActuatorVerifyParameters(u8_t Chan, u8_t Field) {
 	}
 	return erSUCCESS;
 	#else
+	SL_ERR("No actuator support");
 	return erFAILURE;
 	#endif
 }
