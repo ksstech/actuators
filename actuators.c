@@ -654,7 +654,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		IF_SYSTIMER_START(debugTIMING, stACT_SX);
 		act_info_t * psAI = &sAI[0];
 		ActuatorsRunning = 0;
-		for (u8_t Chan = 0; Chan < NumActuator;  ++Chan, ++psAI) {
+		for (u8_t Chan = 0; Chan < halXXX_XXX_OUT;  ++Chan, ++psAI) {
 			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK)	// done, blocked or not config'd
 				continue;
 			++ActuatorsRunning;
