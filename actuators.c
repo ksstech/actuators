@@ -300,7 +300,7 @@ void IRAM_ATTR vActuateSetLevelDIG(u8_t eChan, u8_t NewState) {
 		pca9555DIG_OUT_SetState(ActInit[eChan].ioNum, NewState, 0);
 
 		#elif (halHAS_PCF8574 > 0) && (halHAS_PCA9555 == 0)
-		pcf8574DIG_OUT_SetState(ActInit[eChan].ioNum, NewState, 1);
+		pcf8574DIG_OUT_SetState(ActInit[eChan].ioNum, NewState);
 
 		#else
 		#error "Can only support 1 or the other at any stage"
