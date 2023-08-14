@@ -946,7 +946,7 @@ void vActuatorStartSequence(u8_t Chan, int Seq) {
 
 static void vActuatorReportChan(u8_t Chan) {
 	act_info_t * psAI = &sAI[Chan];
-	printfx_lock();
+	printfx_lock(NULL);
 	if (Chan == 0)
 		printfx_nolock("%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n", colourFG_CYAN, attrRESET);
 	printfx_nolock(" %2d|",psAI->ChanNum);
@@ -968,16 +968,16 @@ static void vActuatorReportChan(u8_t Chan) {
 			printfx_nolock("%02x ", psAI->Seq[Idx]);
 	}
 	printfx_nolock(strCRLF);
-	printfx_unlock();
+	printfx_unlock(NULL);
 }
 
 static void vActuatorReportSeq(u8_t Seq) {
 	const act_seq_t * psAS = &sAS[Seq];
-	printfx_lock();
+	printfx_lock(NULL);
 	if (Seq == 0)
 		printfx_nolock("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n", colourFG_CYAN, attrRESET);
 	printfx_nolock(" %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
-	printfx_unlock();
+	printfx_unlock(NULL);
 }
 
 void vTaskActuatorReport(void) {
