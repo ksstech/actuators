@@ -17,7 +17,7 @@
 #include "x_errors_events.h"
 
 #if (halUSE_I2C > 0)
-	#include "hal_i2cm.h"
+	#include "hal_i2c_common.h"
 #endif
 
 #if (halHAS_PCA9555 > 0)
