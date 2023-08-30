@@ -1022,9 +1022,8 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	return erFAILURE;
 }
 
-/**
- * @brief	DUMMY stub for actuator MODE support
- */
+// ############################# DUMMY stub for actuator MODE support ##############################
+
 #define	SCALE		4
 #define	tBASE		(3000 * SCALE)
 #define	tSTEP		(500 * SCALE)
