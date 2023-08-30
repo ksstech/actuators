@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "definitions.h"
+#include "struct_union.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,13 +34,13 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, };// A
 
 // ########################################## Structures ##########################################
 
-typedef struct act_init_t {
+typedef struct __attribute__((packed)) {
 	u8_t ioType:4;					// Max = 8
 	u8_t ioNum:4;					// Max = 16 (PCA9555)
 } act_init_t;
 DUMB_STATIC_ASSERT(sizeof(act_init_t) == 1);
 
-typedef struct act_info_t {			// Actuator structure
+typedef struct __attribute__((packed)) {				// Actuator structure
 	union {							// all values in TICKS not mSec
 		struct { u32_t	tFI, tON, tFO, tOFF, Rpt, tNOW; };
 		u32_t tXXX[actSTAGE_NUM + 2];	// +2 for tNOW & Rpt
@@ -57,7 +57,7 @@ typedef struct act_info_t {			// Actuator structure
 	u8_t	StageNow;				// Current stage for actuator
 	u8_t	ChanNum;
 	union {
-		struct {
+		struct __attribute__((packed)) {
 			volatile u8_t ConfigOK	: 1;
 			volatile u8_t alertStage: 1;
 			volatile u8_t alertDone	: 1;
@@ -72,7 +72,7 @@ typedef struct act_info_t {			// Actuator structure
 } act_info_t;
 DUMB_STATIC_ASSERT(sizeof(act_info_t) == 52);
 
-typedef struct act_seq_t {			// Sequence structure
+typedef struct act_seq_t {								// Sequence structure
 	u32_t	Rpt, tFI, tON, tFO, tOFF;
 } act_seq_t;
 DUMB_STATIC_ASSERT(sizeof(act_seq_t) == 20);
