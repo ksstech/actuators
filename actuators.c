@@ -101,8 +101,6 @@
 #define	halPWM_MIN_FREQ				((halPWM_CLOCK_HZ / halPWM_MAX_COUNT) + 1)
 #define	halPWM_MAX_FREQ				(halPWM_CLOCK_HZ / 8)
 
-#define	actuateSTACK_SIZE			(configMINIMAL_STACK_SIZE + 1024 + (flagSTACK * 512))
-#define	actuateTASK_PERIOD			2
 
 #define	stACT_ALL_MASK (1<<stACT_S0 | 1<<stACT_S1 | 1<<stACT_S2 | 1<<stACT_S3 | 1<<stACT_SX)
 
@@ -934,48 +932,48 @@ void vActuatorStartSequence(u8_t Chan, int Seq) {
 	vActuatorLoad(Chan, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 }
 
-// ############################## High level public API functions ##################################
+// ############################## Private & Public reporting APIs ##################################
 
-static void vActuatorReportChan(u8_t Chan) {
-	act_info_t * psAI = &sAI[Chan];
-	printfx_lock(NULL);
-	if (Chan == 0)
-		printfx_nolock("%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n", colourFG_CYAN, attrRESET);
-	printfx_nolock(" %2d|",psAI->ChanNum);
+static void vActuatorReportChan(report_t * psR, u8_t eCh) {
+	act_info_t * psAI = &sAI[eCh];
+	printfx_lock(psR);
+	if (eCh == 0)
+		wprintfx(psR, "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n", colourFG_CYAN, attrRESET);
+	wprintfx(psR, " %2d|",psAI->ChanNum);
 	#if (halSOC_ANA_OUT > 0)
-	if (ActInit[Chan].ioType == actSOC_ANA) {
-		printfx_nolock(" %4hhu|", halGAO_ReadRAW(ActInit[Chan].ioNum));
+	if (ActInit[eCh].ioType == actSOC_ANA) {
+		wprintfx(psR, " %4hhu|", halGAO_ReadRAW(ActInit[eCh].ioNum));
 	} else
 	#endif
 	{
-		bool bLevel = xActuateGetLevelDIG(Chan);
-		printfx_nolock(" %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
+		bool bLevel = xActuateGetLevelDIG(eCh);
+		wprintfx(psR, " %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
 	}
-	printfx_nolock(" %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|",
+	wprintfx(psR, " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|",
 						StageNames[psAI->StageNow], psAI->Rpt,
 						psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW,
 						psAI->Divisor, psAI->Count, psAI->Match, psAI->MinDC, psAI->CurDC, psAI->MaxDC);
 	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
 		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx)
-			printfx_nolock("%02x ", psAI->Seq[Idx]);
+			wprintfx(psR, "%02x ", psAI->Seq[Idx]);
 	}
-	printfx_nolock(strCRLF);
-	printfx_unlock(NULL);
+	wprintfx(psR, strCRLF);
+	printfx_unlock(psR);
 }
 
-static void vActuatorReportSeq(u8_t Seq) {
+static void vActuatorReportSeq(report_t * psR, u8_t Seq) {
 	const act_seq_t * psAS = &sAS[Seq];
-	printfx_lock(NULL);
+	printfx_lock(psR);
 	if (Seq == 0)
-		printfx_nolock("%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n", colourFG_CYAN, attrRESET);
-	printfx_nolock(" %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+		wprintfx(psR, "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n", colourFG_CYAN, attrRESET);
+	wprintfx(psR, " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 	printfx_unlock(NULL);
 }
 
-void vTaskActuatorReport(void) {
-	for (u8_t Chan = 0; Chan < halXXX_XXX_OUT;  vActuatorReportChan(Chan++));
-	for (u8_t Seq = 0; Seq < NO_MEM(sAS); vActuatorReportSeq(Seq++));
-	printfx("Running=%u  maxDelay=%!.R\r\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime());
+void vTaskActuatorReport(report_t * psR) {
+	for (u8_t eCh = 0; eCh < halXXX_XXX_OUT;  vActuatorReportChan(psR, eCh++));
+	for (u8_t Seq = 0; Seq < NO_MEM(sAS); vActuatorReportSeq(psR, Seq++));
+	wprintfx(psR, "Running=%u  maxDelay=%!.R\r\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime());
 }
 
 // ############################## Rules interface to Actuator table ################################
@@ -1039,7 +1037,7 @@ int xActuatorsConfigMode(rule_t * psR, int Xcur, int Xmax) {
 	do {
 		u32_t tXX = tBASE + (Xcur * tSTEP);
 		vActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
-		vActuatorReportChan(Xcur);
+		vActuatorReportChan(NULL, Xcur);
 	} while (++Xcur < Xmax);
 	return erSUCCESS;
 }
