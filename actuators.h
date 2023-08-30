@@ -85,36 +85,40 @@ extern u8_t	NumActuator;
 
 void vTaskActuatorInit(void);
 
-int	xActuatorSetAlertStage(u8_t Chan, int State);
-int	xActuatorSetAlertDone(u8_t Chan, int State);
-int	xActuatorSetStartStage(u8_t Chan, int Stage);
-int	vActuatorSetMinMaxDC(u8_t Chan, int iMin, int iMax);
-void vActuatorBlock(u8_t Chan);
-void vActuatorUnBlock(u8_t Chan);
-
-void vActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF);
-void vActuatorStartSequence(u8_t Chan, int Seq);
-void xActuatorLoadSequences(u8_t Chan, u8_t * paSeq);
-void vActuatorQueSequences(u8_t Chan, u8_t * paSeq);
-void vActuatorUpdate(u8_t Chan, int Rpt, int tFI, int tON, int tFO, int tOFF);
-void vActuatorAdjust(u8_t Chan, int Stage, int Adjust);
+void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF);
+void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF);
+void vActuatorAdjust(u8_t eCh, int Stage, int Adjust);
 
 void vActuatorToggle(u8_t Act);
-void vActuatorBreath(u8_t Chan);
-void vActuatorPanic(u8_t Chan);
-void vActuatorOn(u8_t Act);
-void vActuatorOff(u8_t Act);
+void vActuatorBreath(u8_t eCh);
+void vActuatorPanic(u8_t eCh);
+void vActuatorOn(u8_t eCh);
+void vActuatorOff(u8_t eCh);
+
+void xActuatorSetAlertStage(u8_t eCh, int State);
+void xActuatorSetAlertDone(u8_t eCh, int State);
+void xActuatorSetStartStage(u8_t eCh, int Stage);
+
+// ############################ Actuator alerting support functions ################################
+
+void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax);
+void vActuatorBlock(u8_t eCh);
+void vActuatorUnBlock(u8_t eCh);
+
+void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq);
+void vActuatorQueSequences(u8_t eCh, u8_t * paSeq);
+void vActuatorStartSequence(u8_t eCh, int Seq);
 
 // ############################## Rules interface to Actuator table ################################
 
-u64_t xActuatorGetRemainingTime(u8_t Chan);
+u64_t xActuatorGetRemainingTime(u8_t eCh);
 u64_t xActuatorGetMaxRemainingTime (void);
 int xActuatorRunningCount (void);
 
 struct v64_t;
-double dActuatorGetFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var);
-int	xActuatorSetFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var);
-int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var);
+double dActuatorGetFieldValue(u8_t eCh, u8_t Field, struct v64_t * px64Var);
+int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, struct v64_t * px64Var);
+int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, struct v64_t * px64Var);
 
 // ######################################## status reporting #######################################
 
