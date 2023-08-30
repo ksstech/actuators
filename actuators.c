@@ -847,21 +847,18 @@ void xActuatorSetAlertStage(u8_t eCh, int OnOff) {
 	act_info_t	* psAI = &sAI[eCh];
 	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && psAI->ConfigOK && !psAI->Blocked);
 	psAI->alertStage = OnOff ? 1 : 0;
-	return erSUCCESS;
 }
 
 void xActuatorSetAlertDone(u8_t eCh, int OnOff) {
 	act_info_t	* psAI = &sAI[eCh];
 	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && psAI->ConfigOK && !psAI->Blocked);
 	psAI->alertDone = OnOff ? 1 : 0;
-	return erSUCCESS;
 }
 
 void xActuatorSetStartStage(u8_t eCh, int Stage) {
 	act_info_t	* psAI = &sAI[eCh];
 	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && psAI->ConfigOK && !psAI->Blocked && INRANGE(actSTAGE_FI, Stage, actSTAGE_OFF));
 	psAI->StageBeg = Stage;
-	return erSUCCESS;
 }
 
 void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
@@ -872,7 +869,6 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d\r\n", eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
-	return erSUCCESS;
 }
 
 void vActuatorBlock(u8_t eCh) {
