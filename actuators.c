@@ -777,8 +777,7 @@ void xActuatorToggle(u8_t eCh) {
 	vActuatorBusySET(psAI);
 	SWAP(psAI->tFI, psAI->tFO, u32_t);
 	SWAP(psAI->tON, psAI->tOFF, u32_t);
-	vActuatorRelease(psAI);
-	return erSUCCESS;
+	vActuatorBusyCLR(psAI);
 }
 
 void vActuatorBreath(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 750, 750, 750, 750); }
