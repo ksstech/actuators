@@ -974,7 +974,6 @@ void vTaskActuatorReport(report_t * psR) {
 double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
 	x64_t x64Value = { .f64 = 0.0 };
-	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1, 0);
 		act_info_t * psAI = &sAI[eCh];
@@ -988,11 +987,9 @@ double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 		}
 		IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	}
-	#endif
 	return x64Value.f64;
 }
 
-	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
 int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
@@ -1000,11 +997,9 @@ int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 		IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
-	#endif
 	return erFAILURE;
 }
 
-	#if (halXXX_XXX_OUT > 0) && (cmakeAEP == 1 || cmakeAEP == 2)
 int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
@@ -1018,7 +1013,6 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 		IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
-	#endif
 	return erFAILURE;
 }
 
