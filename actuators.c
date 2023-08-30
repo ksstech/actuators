@@ -742,7 +742,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 // ######################################### Public APIs ###########################################
 
 void vTaskActuatorInit(void) {
-	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, 8, tsbACT, &ttsACT, tskNO_AFFINITY);
+	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
 }
 
 void vActuatorLoad(u8_t Chan, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
