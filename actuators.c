@@ -237,7 +237,7 @@ static void vActuatorBusyCLR(act_info_t	* psAI) {
  * @param	psAI
  * @return
  */
-int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
+static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	epi_t	sEI = { 0 };
 	event_t	sEvent	= { 0 };
 	alert_t	sAlert	= { 0 };
