@@ -447,7 +447,7 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 
 	default: xActuatorLogError(__FUNCTION__, eCh);
 	}
-	IF_EXEC_1(debugDUTY, vActuatorReportChan, eChan);
+	IF_EXEC_2(debugDUTY, vActuatorReportChan, NULL, eCh);
 }
 
 /* ########################## Hardware INDEPENDENT Actuator functions ##############################
@@ -570,7 +570,7 @@ static void vActuatorAddSequences(u8_t eCh, int Idx, u8_t * paSeq) {
 			break; 										// and go no further
 		}
 	}
-	IF_EXEC_1(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, Chan);
+	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
 }
 
 /**
