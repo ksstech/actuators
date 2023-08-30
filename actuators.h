@@ -118,7 +118,8 @@ int	xActuatorUpdateFieldValue(u8_t Chan, u8_t Field, struct v64_t * px64Var);
 
 // ######################################## status reporting #######################################
 
-void vTaskActuatorReport(void);
+struct report_t;
+void vTaskActuatorReport(report_t * psR);
 
 // ##################################### functional tests ##########################################
 
