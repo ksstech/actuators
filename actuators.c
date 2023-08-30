@@ -223,8 +223,7 @@ static int xActuatorLogError(const char * pFname, u8_t eCh) {
 
 void vActuatorBusy(act_info_t * psAI) {
 //	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
-	while (psAI->Busy)
-		vTaskDelay(pdMS_TO_TICKS(2));
+	while (psAI->Busy) vTaskDelay(pdMS_TO_TICKS(2));
 	psAI->Busy = 1;
 }
 
