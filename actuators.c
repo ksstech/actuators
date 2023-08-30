@@ -221,13 +221,13 @@ static int xActuatorLogError(const char * pFname, u8_t eCh) {
 	return erFAILURE;
 }
 
-void vActuatorBusy(act_info_t * psAI) {
+static void vActuatorBusySET(act_info_t * psAI) {
 //	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
 	while (psAI->Busy) vTaskDelay(pdMS_TO_TICKS(2));
 	psAI->Busy = 1;
 }
 
-inline void vActuatorRelease(act_info_t	* psAI) {
+static void vActuatorBusyCLR(act_info_t	* psAI) {
 	psAI->Busy = 0;
 //	taskENABLE_INTERRUPTS();
 }
@@ -752,15 +752,15 @@ void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF) {
 	psAI->tON += (tON * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
 	psAI->tFO += (tFO * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
 	psAI->tOFF += (tOFF * configTICK_RATE_HZ) / MILLIS_IN_SECOND;
-	vActuatorRelease(psAI);
 	sAI[eCh].Rpt = (CurRpt == 0xFFFFFFFF) ? CurRpt : CurRpt + Rpt;
+	vActuatorBusyCLR(psAI);
 }
 
 void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked && INRANGE(0, Stage, actSTAGE_OFF));
 	act_info_t * psAI = &sAI[eCh];
 	Adjust = (Adjust * configTICK_RATE_HZ) / MILLIS_IN_SECOND; 	// convert adjustment to Ticks
-	vActuatorBusy(psAI);
+	vActuatorBusySET(psAI);
 	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
 	u32_t NewVal = CurVal + Adjust;
 	if (Adjust < 0) {
@@ -768,7 +768,7 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	} else {
 		psAI->tXXX[Stage]	= NewVal > CurVal ? NewVal : UINT32_MAX;
 	}
-	vActuatorRelease(psAI);
+	vActuatorBusyCLR(psAI);
 	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
 }
 
