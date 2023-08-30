@@ -469,11 +469,11 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 */
 
 /**
- * @brief		configure the hardware pin associated with a channel
- *				Uses the definitions in the hal_gpio module to define the specific pin,
- * 				its configuration and (optionally) the associated timer module for hard PWM
- * @param[in]	Channel
- * @return		None
+ * @brief	configure the hardware pin associated with a channel
+ *			Uses the definitions in the hal_gpio module to define the specific pin,
+ * 			its configuration and (optionally) the associated timer module for hard PWM
+ * @param	Channel
+ * @return	None
  */
 static void vActuatorConfig(u8_t eCh) {
 	const act_init_t * psAIS = &ActInit[eCh];
@@ -622,6 +622,8 @@ static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
 		xActuatorNextStage(psAI);
 	}
 }
+
+// ####################################### Actual task #############################################
 
 static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S0, stMICROS, "ActS0_FI", 1, 10);
@@ -794,7 +796,7 @@ void vActuatorOn(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0xFFFFFFFF, 0, 0)
 
 void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF); }
 
-int xActuatorRunningCount (void) { return ActuatorsRunning; }
+int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
@@ -893,7 +895,7 @@ void vActuatorUnBlock(u8_t eCh) {
  * @brief	Load up to a maximum of actMAX_SEQUENCE sequence numbers to the
  * 			sequence table, overwriting any existing (pending) sequences
  *			Expects a full array of actMAX_SEQUENCE size, unused elements to be 0xFF
- * @param	Chan		Channel number
+ * @param	eCh		Channel number
  * @param	paSeq		pointer to array of sequence numbers
  * @return
  */
@@ -906,8 +908,8 @@ void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
 /**
  * @brief	Append additional sequence numbers to the end of the sequence table
  *			Expects an array of up to actMAX_SEQUENCE size, unused elements to be 0xFF
- * @param	Chan		Channel number
- * @param	paSeq		pointer to array of sequence numbers
+ * @param	eCh	- Channel number
+ * @param	paSeq - pointer to array of sequence numbers
  * @return	erFAILURE if none appended else number of sequences appended
  */
 void vActuatorQueSequences(u8_t eCh, u8_t * paSeq) {
