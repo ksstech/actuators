@@ -20,14 +20,6 @@
 	#include "hal_i2c_common.h"
 #endif
 
-#if (halHAS_PCA9555 > 0)
-	#include "pca9555.h"
-#endif
-
-#if (halHAS_PCF8574 > 0)
-	#include "pcf8574.h"
-#endif
-
 #include "esp_attr.h"
 
 // ############################### BUILD: debug configuration options ##############################
