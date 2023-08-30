@@ -254,17 +254,12 @@ int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	return xEpGenerateAlert(&sEI);
 }
 
-	#if (halXXX_XXX_OUT > 0)
 static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 	if (eCh >= halXXX_XXX_OUT || sAI[eCh].Blocked || OUTSIDE(selACT_T_FI, Field, selACT_T_REM)) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", eCh, Field, sAI[eCh].Blocked);
 		return erFAILURE;
 	}
 	return erSUCCESS;
-	#else
-	SL_ERR("No actuator support");
-	return erFAILURE;
-	#endif
 }
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
