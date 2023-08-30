@@ -628,8 +628,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
 
 	#if (halUSE_I2C == 1)
-	if (i2cDevCount)
-		bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
+	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
 	#endif
 
 	xRtosTaskSetRUN(taskACTUATE_MASK); 					// Mask must be set above BEFORE configuration
