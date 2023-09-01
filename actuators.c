@@ -889,7 +889,7 @@ void vActuatorUnBlock(u8_t eCh) {
  */
 void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
 	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
-	IF_myASSERT(debugTRACK, halCONFIG_inFLASH(paSeq));
+	IF_myASSERT(debugTRACK, halCONFIG_inMEM(paSeq));
 	vActuatorAddSequences(eCh, 0, paSeq);
 }
 
