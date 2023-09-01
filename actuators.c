@@ -239,18 +239,18 @@ static void vActuatorBusyCLR(act_info_t	* psAI) {
  */
 static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	epi_t	sEI = { 0 };
-	event_t	sEvent	= { 0 };
-	alert_t	sAlert	= { 0 };
-	ubuf_t	sBuf	= { 0 };
+	event_t	sEvent = { 0 };
+	alert_t	sAlert = { 0 };
+	ubuf_t	sBuf = { 0 };
 	vEpGetInfoWithIndex(&sEI, URI_ACT);
 	IF_RETURN_X(sEI.psES == NULL, erFAILURE);
-	sEI.psEvent		= &sEvent;
-	sEI.psAlert		= &sAlert;
-	sEI.psUB		= &sBuf;
+	sEI.psEvent = &sEvent;
+	sEI.psAlert = &sAlert;
+	sEI.psUB = &sBuf;
 	// configure the type, level and supporting field/channel info
-	sAlert.Type		= Type;
-	sAlert.Level	= Level;
-	sAlert.pvValue	= psAI;
+	sAlert.Type = Type;
+	sAlert.Level = Level;
+	sAlert.pvValue = psAI;
 	return xEpGenerateAlert(&sEI);
 }
 
