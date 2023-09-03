@@ -789,7 +789,7 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_RETURN_X(psAI->Rpt == UINT32_MAX, UINT64_MAX);		// indefinite/unlimited repeat ?
 	IF_RETURN_X(psAI->Rpt == 0, 0);
 	// calculate remaining time for full repeats
-	taskDISABLE_INTERRUPTS();
+	vActuatorBusySET(psAI);
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
 	u8_t Stage = psAI->StageNow;						// now add remaining time in current stage
 	do {
@@ -803,7 +803,7 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 		const act_seq_t * psAS = &sAS[psAI->Seq[Idx]];
 		u64Value += psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
 	}
-	taskENABLE_INTERRUPTS();
+	vActuatorBusyCLR(psAI);
 	return u64Value;
 }
 
