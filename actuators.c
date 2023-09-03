@@ -32,8 +32,7 @@
 #define	debugDUTY					(debugFLAG & 0x0008)
 
 #define	debugDUTY_CYCLE				(debugFLAG & 0x0010)
-#define	debugREMTIME				(debugFLAG & 0x0020)
-#define	debugFUNCTIONS				(debugFLAG & 0x0040)
+#define	debugFUNC_RULES				(debugFLAG & 0x0040)
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
@@ -222,14 +221,12 @@ static int xActuatorLogError(const char * pFname, u8_t eCh) {
 }
 
 static void vActuatorBusySET(act_info_t * psAI) {
-//	taskDISABLE_INTERRUPTS(); 					// XXX might be able to remove if Busy flag works
 	while (psAI->Busy) vTaskDelay(pdMS_TO_TICKS(2));
 	psAI->Busy = 1;
 }
 
 static void vActuatorBusyCLR(act_info_t	* psAI) {
 	psAI->Busy = 0;
-//	taskENABLE_INTERRUPTS();
 }
 
 /**
@@ -640,11 +637,9 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		act_info_t * psAI = &sAI[0];
 		ActuatorsRunning = 0;
 		for (u8_t eCh = 0; eCh < halXXX_XXX_OUT;  ++eCh, ++psAI) {
-			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK)	// done, blocked or not config'd
-				continue;
+			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK)	continue;
 			++ActuatorsRunning;
-			if (psAI->Busy)
-				continue;								// being changed from somewhere else
+			if (psAI->Busy) continue;					// being changed from somewhere else
 			psAI->Busy = 1;
 			switch(psAI->StageNow) {
 			case actSTAGE_FI:							// Step UP from 0% to 100% over tFI mSec
@@ -661,8 +656,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_ON:							// remain on 100% for tON mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S1);
 				if (psAI->tON > 0) {
-					if (psAI->tNOW == 0)
-						vActuatorSetDC(eCh, psAI->MaxDC);
+					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MaxDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S1);
 					break;
@@ -684,8 +678,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S3);
 				if (psAI->tOFF > 0) {
-					if (psAI->tNOW == 0)
-						vActuatorSetDC(eCh, psAI->MinDC);
+					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MinDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S3);
 					break;
@@ -798,13 +791,9 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	// calculate remaining time for full repeats
 	taskDISABLE_INTERRUPTS();
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
-	IF_P(debugREMTIME, "Ch#%d: %llu", eCh, u64Value);
-
-	// now add remaining time in current stage
-	u8_t Stage = psAI->StageNow;
+	u8_t Stage = psAI->StageNow;						// now add remaining time in current stage
 	do {
-		u64Value	+= (Stage == psAI->StageNow) ? psAI->tXXX[Stage] - psAI->tNOW : psAI->tXXX[Stage];
-		IF_P(debugREMTIME, " -> s(%d): %llu", Stage, u64Value);
+		u64Value += (Stage == psAI->StageNow) ? psAI->tXXX[Stage] - psAI->tNOW : psAI->tXXX[Stage];
 		++Stage;
 		Stage %= actSTAGE_NUM;
 	} while (Stage != psAI->StageBeg);
@@ -812,11 +801,9 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	// now add the time for the (optional) sequences
 	for (int Idx = 0; psAI->Seq[Idx] < NO_MEM(sAS); ++Idx) {
 		const act_seq_t * psAS = &sAS[psAI->Seq[Idx]];
-		u64Value	+= psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
-		IF_P(debugREMTIME, " -> I(%d): %llu", Idx, u64Value);
+		u64Value += psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
 	}
 	taskENABLE_INTERRUPTS();
-	IF_P(debugREMTIME, strCRLF);
 	return u64Value;
 }
 
@@ -828,8 +815,7 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 	u64_t u64Now, u64Max = 0.0;
 	for (int eCh = 0; eCh < halXXX_XXX_OUT; ++eCh) {
 		u64Now = xActuatorGetRemainingTime(eCh);
-		if (u64Now > u64Max)
-			u64Max = u64Now;
+		if (u64Now > u64Max) u64Max = u64Now;
 	}
 	return u64Max * MICROS_IN_MILLISEC;
 }
@@ -973,9 +959,9 @@ double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 		} else {
 			x64Value.f64 = (double) xActuatorGetRemainingTime(eCh);
 			px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
-			IF_P(debugREMTIME, "F64=%f", x64Value.f64);
+			IF_P(debugFUNC_RULES, "F64=%f", x64Value.f64);
 		}
-		IF_P(debugFUNCTIONS, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
+		IF_P(debugFUNC_RULES, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	}
 	return x64Value.f64;
 }
@@ -984,7 +970,7 @@ int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		sAI[eCh].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
-		IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
+		IF_P(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
 	return erFAILURE;
@@ -1000,7 +986,7 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 			CurVal	= 0;
 		}
 		sAI[eCh].tXXX[Field-selACT_T_FI] = CurVal;
-		IF_P(debugFUNCTIONS, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
+		IF_P(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
 	return erFAILURE;
