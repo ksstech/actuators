@@ -278,7 +278,7 @@ static void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
 	#if	(halI2C_DIG_OUT > 0)
 	case actI2C_DIG:
 		#if	(halHAS_PCA9555 > 0) && (halHAS_PCF8574 == 0)
-		pca9555DIG_OUT_SetState(ActInit[eCh].ioNum, NewState, 0);
+		pca9555DIG_OUT_SetStateLazy(ActInit[eCh].ioNum, NewState);
 
 		#elif (halHAS_PCF8574 > 0) && (halHAS_PCA9555 == 0)
 		pcf8574DIG_OUT_SetState(ActInit[eCh].ioNum, NewState);
