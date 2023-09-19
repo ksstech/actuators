@@ -682,20 +682,20 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		}
 
 		#if	(halHAS_PCA9555 == 1)
-		/* Considering that we might be running actuator task every 1mS and
-		 * that it is possible for every I2C connected actuator pin to change
-		 * state every 1mS, we could be trying to write each bit each 1mS,
-		 * hence 16x I2C writes per 1mS.
-		 * Here we are (maybe) doing a batch write once per cycle */
-		pca9555DIG_OUT_WriteAll();
-		/* With both water valves and door strikers we have a situation where a reverse EMF is induced
-		 * in the solenoid when power is removed from the actuator. This EMF can, if left undamped,
-		 * reflect back along the cabling to the controller and has been knows to cause I2C bus problems.
-		 * In order to damp the EMF right at the source a reverse biased signal diode should be wired
-		 * across. the solenoid connectors, as close as possible to the source. To diagnose possible
-		 * diode absence or failure we regularly perform a check to verify the actual I2C device state
-		 * against what we believe it should be */
-		pca9555Check(actuateTASK_PERIOD);
+		/* Considering that we might be running actuator task every 1mS and that it is
+		 * possible for every I2C connected actuator pin to change state every 1mS, we
+		 * could be trying to write each bit each 1mS, hence 16x I2C writes per 1mS.
+		 * Hence we are doing a batch max write once per cycle, if any bit changed */
+		if (pca9555DIG_OUT_WriteAll() == 1) {			// if it was a dirty write, check if write OK...
+			/* With both water valves and door strikers we have a situation where a reverse EMF is induced
+			 * in the solenoid when power is removed from the actuator. This EMF can, if left undamped,
+			 * reflect back along the cabling to the controller and has been knows to cause I2C bus problems.
+			 * In order to damp the EMF right at the source a reverse biased signal diode should be wired
+			 * across. the solenoid connectors, as close as possible to the source. To diagnose possible
+			 * diode absence or failure we regularly perform a check to verify the actual I2C device state
+			 * against what we believe it should be */
+			pca9555Check();
+		}
 		#endif
 
 		IF_SYSTIMER_STOP(debugTIMING, stACT_SX);
