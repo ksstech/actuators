@@ -3,22 +3,21 @@
  * Copyright (c) 2016-23 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "hal_variables.h"
+#include "hal_config.h"
 
 #if (halXXX_XXX_OUT > 0)
 #include "actuators.h"
 #include "endpoints.h"
-#include "hal_gpio.h"
-#include "options.h"
+#include "hal_device_includes.h"
+#if (halUSE_I2C > 0)
+	#include "hal_i2c_common.h"
+#endif
+
 #include "printfx.h"
 #include "rules.h"
 #include "syslog.h"
 #include "systiming.h"
 #include "x_errors_events.h"
-
-#if (halUSE_I2C > 0)
-	#include "hal_i2c_common.h"
-#endif
 
 #include "esp_attr.h"
 
@@ -225,9 +224,7 @@ static void vActuatorBusySET(act_info_t * psAI) {
 	psAI->Busy = 1;
 }
 
-static void vActuatorBusyCLR(act_info_t	* psAI) {
-	psAI->Busy = 0;
-}
+static void vActuatorBusyCLR(act_info_t	* psAI) { psAI->Busy = 0; }
 
 /**
  * @brief	UNTESTED
@@ -289,8 +286,7 @@ static void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
 		break;
 	#endif
 
-	default:
-		xActuatorLogError(__FUNCTION__, eCh);
+	default: xActuatorLogError(__FUNCTION__, eCh);
 	}
 }
 
@@ -326,8 +322,7 @@ static int xActuateGetLevelDIG(u8_t eCh) {
 		break;
 	#endif
 
-	default:
-		xActuatorLogError(__FUNCTION__, eCh);
+	default: xActuatorLogError(__FUNCTION__, eCh);
 	}
 	return iRV;
 }
@@ -348,14 +343,14 @@ static void vActuatorSetFrequency(u8_t eCh, u32_t Frequency) {
 	case actI2C_DIG:
 	case actSPI_DIG:
 		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);
-		sAI[eCh].Divisor	= (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
+		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
  		break;
 	#endif
 
 	#if	(halSOC_ANA_OUT > 0)
 	case actSOC_ANA:
 		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);
-		sAI[eCh].Divisor	= (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
+		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
 		break;
 	#endif
 
@@ -605,8 +600,7 @@ static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
  */
 static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
 	psAI->Count	+= actuateTASK_PERIOD;
-	if (psAI->Count >= psAI->Divisor)
-		psAI->Count	= 0;
+	if (psAI->Count >= psAI->Divisor) psAI->Count = 0;
 	psAI->tNOW	+= actuateTASK_PERIOD;
 	if (psAI->tNOW >= psAI->tXXX[psAI->StageNow]) {
 		psAI->tNOW = psAI->Count = 0;
@@ -623,14 +617,11 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
-
 	#if (halUSE_I2C == 1)
 	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
 	#endif
-
-	xRtosTaskSetRUN(taskACTUATE_MASK); 					// Mask must be set above BEFORE configuration
 	for(u8_t eCh = 0; eCh < halXXX_XXX_OUT; vActuatorConfig(eCh++));
-
+	xRtosTaskSetRUN(taskACTUATE_MASK);
 	while(bRtosTaskWaitOK(taskACTUATE_MASK, portMAX_DELAY)) {
 		TickType_t	ActLWtime = xTaskGetTickCount();    // Get the ticks as starting reference
 		IF_SYSTIMER_START(debugTIMING, stACT_SX);
@@ -724,7 +715,9 @@ void vTaskActuatorInit(void) {
 }
 
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
-	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && sAI[eCh].ConfigOK && (sAI[eCh].Blocked == 0));
+	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
+	IF_myASSERT(debugTRACK, sAI[eCh].ConfigOK);
+	IF_myASSERT(debugTRACK, !sAI[eCh].Blocked);
 	vActuatorBusySET(&sAI[eCh]);
 	vActuatorStop(eCh);
 	vActuatorSetTiming(eCh, tFI, tON, tFO, tOFF);
@@ -755,11 +748,8 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	vActuatorBusySET(psAI);
 	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
 	u32_t NewVal = CurVal + Adjust;
-	if (Adjust < 0) {
-		psAI->tXXX[Stage]	= NewVal < CurVal ? NewVal : 0;
-	} else {
-		psAI->tXXX[Stage]	= NewVal > CurVal ? NewVal : UINT32_MAX;
-	}
+	if (Adjust < 0) psAI->tXXX[Stage] = NewVal < CurVal ? NewVal : 0;
+	else psAI->tXXX[Stage] = NewVal > CurVal ? NewVal : UINT32_MAX;
 	vActuatorBusyCLR(psAI);
 	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
 }
@@ -784,7 +774,9 @@ void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF
 int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
-	IF_myASSERT(debugTRACK, (eCh < halXXX_XXX_OUT) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
+	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
+	IF_myASSERT(debugTRACK, sAI[eCh].ConfigOK == 1);
+	IF_myASSERT(debugTRACK, sAI[eCh].Blocked == 0);
 	act_info_t * psAI = &sAI[eCh];
 	IF_RETURN_X(psAI->Rpt == UINT32_MAX, UINT64_MAX);		// indefinite/unlimited repeat ?
 	IF_RETURN_X(psAI->Rpt == 0, 0);
@@ -1044,7 +1036,7 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 }
 
 void vActuatorTest(void) {
-// Test PHYSical level functioning
+	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
 	if (i2cDevCount)
 		bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);
