@@ -898,22 +898,21 @@ void vActuatorStartSequence(u8_t eCh, int Seq) {
 static void vActuatorReportChan(report_t * psR, u8_t eCh) {
 	act_info_t * psAI = &sAI[eCh];
 	printfx_lock(psR);
-	if (eCh == 0)
-		wprintfx(psR, "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n", colourFG_CYAN, attrRESET);
+	#define HDR1 "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n"
+	#define HDR2 " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|"
+	if (eCh == 0) wprintfx(psR, HDR1, colourFG_CYAN, attrRESET);
 	wprintfx(psR, " %2d|",psAI->ChanNum);
 	#if (halSOC_ANA_OUT > 0)
-	if (ActInit[eCh].ioType == actSOC_ANA) {
-		wprintfx(psR, " %4hhu|", halGAO_ReadRAW(ActInit[eCh].ioNum));
-	} else
+	if (ActInit[eCh].ioType == actSOC_ANA) wprintfx(psR, " %4hhu|", halGAO_ReadRAW(ActInit[eCh].ioNum));
+	else
 	#endif
 	{
 		bool bLevel = xActuateGetLevelDIG(eCh);
 		wprintfx(psR, " %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
 	}
-	wprintfx(psR, " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|",
-						StageNames[psAI->StageNow], psAI->Rpt,
-						psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW,
-						psAI->Divisor, psAI->Count, psAI->Match, psAI->MinDC, psAI->CurDC, psAI->MaxDC);
+	wprintfx(psR, HDR2, StageNames[psAI->StageNow], psAI->Rpt, psAI->tFI, psAI->tON, psAI->tFO,
+						psAI->tOFF, psAI->tNOW, psAI->Divisor, psAI->Count, psAI->Match,
+						psAI->MinDC, psAI->CurDC, psAI->MaxDC);
 	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
 		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx)
 			wprintfx(psR, "%02x ", psAI->Seq[Idx]);
@@ -925,9 +924,10 @@ static void vActuatorReportChan(report_t * psR, u8_t eCh) {
 static void vActuatorReportSeq(report_t * psR, u8_t Seq) {
 	const act_seq_t * psAS = &sAS[Seq];
 	printfx_lock(psR);
-	if (Seq == 0)
-		wprintfx(psR, "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n", colourFG_CYAN, attrRESET);
-	wprintfx(psR, " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n", Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	#define HDR3 "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n"
+	#define HDR4 " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n"
+	if (Seq == 0) wprintfx(psR, HDR3, colourFG_CYAN, attrRESET);
+	wprintfx(psR, HDR4, Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
 	printfx_unlock(NULL);
 }
 
