@@ -12,7 +12,7 @@
 #if (halUSE_I2C > 0)
 	#include "hal_i2c_common.h"
 #endif
-
+#include "hal_options.h"
 #include "printfx.h"
 #include "rules.h"
 #include "syslog.h"
@@ -618,7 +618,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
 	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
 	#if (halUSE_I2C == 1)
-	bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
+	(void)xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
 	#endif
 	for(u8_t eCh = 0; eCh < halXXX_XXX_OUT; vActuatorConfig(eCh++));
 	xRtosTaskSetRUN(taskACTUATE_MASK);
@@ -1039,7 +1039,7 @@ void vActuatorTest(void) {
 	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
 	if (i2cDevCount)
-		bRtosWaitStatusALL(flagAPP_I2C, portMAX_DELAY);
+		xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);
 	#endif
 
 	#if	(debugPHYS)
