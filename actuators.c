@@ -531,7 +531,7 @@ static void vActuatorStart(u8_t eCh, u32_t Repeats) {
 	}
 	vActuatorSetDC(eCh, psAI->CurDC);
 	psAI->Rpt = Repeats;
-	xRtosTaskSetRUN(taskACTUATE_MASK);
+	xRtosSetTaskRUN(taskACTUATE_MASK);
 	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%d Rpt=%d\r\n", eCh, Repeats);
 }
 
@@ -621,7 +621,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	(void)xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
 	#endif
 	for(u8_t eCh = 0; eCh < halXXX_XXX_OUT; vActuatorConfig(eCh++));
-	xRtosTaskSetRUN(taskACTUATE_MASK);
+	xRtosSetTaskRUN(taskACTUATE_MASK);
 	while(bRtosTaskWaitOK(taskACTUATE_MASK, portMAX_DELAY)) {
 		TickType_t	ActLWtime = xTaskGetTickCount();    // Get the ticks as starting reference
 		IF_SYSTIMER_START(debugTIMING, stACT_SX);
@@ -702,7 +702,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		if (ActuatorsRunning) {							// Some active actuators, delay till next cycle
 			vTaskDelayUntil(&ActLWtime, actuateTASK_PERIOD);
 		} else {										// NO active actuators
-			xRtosTaskClearRUN(taskACTUATE_MASK); 		// clear RUN state & wait at top....
+			xRtosClearTaskRUN(taskACTUATE_MASK); 		// clear RUN state & wait at top....
 		}
 	}
 	vRtosTaskDelete(NULL);
