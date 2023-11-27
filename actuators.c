@@ -198,7 +198,7 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 StaticTask_t ttsACT = { 0 };
 StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
 
-/* In order to optimise MCU utilisation, especially since the actuator task is set to run EVERY 1mS,
+/* In order to optimise MCU utilisation, especially since the actuator task runs EVERY couple of mS,
  * we try to only start the task if there is something to do. Hence, the task is started every time
  * a LOAD command is executed. During the running of the task the 'ActuatorsRunning' variable is set
  * to the number of actuators serviced during that task cycle. At the end of the task cycle, if NO
