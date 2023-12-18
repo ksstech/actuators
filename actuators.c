@@ -128,7 +128,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
-	#if	(cmakePLTFRM == HW_AC00)
+	#if	(buildPLTFRM == HW_AC00)
 	{	actI2C_DIG,	7, },
 	{	actI2C_DIG,	6, },
 	{	actI2C_DIG,	5, },
@@ -147,7 +147,7 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-	#elif (cmakePLTFRM == HW_AC01)
+	#elif (buildPLTFRM == HW_AC01)
 	{	actI2C_DIG,	0, },
 	{	actI2C_DIG,	1, },
 	{	actI2C_DIG,	2, },
@@ -166,16 +166,16 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actI2C_DIG,	14,	},
 	{	actI2C_DIG,	15,	},
 
-	#elif (cmakePLTFRM == HW_EM1P2) || (cmakePLTFRM == HW_EM3P2)
+	#elif (buildPLTFRM == HW_EM1P2) || (buildPLTFRM == HW_EM3P2)
 //	{	actSOC_DIG,	halSOC_DIG_OUT_0, }, // cannot use, pin conflicts with SCL
 
-	#elif (cmakePLTFRM == HW_KC868A4)					// Kincony KC868-A4
+	#elif (buildPLTFRM == HW_KC868A4)					// Kincony KC868-A4
 	{	actSOC_DIG,	0, },
 	{	actSOC_DIG,	1, },
 	{	actSOC_DIG,	2, },
 	{	actSOC_DIG,	3, },
 
-	#elif (cmakePLTFRM == HW_KC868A6)					// Kincony KC868-A6
+	#elif (buildPLTFRM == HW_KC868A6)					// Kincony KC868-A6
 	{	actI2C_DIG,	pcf8574IO8, },
 	{	actI2C_DIG,	pcf8574IO9, },
 	{	actI2C_DIG,	pcf8574IO10, },
@@ -185,12 +185,12 @@ const act_init_t ActInit[halXXX_XXX_OUT] = {			// Static configuration info
 	{	actSOC_ANA,	0, },
 	{	actSOC_ANA,	1, },
 
-	#elif (cmakePLTFRM == HW_DK41)						// WROVER-KIT
+	#elif (buildPLTFRM == HW_DK41)						// WROVER-KIT
 	{	actSOC_DIG,	0, },
 	{	actSOC_DIG,	1, },
 	{	actSOC_DIG,	2, },
 
-	#elif (cmakePLTFRM == HW_SP2PM)						// Shelly Plus 2PM
+	#elif (buildPLTFRM == HW_SP2PM)						// Shelly Plus 2PM
 	{	actSOC_DIG,	0, },								// Relay 1
 	{	actSOC_DIG,	1, },								// Relay 2
 	{	actSOC_DIG,	2, },								// Red LED
