@@ -101,7 +101,6 @@
 #define	halPWM_MIN_FREQ				((halPWM_CLOCK_HZ / halPWM_MAX_COUNT) + 1)
 #define	halPWM_MAX_FREQ				(halPWM_CLOCK_HZ / 8)
 
-
 #define	stACT_ALL_MASK (1<<stACT_S0 | 1<<stACT_S1 | 1<<stACT_S2 | 1<<stACT_S3 | 1<<stACT_SX)
 
 // #################################### Global & Local variables ###################################
