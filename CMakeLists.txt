@@ -3,9 +3,9 @@
 set( srcs "actuators.c" )
 set( include_dirs "." )
 set( priv_include_dirs )
-set( requires )
-idf_build_get_property( cmakeDEVICES cmakeDEVICES )
-set( priv_requires common main printfx syslog systiming endpoints hal_esp32 rules ${cmakeDEVICES} )
+idf_build_get_property( cmakeREQUIRES cmakeREQUIRES )
+set( requires ${cmakeREQUIRES} )
+set( priv_requires common main printfx syslog systiming endpoints hal_esp32 rules )
 
 idf_component_register(
 	SRCS ${srcs} 
