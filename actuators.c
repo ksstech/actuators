@@ -813,6 +813,13 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 	return u64Max * MICROS_IN_MILLISEC;
 }
 
+void vActuatorsWinddown(void) {
+	for(u8_t eCh = 0; eCh < halXXX_XXX_OUT; ++eCh) {
+		act_info_t	* psAI = &sAI[eCh];
+		if (psAI->Rpt == 0xFFFFFFFF) psAI->Rpt = 1;
+	}
+}
+
 /* ############################ Actuator alerting support functions ################################
  * Start (OFF -> FI/ON)
  * Stop (ON/FO -> OFF)

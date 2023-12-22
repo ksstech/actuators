@@ -113,7 +113,8 @@ void vActuatorStartSequence(u8_t eCh, int Seq);
 
 u64_t xActuatorGetRemainingTime(u8_t eCh);
 u64_t xActuatorGetMaxRemainingTime (void);
-int xActuatorRunningCount (void);
+void vActuatorsWinddown(void);
+int xActuatorRunningCount(void);
 
 struct v64_t;
 double dActuatorGetFieldValue(u8_t eCh, u8_t Field, struct v64_t * px64Var);
