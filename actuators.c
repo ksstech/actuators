@@ -9,6 +9,7 @@
 #include "actuators.h"
 #include "endpoints.h"
 #include "hal_device_includes.h"
+#include "hal_gpio.h"
 #if (halUSE_I2C > 0)
 	#include "hal_i2c_common.h"
 #endif
