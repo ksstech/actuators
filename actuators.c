@@ -783,11 +783,9 @@ int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
-	IF_myASSERT(debugTRACK, sAI[eCh].ConfigOK == 1);
-	IF_myASSERT(debugTRACK, sAI[eCh].Blocked == 0);
 	act_info_t * psAI = &sAI[eCh];
 	IF_RETURN_X(psAI->Rpt == UINT32_MAX, UINT64_MAX);		// indefinite/unlimited repeat ?
-	IF_RETURN_X(psAI->Rpt == 0, 0);
+	if (!psAI->ConfigOK || psAI->Blocked || psAI->Rpt == 0) return 0;
 	// calculate remaining time for full repeats
 	vActuatorBusySET(psAI);
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
