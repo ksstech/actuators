@@ -724,7 +724,6 @@ void vTaskActuatorInit(void) {
 
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
 	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
-	IF_myASSERT(debugTRACK, sAI[eCh].ConfigOK);
 	IF_myASSERT(debugTRACK, !sAI[eCh].Blocked);
 	vActuatorBusySET(&sAI[eCh]);
 	vActuatorStop(eCh);
