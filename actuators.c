@@ -537,7 +537,7 @@ static void vActuatorStart(u8_t eCh, u32_t Repeats) {
 	vActuatorSetDC(eCh, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetTaskRUN(taskACTUATE_MASK);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%d Rpt=%d\r\n", eCh, Repeats);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu\r\n", eCh, Repeats);
 }
 
 /**
@@ -627,15 +627,18 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	#endif
 	for(u8_t eCh = 0; eCh < halXXX_XXX_OUT; vActuatorConfig(eCh++));
 	xRtosSetTaskRUN(taskACTUATE_MASK);
+
 	while(bRtosTaskWaitOK(taskACTUATE_MASK, portMAX_DELAY)) {
 		TickType_t	ActLWtime = xTaskGetTickCount();    // Get the ticks as starting reference
 		IF_SYSTIMER_START(debugTIMING, stACT_SX);
 		act_info_t * psAI = &sAI[0];
 		ActuatorsRunning = 0;
 		for (u8_t eCh = 0; eCh < halXXX_XXX_OUT;  ++eCh, ++psAI) {
-			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK)	continue;
+			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK)
+				continue;
 			++ActuatorsRunning;
-			if (psAI->Busy) continue;					// being changed from somewhere else
+			if (psAI->Busy)
+				continue;								// being changed from somewhere else
 			psAI->Busy = 1;
 			switch(psAI->StageNow) {
 			case actSTAGE_FI:							// Step UP from 0% to 100% over tFI mSec
