@@ -786,8 +786,8 @@ int xActuatorRunningCount(void) { return ActuatorsRunning; }
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
 	act_info_t * psAI = &sAI[eCh];
-	IF_RETURN_X(psAI->Rpt == UINT32_MAX, UINT64_MAX);		// indefinite/unlimited repeat ?
 	if (!psAI->ConfigOK || psAI->Blocked || psAI->Rpt == 0) return 0;
+	if (psAI->Rpt == UINT32_MAX) return UINT64_MAX;
 	// calculate remaining time for full repeats
 	vActuatorBusySET(psAI);
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
@@ -804,7 +804,7 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 		u64Value += psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
 	}
 	vActuatorBusyCLR(psAI);
-	return u64Value;
+	return u64Value * MICROS_IN_MILLISEC;
 }
 
 /**
@@ -812,12 +812,12 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
  * @return Remaining maximum actuator running time in uSecs
  */
 u64_t xActuatorGetMaxRemainingTime (void) {
-	u64_t u64Now, u64Max = 0.0;
+	u64_t u64Max = 0;
 	for (int eCh = 0; eCh < halXXX_XXX_OUT; ++eCh) {
-		u64Now = xActuatorGetRemainingTime(eCh);
+		u64_t u64Now = xActuatorGetRemainingTime(eCh);
 		if (u64Now > u64Max) u64Max = u64Now;
 	}
-	return u64Max * MICROS_IN_MILLISEC;
+	return u64Max;
 }
 
 void vActuatorsWinddown(void) {
