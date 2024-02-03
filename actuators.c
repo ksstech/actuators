@@ -722,7 +722,7 @@ void vTaskActuatorInit(void) {
 	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
 }
 
-void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
+void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {	
 	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
 	IF_myASSERT(debugTRACK, !sAI[eCh].Blocked);
 	vActuatorBusySET(&sAI[eCh]);
@@ -780,6 +780,9 @@ void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF
 
 int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
+/**
+ * @brief	calculate number of uSec remaining for a specific actuator channel
+*/
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
 	act_info_t * psAI = &sAI[eCh];
