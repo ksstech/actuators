@@ -1,6 +1,6 @@
 /*
  * actuators.c - a soft PWM module to control GPIO outputs driving LEDs and relays
- * Copyright (c) 2016-23 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ * Copyright (c) 2016-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
 #include "hal_config.h"
@@ -722,7 +722,7 @@ void vTaskActuatorInit(void) {
 	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
 }
 
-void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {	
+void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
 	IF_myASSERT(debugTRACK, eCh < halXXX_XXX_OUT);
 	IF_myASSERT(debugTRACK, !sAI[eCh].Blocked);
 	vActuatorBusySET(&sAI[eCh]);
