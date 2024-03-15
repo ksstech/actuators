@@ -3,7 +3,7 @@
  * Copyright (c) 2016-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "hal_config.h"
+#include "hal_platform.h"
 
 #if (HAL_XXO > 0)
 #include "actuators.h"
