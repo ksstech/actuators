@@ -13,6 +13,8 @@ extern "C" {
 #define	actMAX_SEQUENCE				8
 #define actNUM_SEQUENCES			10
 
+#define actMAKE_DEF(T,B,N)	{ .ioType = T, .ioBus = B, .ioNum = N, }
+
 // ######################################### Enumerations #########################################
 
 enum { actBUS_SOC, actBUS_I2C, actBUS_SPI, actBUS_NUM };
@@ -39,9 +41,9 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM };// Ac
 
 // ########################################## Structures ##########################################
 
-typedef struct __attribute__((packed)) {
-	u8_t ioType:4;					// Max = 8
-	u8_t ioNum:4;					// Max = 16 (PCA9555)
+typedef union __attribute__((packed)) {
+	struct __attribute__((packed)) { u8_t ioType:2; u8_t ioBus:2; u8_t ioNum:4; };
+	u8_t u8Val;
 } act_init_t;
 DUMB_STATIC_ASSERT(sizeof(act_init_t) == 1);
 
