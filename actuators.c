@@ -115,7 +115,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 	{ 5,	0,		1000,	0,		1000,	},			// 0.50Hz	x5	10Sec		OK
 	{ 1,	0,		0,		0,		25000, 	},			// OFF		x1	25Sec		BUSY
 	{ 5,	0,		1000,	0,		1000,	},			// 0.50Hz	x5	10Sec		OK
-	{ 1,	0,		0,		0,		275000, },			// OFF		x1	275Sec		BUSY
+	{ 1,	0,		0,		0,		275000,	},			// OFF		x1	275Sec		BUSY
 	{ 30,	0,		500,	0,		500,	},			// 1.00Hz	x30 30Sec		WARNING
 	{ 15,	500,	0,		500,	0,		},			// 1.00Hz	x15	15Sec		WAIT !!!
 	{ 8,	0,		250,	0,		250,	},			// 2.00 Hz	x8	4Sec
