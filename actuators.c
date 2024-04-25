@@ -218,7 +218,9 @@ static void vActuatorReportChan(report_t * psR, u8_t eCh);
 // #################################### Common support functions ###################################
 
 static int xActuatorLogError(const char * pFname, u8_t eCh) {
-	vSyslog(SL_SEV_ERROR, pFname, "#=%d t=%d (s)", eCh, ActInit[eCh].ioType, ActTypeNames[ActInit[eCh].ioType]);
+	const act_init_t * psAI = &ActInit[eCh];
+	vSyslog(SL_SEV_ERROR, pFname, "Ch=%d B=%d T=%d (%s/%s) N=%d", eCh, psAI->ioBus, 
+		psAI->ioType, ActBusNames[psAI->ioBus], ActTypeNames[psAI->ioType], psAI->ioNum);
 	return erFAILURE;
 }
 
