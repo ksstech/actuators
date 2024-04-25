@@ -90,6 +90,9 @@ extern u8_t	NumActuator;
 
 void vTaskActuatorInit(void);
 
+u8_t xActuatorGetBus(u8_t eCh);
+u8_t xActuatorGetType(u8_t eCh);
+
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF);
 void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF);
 void vActuatorAdjust(u8_t eCh, int Stage, int Adjust);
