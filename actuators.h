@@ -15,16 +15,23 @@ extern "C" {
 
 // ######################################### Enumerations #########################################
 
+enum { actBUS_SOC, actBUS_I2C, actBUS_SPI, actBUS_NUM };
+
+enum {actTYPE_DIG, actTYPE_PWM, actTYPE_ANA, actTYPE_NUM };
+
 enum {													// interface SOC/I2C/SPI & type DIG/PWM/ANA
 	actSOC_DIG,											// All (DIGital + PWM + ANAlog) SoC integrated actuators
 	actSOC_PWM,
 	actSOC_ANA,
+	actSOC_NA,
 	actI2C_DIG,											// All (DIGital + PWM + ANAlog) I2C connected actuators
 	actI2C_PWM,
 	actI2C_ANA,
+	actI2C_NA,
 	actSPI_DIG,											// All (DIGital + PWM + ANAlog) SPI connected actuators
 	actSPI_PWM,
 	actSPI_ANA,
+	actSPI_NA,
 	actXXX_NUM,											// last item
 };
 
