@@ -917,45 +917,66 @@ void vActuatorStartSequence(u8_t eCh, int Seq) {
 
 // ############################## Private & Public reporting APIs ##################################
 
-static void vActuatorReportChan(report_t * psR, u8_t eCh) {
+/**
+ * @brief
+ * @note	No UART locking at individual channel level
+*/
+void vActuatorReportChan(report_t * psR, u8_t eCh) {
 	act_info_t * psAI = &sAI[eCh];
-	printfx_lock(psR);
 	#define HDR1 "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n"
-	#define HDR2 " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|"
-	if (eCh == 0) wprintfx(psR, HDR1, colourFG_CYAN, attrRESET);
+	if (eCh == 0)
+		wprintfx(psR, HDR1, colourFG_CYAN, attrRESET);
+	if (psAI->ConfigOK == 0)
+		return;
 	wprintfx(psR, " %2d|",psAI->ChanNum);
-	#if (HAL_GAO > 0)
-	if (ActInit[eCh].ioType == actSOC_ANA) wprintfx(psR, " %4hhu|", halGAO_ReadRAW(ActInit[eCh].ioNum));
-	else
-	#endif
-	{
+	#if (HAL_XDO > 0)
+	if (ActInit[eCh].ioType == actTYPE_DIG) {
 		bool bLevel = xActuateGetLevelDIG(eCh);
 		wprintfx(psR, " %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
+	} else
+	#endif
+	#if (HAL_XAO > 0)
+	if (ActInit[eCh].ioType == actTYPE_ANA) {
+		wprintfx(psR, " %4hhu|", xActuateGetLevelANA(eCh));
+	} else
+	#endif
+	#if (HAL_XPO > 0)
+	if (ActInit[eCh].ioType == actTYPE_PWM) {
+		wprintfx(psR, " %4hhu|", xActuateGetLevelPWM(eCh));
+	} else
+	#endif
+	{
+		return;
 	}
-	wprintfx(psR, HDR2, StageNames[psAI->StageNow], psAI->Rpt, psAI->tFI, psAI->tON, psAI->tFO,
+	#define FMT1 " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|"
+	wprintfx(psR, FMT1, StageNames[psAI->StageNow], psAI->Rpt, psAI->tFI, psAI->tON, psAI->tFO,
 						psAI->tOFF, psAI->tNOW, psAI->Divisor, psAI->Count, psAI->Match,
 						psAI->MinDC, psAI->CurDC, psAI->MaxDC);
 	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
-		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx)
+		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx) {
 			wprintfx(psR, "%02x ", psAI->Seq[Idx]);
+		}
 	}
 	wprintfx(psR, strCRLF);
-	printfx_unlock(psR);
 }
 
-static void vActuatorReportSeq(report_t * psR, u8_t Seq) {
+/**
+ * @brief
+ * @note	No UART locking at individual sequence level
+*/
+void vActuatorReportSeq(report_t * psR, u8_t Seq) {
 	const act_seq_t * psAS = &sAS[Seq];
-	printfx_lock(psR);
 	#define HDR3 "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n"
 	#define HDR4 " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n"
 	if (Seq == 0) wprintfx(psR, HDR3, colourFG_CYAN, attrRESET);
 	wprintfx(psR, HDR4, Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
-	printfx_unlock(NULL);
 }
 
 void vTaskActuatorReport(report_t * psR) {
+	WPFX_LOCK(psR);
 	for (u8_t eCh = 0; eCh < HAL_XXO; vActuatorReportChan(psR, eCh++));
 	for (u8_t Seq = 0; Seq < NO_MEM(sAS); vActuatorReportSeq(psR, Seq++));
+	WPFX_UNLOCK(psR);
 	wprintfx(psR, "Running=%u  maxDelay=%!.R\r\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime());
 }
 
@@ -1029,32 +1050,7 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 	printfx("%s #%d Stage:%d Rpt:%d tFI:%d tON:%d tFO:%d tOFF:%d tNOW:%d ",
 				pcMess, eCh, psAI->StageNow, psAI->Rpt,
 				psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW);
-	switch(ActInit[eCh].ioType) {
-	#if	(HAL_XDO > 0)
-	#if	(HAL_GDO > 0)
-	case actSOC_DIG:
-	#endif
-
-	#if	(HAL_IDO > 0)
-	case actI2C_DIG:
-	#endif
-
-	#if	(HAL_SDO > 0)
-	case actSPI_DIG:
-	#endif
-
-	#if	(HAL_GPO > 0)
-	case actSOC_PWM:
-	#endif
-
-		printfx("(%s) Div:%d Match:%d\r\n", ActTypeNames[ActInit[eCh].ioType], psAI->Divisor, psAI->Match);
-		break;
-#endif
-
-	default:
-		printfx("Invalid actuator type=%d\r\n", ActInit[eCh].ioType);
-		break;
-	}
+	printfx("(%s/%s) Div:%d Match:%d\r\n", ActBusNames[ActInit[eCh].ioBus], ActTypeNames[ActInit[eCh].ioType], psAI->Divisor, psAI->Match);
 }
 
 void vActuatorTest(void) {
