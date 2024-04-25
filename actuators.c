@@ -268,69 +268,168 @@ static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 /**
  * @brief	LL=NL
  */
-static void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
-	switch(ActInit[eCh].ioType) {					// handle hardware dependent component
+void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
+	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
 	#if	(HAL_GDO > 0)
 		case actBUS_SOC: 
 			halGDO_SetState(ActInit[eCh].ioNum, NewState); 
 			break;
 	#endif
 
-	#if	(HAL_GPO > 0)
-	case actSOC_PWM: halGPO_SetState(ActInit[eCh].ioNum, NewState); break;
-	#endif
-
 	#if	(HAL_IDO > 0)
-	case actI2C_DIG:
-		#if	(HAL_PCA9555 > 0) && (HAL_PCF8574 == 0)
-		pca9555DIG_OUT_SetStateLazy(ActInit[eCh].ioNum, NewState);
-
-		#elif (HAL_PCF8574 > 0) && (HAL_PCA9555 == 0)
-		pcf8574DIG_OUT_SetState(ActInit[eCh].ioNum, NewState);
-
-		#else
-		#error "Can only support 1 or the other at any stage"
-		#endif
-		break;
+		case actBUS_I2C:
+			#if	(HAL_PCA9555 > 0) && (HAL_PCF8574 == 0)
+				pca9555DIG_OUT_SetStateLazy(ActInit[eCh].ioNum, NewState);
+			#elif (HAL_PCF8574 > 0) && (HAL_PCA9555 == 0)
+				pcf8574DIG_OUT_SetState(ActInit[eCh].ioNum, NewState);
+			#else
+				#error "Can only support 1 or the other at any stage"
+			#endif
+			break;
 	#endif
 
-	default: xActuatorLogError(__FUNCTION__, eCh);
+	default:
+		xActuatorLogError(__FUNCTION__, eCh);
 	}
 }
 
 /**
  * @brief	LL=NL
  */
-static int xActuateGetLevelDIG(u8_t eCh) {
+int xActuateGetLevelDIG(u8_t eCh) {
 	int iRV = erFAILURE;
-	switch(ActInit[eCh].ioType) {						// handle hardware dependent component
+	switch(ActInit[eCh].ioBus) {						// handle hardware dependent component
 	#if	(HAL_GDO > 0)
-	case actSOC_DIG:
-		iRV = halGDO_GetState(ActInit[eCh].ioNum);
-		break;
-	#endif
-
-	#if	(HAL_GPO > 0)
-	case actSOC_PWM:
-		iRV = halGPIO_PWM_OUT_GetState(ActInit[eCh].ioNum);
-		break;
+		case actBUS_SOC:
+			iRV = halGDO_GetState(ActInit[eCh].ioNum);
+			break;
 	#endif
 
 	#if	(HAL_IDO > 0)
-	case actI2C_DIG:
+		case actBUS_I2C:
 		#if	(HAL_PCA9555 > 0)
-		iRV = pca9555DIG_OUT_GetState(ActInit[eCh].ioNum);
-
+			iRV = pca9555DIG_OUT_GetState(ActInit[eCh].ioNum);
 		#elif	(HAL_PCF8574 > 0)
-		iRV = pcf8574DIG_IO_GetState(ActInit[eCh].ioNum);
-
+			iRV = pcf8574DIG_IO_GetState(ActInit[eCh].ioNum);
 		#else
-		myASSERT(0);
+			myASSERT(0);
 		#endif
 		break;
 	#endif
 
-	default: xActuatorLogError(__FUNCTION__, eCh);
+	default:
+		xActuatorLogError(__FUNCTION__, eCh);
+	}
+	return iRV;
+}
+#endif
+
+#if	(HAL_XPO > 0)		// All PWM type actuators
+/**
+ * @brief	LL=NL
+ */
+void IRAM_ATTR vActuateSetLevelPWM(u8_t eCh, u8_t NewState) {
+	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
+	#if	(HAL_GPO > 0)
+		case actBUS_SOC: 
+			halGPIO_PWM_OUT_SetCycle(eCh, NewState);
+			break;
+	#endif
+
+	#if	(HAL_IPO > 0)
+		case actBUS_I2C: 
+			break;
+	#endif
+
+	#if	(HAL_SPO > 0)
+		case actBUS_SPI: 
+			break;
+	#endif
+
+	default:
+		xActuatorLogError(__FUNCTION__, eCh);
+	}
+}
+
+/**
+ * @brief	LL=NL
+ */
+int xActuateGetLevelPWM(u8_t eCh) {
+	int iRV = erFAILURE;
+	switch(ActInit[eCh].ioBus) {						// handle hardware dependent component
+	#if	(HAL_GPO > 0)
+		case actBUS_SOC:
+			break;
+	#endif
+
+	#if	(HAL_IPO > 0)
+		case actBUS_I2C:
+		break;
+	#endif
+
+	#if	(HAL_SPO > 0)
+		case actBUS_SPI:
+			break;
+	#endif
+
+	default:
+		xActuatorLogError(__FUNCTION__, eCh);
+	}
+	return iRV;
+}
+#endif
+
+#if	(HAL_XAO > 0)		// All ANAlog type actuators
+/**
+ * @brief	LL=NL
+ */
+void IRAM_ATTR vActuateSetLevelANA(u8_t eCh, u8_t NewState) {
+	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
+	#if	(HAL_GAO > 0)
+		case actBUS_SOC: 
+			halGAO_WriteRAW(ActInit[eCh].ioNum, NewState);
+			break;
+	#endif
+
+	#if	(HAL_IAO > 0)
+		case actBUS_I2C: 
+			break;
+	#endif
+
+	#if	(HAL_SAO > 0)
+		case actBUS_SPI: 
+			break;
+	#endif
+
+	default:
+		xActuatorLogError(__FUNCTION__, eCh);
+	}
+}
+
+/**
+ * @brief	LL=NL
+ */
+int xActuateGetLevelANA(u8_t eCh) {
+	int iRV = erFAILURE;
+	switch(ActInit[eCh].ioBus) {						// handle hardware dependent component
+	#if	(HAL_GAO > 0)
+		case actBUS_SOC:
+			halGAO_ReadRAW(ActInit[eCh].ioNum);
+			break;
+	#endif
+
+	#if	(HAL_IAO > 0)
+		case actBUS_I2C: 
+			break;
+	#endif
+
+	#if	(HAL_SAO > 0)
+		case actBUS_SPI: 
+			break;
+	#endif
+
+	default:
+		xActuatorLogError(__FUNCTION__, eCh);
 	}
 	return iRV;
 }
@@ -347,35 +446,25 @@ static int xActuateGetLevelDIG(u8_t eCh) {
 static void vActuatorSetFrequency(u8_t eCh, u32_t Frequency) {
 	switch(ActInit[eCh].ioType) {			// handle hardware dependent component
 	#if	(HAL_XDO > 0)
-	case actSOC_DIG:
-	case actI2C_DIG:
-	case actSPI_DIG:
+	case actTYPE_DIG:
 		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);
 		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
  		break;
 	#endif
 
-	#if	(HAL_GAO > 0)
-	case actSOC_ANA:
+	#if	(HAL_XAO > 0)
+	case actTYPE_ANA:
 		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);
 		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
 		break;
 	#endif
 
-	#if	(HAL_GPO > 0)
-	case actSOC_PWM:
+	#if	(HAL_XPO > 0)
+	case actTYPE_PWM:
 		FIT2RANGE(halPWM_MIN_FREQ, Frequency, halPWM_MAX_FREQ, u32_t);
 		sAI[eCh].Divisor = (halPWM_CLOCK_HZ / Frequency);
 		halGPIO_PWM_OUT_SetFrequency(ActInit[eCh].ioNum, sAI[eCh].Divisor - 1);
 		break;
-	#endif
-
-	#if	(HAL_IPO > 0)
-	case actI2C_PWM:
-	#endif
-
-	#if	(HAL_SPO > 0)
-	case actSPI_PWM:
 	#endif
 
 	default: xActuatorLogError(__FUNCTION__, eCh);
@@ -390,59 +479,51 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 	act_info_t * psAI = &sAI[eCh];
 	psAI->CurDC = CurDC;
 	switch(ActInit[eCh].ioType) {
-	#if	(HAL_GDO > 0)
-	case actSOC_DIG:
-	#endif
-	#if	(HAL_IDO > 0)
-	case actI2C_DIG:
-	#endif
-	#if	(HAL_SDO > 0)
-	case actSPI_DIG:
-	#endif
 	#if	(HAL_XDO > 0)		// All (SOC + I2C + SPI) DIGital type actuators
-		switch(psAI->StageNow) {
-		case actSTAGE_FI: psAI->Match	= psAI->MaxDC - psAI->CurDC; break;
-		case actSTAGE_ON: psAI->Match	= psAI->MinDC; break;
-		case actSTAGE_FO: psAI->Match	= psAI->MaxDC - psAI->CurDC; break;
-		case actSTAGE_OFF: psAI->Match	= psAI->MaxDC; break;
-		}
-		vActuateSetLevelDIG(eCh, (psAI->Count >= psAI->Match) ? 1 : 0);
-		break;
+		case actTYPE_DIG:
+			switch(psAI->StageNow) {
+				case actSTAGE_FI: 
+					psAI->Match	= psAI->MaxDC - psAI->CurDC;
+					break;
+				case actSTAGE_ON: 
+					psAI->Match	= psAI->MinDC; 
+					break;
+				case actSTAGE_FO: 
+					psAI->Match	= psAI->MaxDC - psAI->CurDC; 
+					break;
+				case actSTAGE_OFF: 
+					psAI->Match	= psAI->MaxDC; 
+					break;
+			}
+			vActuateSetLevelDIG(eCh, (psAI->Count >= psAI->Match) ? 1 : 0);
+			break;
 	#endif
 
-	#if	(HAL_GPO > 0)
-	case actSOC_PWM:
-		psAI->Match = u32ScaleValue(CurDC, psAI->MinDC, psAI->MaxDC, halPWM_MIN_FREQ, halPWM_MAX_FREQ);
-		halGPIO_PWM_OUT_SetCycle(ActInit[eCh].ioNum, psAI->Match);
-		break;
+	#if	(HAL_XPO > 0)
+		case actTYPE_PWM:
+			psAI->Match = u32ScaleValue(CurDC, psAI->MinDC, psAI->MaxDC, halPWM_MIN_FREQ, halPWM_MAX_FREQ);
+			vActuateSetLevelPWM(eCh, psAI->Match);
+			break;
 	#endif
 
-	#if	(HAL_IPO > 0)
-		case actI2C_PWM: myASSERT(0); break;
-	#endif
-
-	#if	(HAL_SPO > 0)
-		case actSPI_PWM: myASSERT(0); break;
-	#endif
-
-	#if	(HAL_GAO > 0)
-	case actSOC_ANA:
-		switch(psAI->StageNow) {
-		case actSTAGE_FI: psAI->Match	= psAI->MaxDC - psAI->CurDC; break;
-		case actSTAGE_ON: psAI->Match	= psAI->MinDC; break;
-		case actSTAGE_FO: psAI->Match	= psAI->MaxDC - psAI->CurDC; break;
-		case actSTAGE_OFF: psAI->Match	= psAI->MaxDC; break;
-		}
-		halGAO_WriteRAW(ActInit[eCh].ioNum, (255 * psAI->CurDC) / 100);
-		break;
-	#endif
-
-	#if	(HAL_IAO > 0)
-	case actI2C_ANA: myASSERT(0); break;
-	#endif
-
-	#if	(HAL_SAO > 0)
-	case actSPI_ANA: myASSERT(0); break;
+	#if	(HAL_XAO > 0)
+		case actTYPE_ANA:
+			switch(psAI->StageNow) {
+				case actSTAGE_FI:
+					psAI->Match	= psAI->MaxDC - psAI->CurDC; 
+					break;
+				case actSTAGE_ON: 
+					psAI->Match	= psAI->MinDC; 
+					break;
+				case actSTAGE_FO: 
+					psAI->Match	= psAI->MaxDC - psAI->CurDC; 
+					break;
+				case actSTAGE_OFF: 
+					psAI->Match	= psAI->MaxDC; 
+					break;
+			}
+			vActuateSetLevelANA(eCh, (255 * psAI->CurDC) / 100);
+			break;
 	#endif
 
 	default: xActuatorLogError(__FUNCTION__, eCh);
@@ -472,33 +553,21 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 static void vActuatorConfig(u8_t eCh) {
 	const act_init_t * psAIS = &ActInit[eCh];
 	IF_RETURN(sAI[eCh].Blocked);
-	switch(psAIS->ioType) {					// handle hardware dependent component
-	#if	(HAL_GDO > 0)
-	case actSOC_DIG: vActuatorSetFrequency(eCh, actFREQ_DEF_DIG); break;
-	#endif
-
-	#if	(HAL_GPO > 0)
-	case actSOC_PWM: vActuatorSetFrequency(eCh, halFREQ_DEF_PWM); break;
-	#endif
-
-	#if	(HAL_GAO > 0)
-	case actSOC_ANA: vActuatorSetFrequency(eCh, actFREQ_DEF_ANA); break;
-	#endif
-
-	#if	(HAL_IDO > 0)
-	case actI2C_DIG: vActuatorSetFrequency(eCh, actFREQ_DEF_DIG); break;
-	#endif
-
-	#if	(HAL_IPO > 0)							// Not yet supported/tested
-	case actI2C_PWM: vActuatorSetFrequency(eCh, actFREQ_DEF_PWM); break;
-	#endif
-
-	#if	(HAL_IAO > 0)							// Not yet supported/tested
-	case actI2C_ANA: vActuatorSetFrequency(eCh, actFREQ_DEF_ANA); break;
-	#endif
-
-	default: xActuatorLogError(__FUNCTION__, eCh); return;
+	switch(psAIS->ioType) {
+	case actTYPE_DIG:
+		vActuatorSetFrequency(eCh, actFREQ_DEF_DIG);
+		break;
+	case actTYPE_PWM:
+		vActuatorSetFrequency(eCh, halFREQ_DEF_PWM);
+		break;
+	case actTYPE_ANA:
+		vActuatorSetFrequency(eCh, actFREQ_DEF_ANA);
+		break;
+	default: 
+		xActuatorLogError(__FUNCTION__, eCh); 
+		return;
 	}
+
 	act_info_t * psAID = &sAI[eCh];
 	memset(psAID->Seq, 0xFF, SO_MEM(act_info_t, Seq));
 	psAID->StageBeg = psAID->StageNow	= actSTAGE_FI;
