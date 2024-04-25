@@ -1050,8 +1050,12 @@ void vActuatorReportSeq(report_t * psR, u8_t Seq) {
 
 void vTaskActuatorReport(report_t * psR) {
 	WPFX_LOCK(psR);
-	for (u8_t eCh = 0; eCh < HAL_XXO; vActuatorReportChan(psR, eCh++));
-	for (u8_t Seq = 0; Seq < NO_MEM(sAS); vActuatorReportSeq(psR, Seq++));
+	for (u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
+		vActuatorReportChan(psR, eCh);
+	}
+	for (u8_t Seq = 0; Seq < NO_MEM(sAS); ++Seq) {
+		vActuatorReportSeq(psR, Seq);
+	}
 	WPFX_UNLOCK(psR);
 	wprintfx(psR, "Running=%u  maxDelay=%!.R\r\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime());
 }
