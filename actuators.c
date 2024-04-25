@@ -210,11 +210,6 @@ StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
 u8_t ActuatorsRunning = 0;
 act_info_t sAI[HAL_XXO];
 
-// ###################################### Forward declarations #####################################
-
-static int xActuateGetLevelDIG(u8_t eCh);
-static void vActuatorReportChan(report_t * psR, u8_t eCh);
-
 // #################################### Common support functions ###################################
 
 static int xActuatorLogError(const char * pFname, u8_t eCh) {
@@ -958,6 +953,7 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	psAI->MaxDC = iMax;
 }
 
+// ###################################### Sequence support #########################################
 /**
  * @brief	Load up to a maximum of actMAX_SEQUENCE sequence numbers to the
  * 			sequence table, overwriting any existing (pending) sequences
