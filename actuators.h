@@ -1,6 +1,4 @@
-/*
- * x_actuators.h
- */
+// x_actuators.h
 
 #pragma once
 
@@ -30,7 +28,7 @@ enum {													// interface SOC/I2C/SPI & type DIG/PWM/ANA
 	actXXX_NUM,											// last item
 };
 
-enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM, };// Actuator Stages
+enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM };// Actuator Stages
 
 // ########################################## Structures ##########################################
 

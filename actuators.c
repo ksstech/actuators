@@ -1,7 +1,4 @@
-/*
- * actuators.c - a soft PWM module to control GPIO outputs driving LEDs and relays
- * Copyright (c) 2016-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
- */
+// actuators.c - Copyright (c) 2016-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
 #include "hal_platform.h"
 
@@ -225,7 +222,8 @@ static int xActuatorLogError(const char * pFname, u8_t eCh) {
 }
 
 static void vActuatorBusySET(act_info_t * psAI) {
-	while (psAI->Busy) vTaskDelay(pdMS_TO_TICKS(2));
+	while (psAI->Busy)
+		vTaskDelay(pdMS_TO_TICKS(2));
 	psAI->Busy = 1;
 }
 
@@ -263,14 +261,16 @@ static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
 
-#if	(HAL_XDO > 0)		// All (SOC + I2C + SPI) DIGital type actuators
+#if	(HAL_XDO > 0)		// All DIGital type actuators
 /**
  * @brief	LL=NL
  */
 static void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
 	switch(ActInit[eCh].ioType) {					// handle hardware dependent component
 	#if	(HAL_GDO > 0)
-	case actSOC_DIG: halGDO_SetState(ActInit[eCh].ioNum, NewState); break;
+		case actBUS_SOC: 
+			halGDO_SetState(ActInit[eCh].ioNum, NewState); 
+			break;
 	#endif
 
 	#if	(HAL_GPO > 0)
@@ -625,7 +625,9 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	#if (halUSE_I2C == 1)
 	(void)xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
 	#endif
-	for(u8_t eCh = 0; eCh < HAL_XXO; vActuatorConfig(eCh++));
+	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
+		vActuatorConfig(eCh);
+	}
 	xRtosSetTaskRUN(taskACTUATE_MASK);
 
 	while(bRtosTaskWaitOK(taskACTUATE_MASK, portMAX_DELAY)) {
@@ -655,7 +657,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_ON:							// remain on 100% for tON mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S1);
 				if (psAI->tON > 0) {
-					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MaxDC);
+					if (psAI->tNOW == 0)
+						vActuatorSetDC(eCh, psAI->MaxDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S1);
 					break;
@@ -677,7 +680,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S3);
 				if (psAI->tOFF > 0) {
-					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MinDC);
+					if (psAI->tNOW == 0) 
+						vActuatorSetDC(eCh, psAI->MinDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S3);
 					break;
@@ -716,11 +720,11 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	vRtosTaskDelete(NULL);
 }
 
-// ######################################### Public APIs ###########################################
-
 void vTaskActuatorInit(void) {
 	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
 }
+
+// ######################################### Public APIs ###########################################
 
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
@@ -947,7 +951,7 @@ static void vActuatorReportSeq(report_t * psR, u8_t Seq) {
 }
 
 void vTaskActuatorReport(report_t * psR) {
-	for (u8_t eCh = 0; eCh < HAL_XXO;  vActuatorReportChan(psR, eCh++));
+	for (u8_t eCh = 0; eCh < HAL_XXO; vActuatorReportChan(psR, eCh++));
 	for (u8_t Seq = 0; Seq < NO_MEM(sAS); vActuatorReportSeq(psR, Seq++));
 	wprintfx(psR, "Running=%u  maxDelay=%!.R\r\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime());
 }
