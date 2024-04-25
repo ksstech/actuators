@@ -866,6 +866,16 @@ void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF
 
 int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
+void vActuatorBlock(u8_t eCh) {
+	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
+	sAI[eCh].Blocked = 1;
+}
+
+void vActuatorUnBlock(u8_t eCh) {
+	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
+	sAI[eCh].Blocked = 0;
+}
+
 /**
  * @brief	calculate number of uSec remaining for a specific actuator channel
 */
@@ -946,16 +956,6 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d\r\n", eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
-}
-
-void vActuatorBlock(u8_t eCh) {
-	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
-	sAI[eCh].Blocked = 1;
-}
-
-void vActuatorUnBlock(u8_t eCh) {
-	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
-	sAI[eCh].Blocked = 0;
 }
 
 /**
