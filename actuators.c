@@ -798,6 +798,16 @@ void vTaskActuatorInit(void) {
 
 // ######################################### Public APIs ###########################################
 
+u8_t xActuatorGetBus(u8_t eCh) {
+	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
+	return ActInit[eCh].ioBus;
+}
+
+u8_t xActuatorGetType(u8_t eCh) {
+	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
+	return ActInit[eCh].ioType;
+}
+
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
 	IF_myASSERT(debugTRACK, !sAI[eCh].Blocked);
