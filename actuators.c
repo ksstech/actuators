@@ -126,74 +126,75 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 
 const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	#if	(buildPLTFRM == HW_AC00)
-	{	actI2C_DIG,	7, },
-	{	actI2C_DIG,	6, },
-	{	actI2C_DIG,	5, },
-	{	actI2C_DIG,	4, },
-	{	actI2C_DIG,	3, },
-	{	actI2C_DIG,	2, },
-	{	actI2C_DIG,	1, },
-	{	actI2C_DIG,	0, },
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 7),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 6),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 5),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 4),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 3),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
 
-	{	actI2C_DIG,	8, },
-	{	actI2C_DIG,	9, },
-	{	actI2C_DIG,	10,	},
-	{	actI2C_DIG,	11,	},
-	{	actI2C_DIG,	12,	},
-	{	actI2C_DIG,	13,	},
-	{	actI2C_DIG,	14,	},
-	{	actI2C_DIG,	15,	},
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 8),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 9),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 10),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 11),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 12),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 13),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 14),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 15),
 
 	#elif (buildPLTFRM == HW_AC01)
-	{	actI2C_DIG,	0, },
-	{	actI2C_DIG,	1, },
-	{	actI2C_DIG,	2, },
-	{	actI2C_DIG,	3, },
-	{	actI2C_DIG,	4, },
-	{	actI2C_DIG,	5, },
-	{	actI2C_DIG,	6, },
-	{	actI2C_DIG,	7, },
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 3),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 4),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 5),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 6),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 7),
 
-	{	actI2C_DIG,	8, },
-	{	actI2C_DIG,	9, },
-	{	actI2C_DIG,	10,	},
-	{	actI2C_DIG,	11,	},
-	{	actI2C_DIG,	12,	},
-	{	actI2C_DIG,	13,	},
-	{	actI2C_DIG,	14,	},
-	{	actI2C_DIG,	15,	},
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 8),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 9),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 10),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 11),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 12),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 13),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 14),
+	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 15),
 
 	#elif (buildPLTFRM == HW_EM1P2) || (buildPLTFRM == HW_EM3P2)
-//	{	actSOC_DIG,	HAL_GDO_0, }, // cannot use, pin conflicts with SCL
+//	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, HAL_GDO_0), // cannot use, pin conflicts with SCL
 
 	#elif (buildPLTFRM == HW_KC868A4)
-	{	actSOC_DIG,	0, },
-	{	actSOC_DIG,	1, },
-	{	actSOC_DIG,	2, },
-	{	actSOC_DIG,	3, },
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 3),
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),
 
 	#elif (buildPLTFRM == HW_KC868A6)
-	{	actI2C_DIG,	pcf8574IO8, },
-	{	actI2C_DIG,	pcf8574IO9, },
-	{	actI2C_DIG,	pcf8574IO10, },
-	{	actI2C_DIG,	pcf8574IO11, },
-	{	actI2C_DIG,	pcf8574IO12, },
-	{	actI2C_DIG,	pcf8574IO13, },
-	{	actSOC_ANA,	0, },
-	{	actSOC_ANA,	1, },
-
+	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO8),
+	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO9),
+	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO10),
+	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO11),
+	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO12),
+	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO13),
+	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 0),
+	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 1),
 	#elif (buildPLTFRM == HW_DK41)
-	{	actSOC_DIG,	0, },
-	{	actSOC_DIG,	1, },
-	{	actSOC_DIG,	2, },
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 
 	#elif (buildPLTFRM == HW_WIPY3)
-	{	actSOC_DIG,	0, },
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 
 	#elif (buildPLTFRM == HW_SP2PM)
-	{	actSOC_DIG,	0, },
-	{	actSOC_DIG,	1, },
-	{	actSOC_DIG,	2, },
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 	#endif
 };
 
