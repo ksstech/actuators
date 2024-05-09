@@ -134,14 +134,14 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, struct v64_t * px64Var);
 // ######################################## status reporting #######################################
 
 struct report_t;
-void vActuatorReportChan(struct report_t * psR, u8_t eCh);
-void vTaskActuatorReport(struct report_t * psR);
+int xActuatorReportChan(struct report_t * psR, u8_t eCh);
+int xTaskActuatorReport(struct report_t * psR);
 
 // ##################################### functional tests ##########################################
 
 struct rule_t;
 int xActuatorsConfigMode(struct rule_t * psR, int Xcur, int Xmax);
-void vActuatorTest(void);
+int xActuatorTest(void);
 
 #ifdef __cplusplus
 }

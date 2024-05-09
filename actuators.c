@@ -524,7 +524,7 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 
 	default: xActuatorLogError(__FUNCTION__, eCh);
 	}
-	IF_EXEC_2(debugDUTY, vActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugDUTY, xActuatorReportChan, NULL, eCh);
 }
 
 /* ########################## Hardware INDEPENDENT Actuator functions ##############################
@@ -571,7 +571,7 @@ static void vActuatorConfig(u8_t eCh) {
 	psAID->MaxDC = psAID->DelDC = 100;
 	psAID->ConfigOK = 1;
 	vActuatorSetDC(eCh, psAID->MinDC = 0);
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 /**
@@ -635,7 +635,7 @@ static void vActuatorAddSequences(u8_t eCh, int Idx, u8_t * paSeq) {
 			break; 										// and go no further
 		}
 	}
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 /**
@@ -812,7 +812,7 @@ void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t t
 	vActuatorSetTiming(eCh, tFI, tON, tFO, tOFF);
 	vActuatorStart(eCh, Rpt);
 	vActuatorBusyCLR(&sAI[eCh]);
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF) {
@@ -840,7 +840,7 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	if (Adjust < 0) psAI->tXXX[Stage] = NewVal < CurVal ? NewVal : 0;
 	else psAI->tXXX[Stage] = NewVal > CurVal ? NewVal : UINT32_MAX;
 	vActuatorBusyCLR(psAI);
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), vActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 void xActuatorToggle(u8_t eCh) {
@@ -997,67 +997,73 @@ void vActuatorStartSequence(u8_t eCh, int Seq) {
  * @brief
  * @note	No UART locking at individual channel level
 */
-void vActuatorReportChan(report_t * psR, u8_t eCh) {
+int xActuatorReportChan(report_t * psR, u8_t eCh) {
+	int iRV = 0;
 	act_info_t * psAI = &sAI[eCh];
 	#define HDR1 "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n"
 	if (eCh == 0)
-		wprintfx(psR, HDR1, colourFG_CYAN, attrRESET);
+		iRV += wprintfx(psR, HDR1, colourFG_CYAN, attrRESET);
 	if (psAI->ConfigOK == 0)
-		return;
-	wprintfx(psR, " %2d|",psAI->ChanNum);
+		return iRV;
+	iRV += wprintfx(psR, " %2d|",psAI->ChanNum);
 	#if (HAL_XDO > 0)
 	if (ActInit[eCh].ioType == actTYPE_DIG) {
 		bool bLevel = xActuateGetLevelDIG(eCh);
-		wprintfx(psR, " %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
+		iRV += wprintfx(psR, " %c%c%c |", CHR_0 + bLevel, psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
 	} else
 	#endif
 	#if (HAL_XAO > 0)
 	if (ActInit[eCh].ioType == actTYPE_ANA) {
-		wprintfx(psR, " %4hhu|", xActuateGetLevelANA(eCh));
+		iRV += wprintfx(psR, " %4hhu|", xActuateGetLevelANA(eCh));
 	} else
 	#endif
 	#if (HAL_XPO > 0)
 	if (ActInit[eCh].ioType == actTYPE_PWM) {
-		wprintfx(psR, " %4hhu|", xActuateGetLevelPWM(eCh));
+		iRV += wprintfx(psR, " %4hhu|", xActuateGetLevelPWM(eCh));
 	} else
 	#endif
 	{
-		return;
+		return iRV;
 	}
 	#define FMT1 " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|"
-	wprintfx(psR, FMT1, StageNames[psAI->StageNow], psAI->Rpt, psAI->tFI, psAI->tON, psAI->tFO,
+	iRV += wprintfx(psR, FMT1, StageNames[psAI->StageNow], psAI->Rpt, psAI->tFI, psAI->tON, psAI->tFO,
 						psAI->tOFF, psAI->tNOW, psAI->Divisor, psAI->Count, psAI->Match,
 						psAI->MinDC, psAI->CurDC, psAI->MaxDC);
 	if (psAI->Blocked == 0 && psAI->Seq[0] != 0xFF) {
 		for (int Idx = 0; Idx < actMAX_SEQUENCE && psAI->Seq[Idx] != 0xFF; ++Idx) {
-			wprintfx(psR, "%02x ", psAI->Seq[Idx]);
+			iRV += wprintfx(psR, "%02x ", psAI->Seq[Idx]);
 		}
 	}
-	wprintfx(psR, strCRLF);
+	iRV += wprintfx(psR, strCRLF);
+	return iRV;
 }
 
 /**
  * @brief
  * @note	No UART locking at individual sequence level
 */
-void vActuatorReportSeq(report_t * psR, u8_t Seq) {
+int xActuatorReportSeq(report_t * psR, u8_t Seq) {
+	int iRV = 0;
 	const act_seq_t * psAS = &sAS[Seq];
 	#define HDR3 "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n"
 	#define HDR4 " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n"
-	if (Seq == 0) wprintfx(psR, HDR3, colourFG_CYAN, attrRESET);
-	wprintfx(psR, HDR4, Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	if (Seq == 0)
+		iRV += wprintfx(psR, HDR3, xpfSGR(0,0,colourFG_CYAN,0), xpfSGR(0,0,attrRESET,0));
+	iRV += wprintfx(psR, HDR4, Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
+	return iRV;
 }
 
-void vTaskActuatorReport(report_t * psR) {
-	WPFX_LOCK(psR);
+int xTaskActuatorReport(report_t * psR) {
+	int iRV = 0;
 	for (u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
-		vActuatorReportChan(psR, eCh);
+		iRV += xActuatorReportChan(psR, eCh);
 	}
 	for (u8_t Seq = 0; Seq < NO_MEM(sAS); ++Seq) {
-		vActuatorReportSeq(psR, Seq);
+		iRV += xActuatorReportSeq(psR, Seq);
 	}
-	WPFX_UNLOCK(psR);
-	wprintfx(psR, "Running=%u  maxDelay=%!.R\r\n\n", xActuatorRunningCount(), xActuatorGetMaxRemainingTime());
+	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.R%s", xActuatorRunningCount(),
+		xActuatorGetMaxRemainingTime(), repFORM_TST(psR,aNL) ? strCR2xLF : strCRLF);
+	return iRV;
 }
 
 // ############################## Rules interface to Actuator table ################################
@@ -1074,9 +1080,9 @@ double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 		} else {
 			x64Value.f64 = (double) xActuatorGetRemainingTime(eCh);
 			px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
-			IF_P(debugFUNC_RULES, "F64=%f", x64Value.f64);
+			IF_PX(debugFUNC_RULES, "F64=%f", x64Value.f64);
 		}
-		IF_P(debugFUNC_RULES, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
+		IF_PX(debugFUNC_RULES, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	}
 	return x64Value.f64;
 }
@@ -1085,7 +1091,7 @@ int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		sAI[eCh].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
-		IF_P(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
+		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
 	return erFAILURE;
@@ -1101,7 +1107,7 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 			CurVal	= 0;
 		}
 		sAI[eCh].tXXX[Field-selACT_T_FI] = CurVal;
-		IF_P(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
+		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
 	return erFAILURE;
@@ -1117,7 +1123,7 @@ int xActuatorsConfigMode(rule_t * psR, int Xcur, int Xmax) {
 	do {
 		u32_t tXX = tBASE + (Xcur * tSTEP);
 		vActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
-		vActuatorReportChan(NULL, Xcur);
+		xActuatorReportChan(NULL, Xcur);
 	} while (++Xcur < Xmax);
 	return erSUCCESS;
 }
@@ -1127,10 +1133,10 @@ int xActuatorsConfigMode(rule_t * psR, int Xcur, int Xmax) {
 void vActuatorTestReport(u8_t eCh, char * pcMess) {
 	IF_myASSERT(debugPARAM, eCh < HAL_XXO);
 	act_info_t * psAI = &sAI[0];
-	printfx("%s #%d Stage:%d Rpt:%d tFI:%d tON:%d tFO:%d tOFF:%d tNOW:%d ",
+	wprintfx(NULL, "%s #%d Stage:%d Rpt:%d tFI:%d tON:%d tFO:%d tOFF:%d tNOW:%d ",
 				pcMess, eCh, psAI->StageNow, psAI->Rpt,
 				psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW);
-	printfx("(%s/%s) Div:%d Match:%d\r\n", ActBusNames[ActInit[eCh].ioBus], ActTypeNames[ActInit[eCh].ioType], psAI->Divisor, psAI->Match);
+	wprintfx(NULL, "(%s/%s) Div:%d Match:%d\r\n", ActBusNames[ActInit[eCh].ioBus], ActTypeNames[ActInit[eCh].ioType], psAI->Divisor, psAI->Match);
 }
 
 void vActuatorTest(void) {
