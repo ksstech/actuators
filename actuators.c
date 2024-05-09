@@ -10,6 +10,7 @@
 #if (halUSE_I2C > 0)
 	#include "hal_i2c_common.h"
 #endif
+#include "hal_memory.h"
 #include "hal_options.h"
 #include "printfx.h"
 #include "rules.h"
@@ -965,7 +966,7 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
  */
 void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
-	IF_myASSERT(debugTRACK, halCONFIG_inMEM(paSeq));
+	IF_myASSERT(debugTRACK, halMEM_AddrInANY(paSeq));
 	vActuatorAddSequences(eCh, 0, paSeq);
 }
 
