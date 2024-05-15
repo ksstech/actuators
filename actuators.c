@@ -979,7 +979,7 @@ void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
  */
 void vActuatorQueSequences(u8_t eCh, u8_t * paSeq) {
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
-	IF_myASSERT(debugTRACK, halCONFIG_inFLASH(paSeq));
+	IF_myASSERT(debugTRACK, halMEM_AddrInANY(paSeq));
 	for (int Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
 		if (sAI[eCh].Seq[Idx] == 0xFF) { vActuatorAddSequences(eCh, Idx, paSeq); return; }
 	}
