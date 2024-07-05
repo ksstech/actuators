@@ -1035,7 +1035,7 @@ int xActuatorReportChan(report_t * psR, u8_t eCh) {
 			iRV += wprintfx(psR, "%02x ", psAI->Seq[Idx]);
 		}
 	}
-	iRV += wprintfx(psR, strCRLF);
+	iRV += wprintfx(psR, strNL);
 	return iRV;
 }
 
@@ -1063,7 +1063,7 @@ int xTaskActuatorReport(report_t * psR) {
 		iRV += xActuatorReportSeq(psR, Seq);
 	}
 	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.R%s", xActuatorRunningCount(),
-		xActuatorGetMaxRemainingTime(), repFORM_TST(psR,aNL) ? strCR2xLF : strCRLF);
+		xActuatorGetMaxRemainingTime(), repFORM_TST(psR,aNL) ? strNLx2 : strNL);
 	return iRV;
 }
 
