@@ -674,7 +674,8 @@ static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
  */
 static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
 	psAI->Count	+= actuateTASK_PERIOD;
-	if (psAI->Count >= psAI->Divisor) psAI->Count = 0;
+	if (psAI->Count >= psAI->Divisor)
+		psAI->Count = 0;
 	psAI->tNOW	+= actuateTASK_PERIOD;
 	if (psAI->tNOW >= psAI->tXXX[psAI->StageNow]) {
 		psAI->tNOW = psAI->Count = 0;
@@ -838,8 +839,10 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	vActuatorBusySET(psAI);
 	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
 	u32_t NewVal = CurVal + Adjust;
-	if (Adjust < 0) psAI->tXXX[Stage] = NewVal < CurVal ? NewVal : 0;
-	else psAI->tXXX[Stage] = NewVal > CurVal ? NewVal : UINT32_MAX;
+	if (Adjust < 0)
+		psAI->tXXX[Stage] = NewVal < CurVal ? NewVal : 0;
+	else
+		psAI->tXXX[Stage] = NewVal > CurVal ? NewVal : UINT32_MAX;
 	vActuatorBusyCLR(psAI);
 	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
@@ -879,8 +882,10 @@ void vActuatorUnBlock(u8_t eCh) {
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
 	act_info_t * psAI = &sAI[eCh];
-	if (!psAI->ConfigOK || psAI->Blocked || psAI->Rpt == 0) return 0;
-	if (psAI->Rpt == UINT32_MAX) return UINT64_MAX;
+	if (!psAI->ConfigOK || psAI->Blocked || psAI->Rpt == 0)
+		return 0;
+	if (psAI->Rpt == UINT32_MAX)
+		return UINT64_MAX;
 	// calculate remaining time for full repeats
 	vActuatorBusySET(psAI);
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
@@ -908,7 +913,8 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 	u64_t u64Max = 0;
 	for (int eCh = 0; eCh < HAL_XXO; ++eCh) {
 		u64_t u64Now = xActuatorGetRemainingTime(eCh);
-		if (u64Now > u64Max) u64Max = u64Now;
+		if (u64Now > u64Max)
+			u64Max = u64Now;
 	}
 	return u64Max;
 }
@@ -916,7 +922,8 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 void vActuatorsWinddown(void) {
 	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
 		act_info_t	* psAI = &sAI[eCh];
-		if (psAI->Rpt == 0xFFFFFFFF) psAI->Rpt = 1;
+		if (psAI->Rpt == 0xFFFFFFFF)
+			psAI->Rpt = 1;
 	}
 }
 
@@ -949,7 +956,8 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	act_info_t	* psAI = &sAI[eCh];
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && psAI->ConfigOK && !psAI->Blocked);
 	IF_myASSERT(debugTRACK, INRANGE(0, iMin, 100) && INRANGE(0, iMax, 100));
-	if (iMin > iMax) SWAP(iMin, iMax, u8_t);
+	if (iMin > iMax)
+		SWAP(iMin, iMax, u8_t);
 	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d\r\n", eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
@@ -981,7 +989,10 @@ void vActuatorQueSequences(u8_t eCh, u8_t * paSeq) {
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
 	IF_myASSERT(debugTRACK, halMEM_AddrInANY(paSeq));
 	for (int Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
-		if (sAI[eCh].Seq[Idx] == 0xFF) { vActuatorAddSequences(eCh, Idx, paSeq); return; }
+		if (sAI[eCh].Seq[Idx] == 0xFF) {
+			vActuatorAddSequences(eCh, Idx, paSeq);
+			return;
+		}
 	}
 }
 
@@ -1143,7 +1154,8 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 void vActuatorTest(void) {
 	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
-	if (i2cDevCount) xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);
+	if (i2cDevCount)
+		xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);
 	#endif
 
 	#if	(debugPHYS)
