@@ -127,26 +127,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
-	#if	(buildPLTFRM == HW_AC00)
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 7),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 6),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 5),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 4),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 3),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
-
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 8),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 9),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 10),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 11),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 12),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 13),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 14),
-	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 15),
-
-	#elif (buildPLTFRM == HW_AC01)
+	#if (buildPLTFRM == HW_AC01)
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
