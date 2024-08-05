@@ -955,7 +955,7 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
  */
 void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
-	IF_myASSERT(debugTRACK, halMEM_AddrInANY(paSeq));
+	IF_myASSERT(debugTRACK, halMemoryANY(paSeq));
 	vActuatorAddSequences(eCh, 0, paSeq);
 }
 
@@ -968,7 +968,7 @@ void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
  */
 void vActuatorQueSequences(u8_t eCh, u8_t * paSeq) {
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && sAI[eCh].ConfigOK && !sAI[eCh].Blocked);
-	IF_myASSERT(debugTRACK, halMEM_AddrInANY(paSeq));
+	IF_myASSERT(debugTRACK, halMemoryANY(paSeq));
 	for (int Idx = 0; Idx < actMAX_SEQUENCE; ++Idx) {
 		if (sAI[eCh].Seq[Idx] == 0xFF) {
 			vActuatorAddSequences(eCh, Idx, paSeq);
@@ -1062,7 +1062,7 @@ int xTaskActuatorReport(report_t * psR) {
 // ############################## Rules interface to Actuator table ################################
 
 double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
-	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
+	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	x64_t x64Value = { .f64 = 0.0 };
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1, 0);
@@ -1081,7 +1081,7 @@ double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 }
 
 int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
-	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
+	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		sAI[eCh].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
 		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
@@ -1091,7 +1091,7 @@ int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 }
 
 int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
-	IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px64Var));
+	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		u32_t CurVal = sAI[eCh].tXXX[Field-selACT_T_FI];
 		if ((px64Var->val.x64.x32[0].i32 < 0) && (CurVal >= abs(px64Var->val.x64.x32[0].i32))) {
