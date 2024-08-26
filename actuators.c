@@ -430,18 +430,18 @@ static void vActuatorSetFrequency(u8_t eCh, u32_t Frequency) {
  		break;
 	#endif
 
-	#if	(HAL_XAO > 0)
-	case actTYPE_ANA:
-		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);
-		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
-		break;
-	#endif
-
 	#if	(HAL_XPO > 0)
 	case actTYPE_PWM:
 		FIT2RANGE(halPWM_MIN_FREQ, Frequency, halPWM_MAX_FREQ, u32_t);
 		sAI[eCh].Divisor = (halPWM_CLOCK_HZ / Frequency);
 		halGPIO_PWM_OUT_SetFrequency(ActInit[eCh].ioNum, sAI[eCh].Divisor - 1);
+		break;
+	#endif
+
+	#if	(HAL_XAO > 0)
+	case actTYPE_ANA:
+		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);
+		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
 		break;
 	#endif
 
