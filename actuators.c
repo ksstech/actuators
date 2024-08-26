@@ -532,18 +532,10 @@ static void vActuatorConfig(u8_t eCh) {
 	const act_init_t * psAIS = &ActInit[eCh];
 	IF_RETURN(sAI[eCh].Blocked);
 	switch(psAIS->ioType) {
-	case actTYPE_DIG:
-		vActuatorSetFrequency(eCh, actFREQ_DEF_DIG);
-		break;
-	case actTYPE_PWM:
-		vActuatorSetFrequency(eCh, halFREQ_DEF_PWM);
-		break;
-	case actTYPE_ANA:
-		vActuatorSetFrequency(eCh, actFREQ_DEF_ANA);
-		break;
-	default: 
-		xActuatorLogError(__FUNCTION__, eCh); 
-		return;
+	case actTYPE_DIG: vActuatorSetFrequency(eCh, actFREQ_DEF_DIG); break;
+	case actTYPE_PWM: vActuatorSetFrequency(eCh, halFREQ_DEF_PWM); break;
+	case actTYPE_ANA: vActuatorSetFrequency(eCh, actFREQ_DEF_ANA); break;
+	default: xActuatorLogError(__FUNCTION__, eCh); return;
 	}
 
 	act_info_t * psAID = &sAI[eCh];
