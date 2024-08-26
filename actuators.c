@@ -537,7 +537,6 @@ static void vActuatorConfig(u8_t eCh) {
 	case actTYPE_ANA: vActuatorSetFrequency(eCh, actFREQ_DEF_ANA); break;
 	default: xActuatorLogError(__FUNCTION__, eCh); return;
 	}
-
 	act_info_t * psAID = &sAI[eCh];
 	memset(psAID->Seq, 0xFF, SO_MEM(act_info_t, Seq));
 	psAID->StageBeg = psAID->StageNow	= actSTAGE_FI;
@@ -560,7 +559,7 @@ static void vActuatorSetTiming(u8_t eCh, u32_t tFI, u32_t tON, u32_t tFO, u32_t 
 	psAI->tON = pdMS_TO_TICKS(tON > MILLIS_IN_DAY ? MILLIS_IN_DAY : tON);
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u\r\n", eCh, tFI, tON, tFO, tOFF);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u" strNL, eCh, tFI, tON, tFO, tOFF);
 }
 
 /**
@@ -579,7 +578,7 @@ static void vActuatorStart(u8_t eCh, u32_t Repeats) {
 	vActuatorSetDC(eCh, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetTaskRUN(taskACTUATE_MASK);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu\r\n", eCh, Repeats);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu" strNL, eCh, Repeats);
 }
 
 /**
@@ -593,7 +592,7 @@ static void vActuatorStop(u8_t eCh) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(eCh, 0);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Stop Ch=%d\r\n", eCh);
+	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Stop Ch=%d" strNL, eCh);
 }
 
 /**
@@ -931,7 +930,7 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	IF_myASSERT(debugTRACK, INRANGE(0, iMin, 100) && INRANGE(0, iMax, 100));
 	if (iMin > iMax)
 		SWAP(iMin, iMax, u8_t);
-	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d\r\n", eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
+	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d" strNL, eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
 }
@@ -985,7 +984,7 @@ void vActuatorStartSequence(u8_t eCh, int Seq) {
 int xActuatorReportChan(report_t * psR, u8_t eCh) {
 	int iRV = 0;
 	act_info_t * psAI = &sAI[eCh];
-	#define HDR1 "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C\r\n"
+	#define HDR1 "%C Ch|Value|Stage| Repeat|  tFI  |  tON  |  tFO  |  tOFF |  tNOW | Div Cnt Mtch| Min  DC Max| Sequence%C" strNL
 	if (eCh == 0)
 		iRV += wprintfx(psR, HDR1, colourFG_CYAN, attrRESET);
 	if (psAI->ConfigOK == 0)
@@ -1030,8 +1029,8 @@ int xActuatorReportChan(report_t * psR, u8_t eCh) {
 int xActuatorReportSeq(report_t * psR, u8_t Seq) {
 	int iRV = 0;
 	const act_seq_t * psAS = &sAS[Seq];
-	#define HDR3 "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C\r\n"
-	#define HDR4 " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|\r\n"
+	#define HDR3 "%CSeq |Repeat|  tFI  |  tON  |  tFO  |  tOFF |%C" strNL
+	#define HDR4 " %2d | %#'5u|%#'7u|%#'7u|%#'7u|%#'7u|" strNL
 	if (Seq == 0)
 		iRV += wprintfx(psR, HDR3, xpfSGR(0,0,colourFG_CYAN,0), xpfSGR(0,0,attrRESET,0));
 	iRV += wprintfx(psR, HDR4, Seq, psAS->Rpt, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
@@ -1067,7 +1066,7 @@ double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 			px64Var->val.x64.x32[0].u32 = (u32_t) x64Value.f64;
 			IF_PX(debugFUNC_RULES, "F64=%f", x64Value.f64);
 		}
-		IF_PX(debugFUNC_RULES, "%s: C=%d  F=%d  I=%d  V=%'lu\r\n", __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
+		IF_PX(debugFUNC_RULES, "%s: C=%d  F=%d  I=%d  V=%'lu" strNL, __FUNCTION__, eCh, Field, Field-selACT_T_FI, px64Var->val.x64.x32[0].u32);
 	}
 	return x64Value.f64;
 }
@@ -1076,7 +1075,7 @@ int	xActuatorSetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
 		sAI[eCh].tXXX[Field-selACT_T_FI] = px64Var->val.x64.x32[0].u32;
-		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
+		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu" strNL, Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
 	return erFAILURE;
@@ -1092,7 +1091,7 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 			CurVal	= 0;
 		}
 		sAI[eCh].tXXX[Field-selACT_T_FI] = CurVal;
-		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu\r\n", Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
+		IF_PX(debugFUNC_RULES, "F=%d  I=%d  V=%'lu" strNL, Field, Field-selACT_T_FI, sAI[eCh].tXXX[Field-selACT_T_FI]);
 		return erSUCCESS;
 	}
 	return erFAILURE;
@@ -1121,7 +1120,7 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 	wprintfx(NULL, "%s #%d Stage:%d Rpt:%d tFI:%d tON:%d tFO:%d tOFF:%d tNOW:%d ",
 				pcMess, eCh, psAI->StageNow, psAI->Rpt,
 				psAI->tFI, psAI->tON, psAI->tFO, psAI->tOFF, psAI->tNOW);
-	wprintfx(NULL, "(%s/%s) Div:%d Match:%d\r\n", ActBusNames[ActInit[eCh].ioBus], ActTypeNames[ActInit[eCh].ioType], psAI->Divisor, psAI->Match);
+	wprintfx(NULL, "(%s/%s) Div:%d Match:%d" strNL, ActBusNames[ActInit[eCh].ioBus], ActTypeNames[ActInit[eCh].ioType], psAI->Divisor, psAI->Match);
 }
 
 void vActuatorTest(void) {
@@ -1149,7 +1148,7 @@ void vActuatorTest(void) {
 			vActuatorStart(eCh, UINT32_MAX);
 			for(int8_t CurDC = 0; CurDC <= 100;  CurDC = (CurDC == 0) ? 1 : CurDC * 2) {
 				vActuatorSetDC(eCh, CurDC);
-				SL_INFO("DIG: eCh=%d  Freq=%'u  Lev=%'u\r\n", eCh, Freq, CurDC);
+				SL_INFO("DIG: eCh=%d  Freq=%'u  Lev=%'u" strNL, eCh, Freq, CurDC);
 				getchar();
 			}
 		}
