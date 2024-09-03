@@ -759,11 +759,11 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			xRtosClearTaskRUN(taskACTUATE_MASK); 		// clear RUN state & wait at top....
 		}
 	}
-	vRtosTaskDelete(NULL);
+	vTaskDelete(NULL);
 }
 
 void vTaskActuatorInit(void) {
-	xRtosTaskCreateStatic(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
+	xTaskCreateStaticPinnedToCore(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
 }
 
 // ######################################### Public APIs ###########################################
