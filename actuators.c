@@ -1038,7 +1038,9 @@ int xActuatorReportSeq(report_t * psR, u8_t Seq) {
 }
 
 int xTaskActuatorReport(report_t * psR) {
+	IF_myASSERT(debugPARAM, halMemorySRAM(psR));
 	int iRV = 0;
+	if (psR->fNoLock) halUartLock(WPFX_TIMEOUT);
 	for (u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
 		iRV += xActuatorReportChan(psR, eCh);
 	}
@@ -1047,6 +1049,7 @@ int xTaskActuatorReport(report_t * psR) {
 	}
 	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.R%s", xActuatorRunningCount(),
 		xActuatorGetMaxRemainingTime(), repFORM_TST(psR,aNL) ? strNLx2 : strNL);
+	if (psR->fNoLock) halUartUnLock();
 	return iRV;
 }
 
