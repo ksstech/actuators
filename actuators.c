@@ -202,12 +202,18 @@ static int xActuatorLogError(const char * pFname, u8_t eCh) {
 	return erFAILURE;
 }
 
+/**
+ * @brief	Wait until actuator not busy then mark as busy...
+ */
 static void vActuatorBusySET(act_info_t * psAI) {
 	while (psAI->Busy)
 		vTaskDelay(pdMS_TO_TICKS(2));
 	psAI->Busy = 1;
 }
 
+/**
+ * @brief	Clear actuator busy flag
+ */
 static void vActuatorBusyCLR(act_info_t	* psAI) { psAI->Busy = 0; }
 
 /**
@@ -885,8 +891,7 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 	u64_t u64Max = 0;
 	for (int eCh = 0; eCh < HAL_XXO; ++eCh) {
 		u64_t u64Now = xActuatorGetRemainingTime(eCh);
-		if (u64Now > u64Max)
-			u64Max = u64Now;
+		if (u64Now > u64Max) u64Max = u64Now;			// save current as new Max value
 	}
 	return u64Max;
 }
@@ -894,8 +899,7 @@ u64_t xActuatorGetMaxRemainingTime (void) {
 void vActuatorsWinddown(void) {
 	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
 		act_info_t	* psAI = &sAI[eCh];
-		if (psAI->Rpt == 0xFFFFFFFF)
-			psAI->Rpt = 1;
+		if (psAI->Rpt == 0xFFFFFFFF) psAI->Rpt = 1;		// if Rpt is forever, change to 1
 	}
 }
 
@@ -928,9 +932,8 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	act_info_t	* psAI = &sAI[eCh];
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && psAI->ConfigOK && !psAI->Blocked);
 	IF_myASSERT(debugTRACK, INRANGE(0, iMin, 100) && INRANGE(0, iMax, 100));
-	if (iMin > iMax)
-		SWAP(iMin, iMax, u8_t);
 	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d" strNL, eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
+	if (iMin > iMax) SWAP(iMin, iMax, u8_t);
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
 }
