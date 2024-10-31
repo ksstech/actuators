@@ -860,10 +860,8 @@ void vActuatorUnBlock(u8_t eCh) {
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
 	act_info_t * psAI = &sAI[eCh];
-	if (!psAI->ConfigOK || psAI->Blocked || psAI->Rpt == 0)
-		return 0;
-	if (psAI->Rpt == UINT32_MAX)
-		return UINT64_MAX;
+	if (psAI->Rpt == 0)				return 0ULL;
+	if (psAI->Rpt == UINT32_MAX)	return UINT64_MAX;
 	// calculate remaining time for full repeats
 	vActuatorBusySET(psAI);
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
