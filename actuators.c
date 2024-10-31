@@ -197,8 +197,8 @@ act_info_t sAI[HAL_XXO];
 
 static int xActuatorLogError(const char * pFname, u8_t eCh) {
 	const act_init_t * psAI = &ActInit[eCh];
-	vSyslog(SL_SEV_ERROR, pFname, "Ch=%d B=%d T=%d (%s/%s) N=%d", eCh, psAI->ioBus, 
-		psAI->ioType, ActBusNames[psAI->ioBus], ActTypeNames[psAI->ioType], psAI->ioNum);
+	vSyslog(SL_SEV_ERROR, pFname, "Ch=%d B=%s/%d T=%s/%d N=%d", eCh, ActBusNames[psAI->ioBus], psAI->ioBus, 
+		ActTypeNames[psAI->ioType], psAI->ioType, psAI->ioNum);
 	return erFAILURE;
 }
 
@@ -1055,8 +1055,8 @@ int xTaskActuatorReport(report_t * psR) {
 	for (u8_t Seq = 0; Seq < NO_MEM(sAS); ++Seq) {
 		iRV += xActuatorReportSeq(psR, Seq);
 	}
-	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.R%s", xActuatorRunningCount(),
-		xActuatorGetMaxRemainingTime(), repFORM_TST(psR,aNL) ? strNLx2 : strNL);
+	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.03R%s", xActuatorRunningCount(),
+		xActuatorGetMaxRemainingTime() * MICROS_IN_MILLISEC, repFORM_TST(psR,aNL) ? strNLx2 : strNL);
 	if (psR->fNoLock) halUartUnLock();
 	return iRV;
 }
