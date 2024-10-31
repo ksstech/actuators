@@ -855,7 +855,7 @@ void vActuatorUnBlock(u8_t eCh) {
 }
 
 /**
- * @brief	calculate number of uSec remaining for a specific actuator channel
+ * @brief	calculate number of mSec remaining for a specific actuator channel
 */
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
@@ -880,12 +880,12 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 		u64Value += psAS->Rpt * (psAS->tFI + psAS->tON + psAS->tFO + psAS->tOFF);
 	}
 	vActuatorBusyCLR(psAI);
-	return u64Value * MICROS_IN_MILLISEC;
+	return u64Value;
 }
 
 /**
- * Determines the longest remaining running time, not the sum of ALL
- * @return Remaining maximum actuator running time in uSecs
+ * @brief	Calculate maximum possible remaining run time, not the sum of ALL
+ * @return Remaining maximum actuator running time in mSecs
  */
 u64_t xActuatorGetMaxRemainingTime (void) {
 	u64_t u64Max = 0;
