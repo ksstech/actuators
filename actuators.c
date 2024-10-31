@@ -835,10 +835,8 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	vActuatorBusySET(psAI);
 	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
 	u32_t NewVal = CurVal + Adjust;
-	if (Adjust < 0)
-		psAI->tXXX[Stage] = NewVal < CurVal ? NewVal : 0;
-	else
-		psAI->tXXX[Stage] = NewVal > CurVal ? NewVal : UINT32_MAX;
+	if (Adjust < 0) psAI->tXXX[Stage] = (NewVal < CurVal) ? NewVal : 0;
+	else psAI->tXXX[Stage] = (NewVal > CurVal) ? NewVal : UINT32_MAX;
 	vActuatorBusyCLR(psAI);
 	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
@@ -936,13 +934,13 @@ void xActuatorSetStartStage(u8_t eCh, int Stage) {
 }
 
 void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
-	act_info_t	* psAI = &sAI[eCh];
 	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
 	IF_myASSERT(debugTRACK, INRANGE(0, iMin, 100) && INRANGE(0, iMax, 100));
-	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d" strNL, eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 	if (iMin > iMax) SWAP(iMin, iMax, u8_t);
+	act_info_t	* psAI = &sAI[eCh];
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
+	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d" strNL, eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 }
 
 // ###################################### Sequence support #########################################
