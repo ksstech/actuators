@@ -795,6 +795,11 @@ void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t t
 	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
+void vActuatorBreath(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 750, 750, 750, 750); }
+void vActuatorPanic(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 150, 150, 150, 150); }
+void vActuatorOn(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0xFFFFFFFF, 0, 0); }
+void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF); }
+
 void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF) {
 	IF_myASSERT(debugTRACK, (eCh < HAL_XXO) && sAI[eCh].ConfigOK && (sAI[eCh].Blocked == 0));
 	act_info_t * psAI = &sAI[eCh];
@@ -833,14 +838,6 @@ void xActuatorToggle(u8_t eCh) {
 	SWAP(psAI->tON, psAI->tOFF, u32_t);
 	vActuatorBusyCLR(psAI);
 }
-
-void vActuatorBreath(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 750, 750, 750, 750); }
-
-void vActuatorPanic(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 150, 150, 150, 150); }
-
-void vActuatorOn(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0xFFFFFFFF, 0, 0); }
-
-void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF); }
 
 int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
