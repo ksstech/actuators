@@ -767,7 +767,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 
 		IF_SYSTIMER_STOP(debugTIMING, stACT_SX);
 		if (ActuatorsRunning) {							// Some active actuators, delay till next cycle
-			vTaskDelayUntil(&ActLWtime, actuateTASK_PERIOD);
+			xTaskDelayUntil(&ActLWtime, actuateTASK_PERIOD);
 		} else {										// NO active actuators
 			xRtosClearTaskRUN(taskACTUATE_MASK); 		// clear RUN state & wait at top....
 		}
