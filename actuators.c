@@ -1064,7 +1064,7 @@ double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	x64_t x64Value = { .f64 = 0.0 };
 	if (xActuatorVerifyParameters(eCh, Field) != erFAILURE) {
-		px64Var->def = SETDEF_CVAR(0, 0, vtVALUE, cvU32, 1, 0);
+		px64Var->def = SETDEF_CVAR(0,0,vtVALUE,cvU32,1,0,0);
 		act_info_t * psAI = &sAI[eCh];
 		if (Field < selACT_T_REM) {							// all these are real tXXX fields/stages
 			x64Value.f64 				= psAI->tXXX[Field-selACT_T_FI];
@@ -1134,8 +1134,10 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 void vActuatorTest(void) {
 	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
+	BaseType_t btRV;
 	if (i2cDevCount)
-		xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);
+		btRV = xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);
+	(void) btRV;
 	#endif
 
 	#if	(debugPHYS)
