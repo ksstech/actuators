@@ -575,7 +575,7 @@ static void vActuatorSetTiming(u8_t eCh, u32_t tFI, u32_t tON, u32_t tFO, u32_t 
 	psAI->tON = pdMS_TO_TICKS(tON > MILLIS_IN_DAY ? MILLIS_IN_DAY : tON);
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u" strNL, eCh, tFI, tON, tFO, tOFF);
+	IF_PXT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u" strNL, eCh, tFI, tON, tFO, tOFF);
 }
 
 /**
@@ -594,7 +594,7 @@ static void vActuatorStart(u8_t eCh, u32_t Repeats) {
 	vActuatorSetDC(eCh, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	xRtosSetTaskRUN(taskACTUATE_MASK);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu" strNL, eCh, Repeats);
+	IF_PXT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu" strNL, eCh, Repeats);
 }
 
 /**
@@ -608,7 +608,7 @@ static void vActuatorStop(u8_t eCh) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(eCh, 0);
-	IF_PT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Stop Ch=%d" strNL, eCh);
+	IF_PXT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Stop Ch=%d" strNL, eCh);
 }
 
 /**
@@ -937,7 +937,7 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
 	act_info_t	* psAI = &sAI[eCh];
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
-	IF_PT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d" strNL, eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
+	IF_PXT(debugDUTY_CYCLE, "[ACT] SetMMDC Ch=%d  Min=%d->%d  Max=%d->%d" strNL, eCh, iMin, psAI->MinDC, iMax, psAI->MaxDC);
 }
 
 // ###################################### Sequence support #########################################
