@@ -691,11 +691,9 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		act_info_t * psAI = &sAI[0];
 		ActuatorsRunning = 0;
 		for (u8_t eCh = 0; eCh < HAL_XXO;  ++eCh, ++psAI) {
-			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK)
-				continue;
+			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK) continue;
 			++ActuatorsRunning;
-			if (psAI->Busy)
-				continue;								// being changed from somewhere else
+			if (psAI->Busy) continue;					// being changed from somewhere else
 			psAI->Busy = 1;
 			switch(psAI->StageNow) {
 			case actSTAGE_FI:							// Step UP from 0% to 100% over tFI mSec
@@ -712,8 +710,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_ON:							// remain on 100% for tON mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S1);
 				if (psAI->tON > 0) {
-					if (psAI->tNOW == 0)
-						vActuatorSetDC(eCh, psAI->MaxDC);
+					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MaxDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S1);
 					break;
@@ -735,8 +732,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S3);
 				if (psAI->tOFF > 0) {
-					if (psAI->tNOW == 0) 
-						vActuatorSetDC(eCh, psAI->MinDC);
+					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MinDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S3);
 					break;
@@ -1134,10 +1130,7 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 void vActuatorTest(void) {
 	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
-	BaseType_t btRV;
-	if (i2cDevCount)
-		btRV = xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);
-	(void) btRV;
+	if (i2cDevCount) (void) xRtosWaitStat0(flagAPP_I2C, portMAX_DELAY);
 	#endif
 
 	#if	(debugPHYS)
