@@ -679,7 +679,6 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
-	vTaskSetThreadLocalStoragePointer(NULL, buildFRTLSP_EVT_MASK, (void *)taskACTUATE_MASK);
 	#if (halUSE_I2C == 1)
 	(void)xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
 	#endif
@@ -771,9 +770,18 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	vTaskDelete(NULL);
 }
 
-void vTaskActuatorInit(void) {
-	xTaskCreateStaticPinnedToCore(vTaskActuator, "actuate", actuateSTACK_SIZE, NULL, actuateTASK_PRIORITY, tsbACT, &ttsACT, tskNO_AFFINITY);
-}
+task_param_t sActuatorParam = {
+	.pxTaskCode = vTaskActuator,
+	.pcName = "actuate",
+	.usStackDepth = actuateSTACK_SIZE,
+	.uxPriority = actuateTASK_PRIORITY,
+	.pxStackBuffer = tsbACT,
+	.pxTaskBuffer = &ttsACT,
+	.xCoreID = tskNO_AFFINITY,
+	.xMask = taskACTUATE_MASK,
+};
+
+void vTaskActuatorInit(void) { xTaskCreateWithMask(&sActuatorParam, NULL); }
 
 // ######################################### Public APIs ###########################################
 
