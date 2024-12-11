@@ -679,9 +679,9 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
-	#if (halUSE_I2C == 1)
-	(void)xRtosWaitStatus(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
-	#endif
+#if (halUSE_I2C == 1)
+	(void)xRtosWaitStat0(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
+#endif
 	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh) vActuatorConfig(eCh);
 	xRtosSetTaskRUN(taskACTUATE_MASK);
 	while(bRtosTaskWaitOK(taskACTUATE_MASK, portMAX_DELAY)) {
