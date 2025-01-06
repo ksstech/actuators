@@ -695,7 +695,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			if (psAI->Busy) continue;					// being changed from somewhere else
 			psAI->Busy = 1;
 			switch(psAI->StageNow) {
-			case actSTAGE_FI:							// Step UP from 0% to 100% over tFI mSec
+			case actSTAGE_FI: {							// Step UP from 0% to 100% over tFI mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S0);
 				if (psAI->tFI > 0) {
 					vActuatorSetDC(eCh, psAI->MinDC + ((psAI->tNOW * psAI->DelDC) / psAI->tFI));
@@ -705,8 +705,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 				}
 				xActuatorNextStage(psAI);
 				IF_SYSTIMER_STOP(debugTIMING, stACT_S0);
-				/* FALLTHRU */ /* no break */
-			case actSTAGE_ON:							// remain on 100% for tON mSec
+			}	/* FALLTHRU */ /* no break */
+			case actSTAGE_ON: {							// remain on 100% for tON mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S1);
 				if (psAI->tON > 0) {
 					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MaxDC);
@@ -716,8 +716,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 				}
 				xActuatorNextStage(psAI);
 				IF_SYSTIMER_STOP(debugTIMING, stACT_S1);
-				/* FALLTHRU */ /* no break */
-			case actSTAGE_FO:							// Step DOWN 100% -> 0% over tFO mSec
+			}	/* FALLTHRU */ /* no break */
+			case actSTAGE_FO: {							// Step DOWN 100% -> 0% over tFO mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S2);
 				if (psAI->tFO > 0) {
 					vActuatorSetDC(eCh, psAI->MaxDC - ((psAI->tNOW * psAI->DelDC) / psAI->tFO));
@@ -727,8 +727,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 				}
 				xActuatorNextStage(psAI);
 				IF_SYSTIMER_STOP(debugTIMING, stACT_S2);
-				/* FALLTHRU */ /* no break */
-			case actSTAGE_OFF:							// remain off 0% for tOFF mSec
+			}	/* FALLTHRU */ /* no break */
+			case actSTAGE_OFF: {						// remain off 0% for tOFF mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S3);
 				if (psAI->tOFF > 0) {
 					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MinDC);
@@ -739,6 +739,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 				xActuatorNextStage(psAI);
 				IF_SYSTIMER_STOP(debugTIMING, stACT_S3);
 				break;
+			}
 			}
 			psAI->Busy = 0;
 		}
