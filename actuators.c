@@ -690,7 +690,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		act_info_t * psAI = &sAI[0];
 		ActuatorsRunning = 0;
 		for (u8_t eCh = 0; eCh < HAL_XXO;  ++eCh, ++psAI) {
-			if (!psAI->Rpt || psAI->Blocked || !psAI->ConfigOK) continue;
+			if (psAI->Rpt == 0 || psAI->Blocked || psAI->ConfigOK == 0) continue;
 			++ActuatorsRunning;
 			if (psAI->Busy) continue;					// being changed from somewhere else
 			psAI->Busy = 1;
