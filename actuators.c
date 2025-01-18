@@ -248,6 +248,7 @@ static int xAxtuatorCheckValidity(u8_t eCh) {
 	return iRV;
 }
 
+#if (buildAEP > 0)
 static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 	if (eCh >= HAL_XXO || sAI[eCh].Blocked || OUTSIDE(selACT_T_FI, Field, selACT_T_REM)) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", eCh, Field, sAI[eCh].Blocked);
@@ -255,6 +256,7 @@ static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 	}
 	return erSUCCESS;
 }
+#endif
 
 // ##################### Hardware dependent (DIG/PWM/ANA) local-only functions #####################
 
@@ -1065,6 +1067,7 @@ int xTaskActuatorReport(report_t * psR) {
 
 // ############################## Rules interface to Actuator table ################################
 
+#if (buildAEP > 0)
 double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	x64_t x64Value = { .f64 = 0.0 };
@@ -1109,6 +1112,7 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	}
 	return erFAILURE;
 }
+#endif
 
 // ############################# DUMMY stub for actuator MODE support ##############################
 
