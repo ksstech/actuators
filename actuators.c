@@ -682,7 +682,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
 #if (halUSE_I2C == 1)
-	(void)xRtosWaitStat0(flagAPP_I2C, portMAX_DELAY);	// ensure I2C config done before initialising
+	halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
 #endif
 	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh) vActuatorConfig(eCh);
 	halEventUpdateRunTasks(0, 1);
@@ -1143,7 +1143,7 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 void vActuatorTest(void) {
 	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
-	if (i2cDevCount) (void) xRtosWaitStat0(flagAPP_I2C, portMAX_DELAY);
+	if (i2cDevCount) halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);
 	#endif
 
 	#if	(debugPHYS)
