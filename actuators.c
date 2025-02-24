@@ -807,6 +807,16 @@ u8_t xActuatorGetType(u8_t eCh) {
 	return ActInit[eCh].ioType;
 }
 
+u8_t xActuatorGetNumber(u8_t ioType) {
+	if (ioType == actTYPE_DIG)
+		return HAL_XDO;
+	if (ioType == actTYPE_PWM)
+		return HAL_XPO;
+	if (ioType == actTYPE_ANA)
+		return HAL_XAO;
+	return ruleINV_TYPE;
+}
+
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
 	if (xActuatorCheckChannel(eCh) < erSUCCESS)
 		return;
