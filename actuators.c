@@ -240,7 +240,6 @@ static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 
 static int xActuatorCheckChannel(u8_t eCh) {
 	int iRV;
-	IF_PX(debugTRACK && ioB2GET(dbgActuate), "%s (%d)" strNL, pcStrError(iRV), eCh);
 	if (eCh >= HAL_XXO)
 		iRV = erACT_INV_CH; 
 	else if (sAI[eCh].ConfigOK == 0)
@@ -249,6 +248,7 @@ static int xActuatorCheckChannel(u8_t eCh) {
 		iRV = erACT_BLOCKED;
 	else
 		return erSUCCESS;
+	SL_ERR("%s (%d)", pcStrError(iRV), eCh);
 	return iRV;
 }
 
