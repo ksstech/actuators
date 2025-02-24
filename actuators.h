@@ -92,8 +92,26 @@ extern u8_t	NumActuator;
 
 void vTaskActuatorInit(void);
 
+/**
+ * @brief
+ * @param[in]
+ * @return
+ */
 u8_t xActuatorGetBus(u8_t eCh);
+
+/**
+ * @brief
+ * @param[in]
+ * @return
+ */
 u8_t xActuatorGetType(u8_t eCh);
+
+/**
+ * @brief		Return the number of actuators of the specific type present in platform
+ * @param[in]	ioType being ANAlog, DIGital or PWM
+ * @return		number of actuators available
+ */
+u8_t xActuatorGetNumber(u8_t ioType);
 
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF);
 void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF);
