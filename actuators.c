@@ -779,18 +779,19 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 	vTaskDelete(NULL);
 }
 
-task_param_t sActuatorParam = {
-	.pxTaskCode = vTaskActuator,
-	.pcName = "actuate",
-	.usStackDepth = actuateSTACK_SIZE,
-	.uxPriority = actuateTASK_PRIORITY,
-	.pxStackBuffer = tsbACT,
-	.pxTaskBuffer = &ttsACT,
-	.xCoreID = tskNO_AFFINITY,
-	.xMask = taskACTUATE_MASK,
-};
-
-void vTaskActuatorInit(void) { xTaskCreateWithMask(&sActuatorParam, NULL); }
+void vTaskActuatorInit(void) {
+	const task_param_t sActuatorParam = {
+		.pxTaskCode = vTaskActuator,
+		.pcName = "actuate",
+		.usStackDepth = actuateSTACK_SIZE,
+		.uxPriority = actuateTASK_PRIORITY,
+		.pxStackBuffer = tsbACT,
+		.pxTaskBuffer = &ttsACT,
+		.xCoreID = tskNO_AFFINITY,
+		.xMask = taskACTUATE_MASK,
+	};
+	xTaskCreateWithMask(&sActuatorParam, NULL);
+}
 
 // ######################################### Public APIs ###########################################
 
