@@ -238,13 +238,17 @@ static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	return xEpGenerateAlert(&sEI);
 }
 
-static int xAxtuatorCheckValidity(u8_t eCh) {
+static int xActuatorCheckChannel(u8_t eCh) {
 	int iRV;
-	if (eCh >= HAL_XXO) 			iRV = erACT_INV_CH; 
-	else if (!sAI[eCh].ConfigOK)	iRV = erACT_NOT_CFG;
-	else if (sAI[eCh].Blocked)		iRV = erACT_BLOCKED;
-	else 							return erSUCCESS;
 	IF_PX(debugTRACK && ioB2GET(dbgActuate), "%s (%d)" strNL, pcStrError(iRV), eCh);
+	if (eCh >= HAL_XXO)
+		iRV = erACT_INV_CH; 
+	else if (sAI[eCh].ConfigOK == 0)
+		iRV = erACT_NOT_CFG;
+	else if (sAI[eCh].Blocked)
+		iRV = erACT_BLOCKED;
+	else
+		return erSUCCESS;
 	return iRV;
 }
 
@@ -548,7 +552,8 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
  */
 static void vActuatorConfig(u8_t eCh) {
 	const act_init_t * psAIS = &ActInit[eCh];
-	IF_RETURN(sAI[eCh].Blocked);
+	if (sAI[eCh].Blocked)
+		return;
 	switch(psAIS->ioType) {
 	case actTYPE_DIG: vActuatorSetFrequency(eCh, actFREQ_DEF_DIG); break;
 	case actTYPE_PWM: vActuatorSetFrequency(eCh, halFREQ_DEF_PWM); break;
@@ -684,7 +689,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 #if (halUSE_I2C == 1)
 	halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
 #endif
-	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh) vActuatorConfig(eCh);
+	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh)
+		vActuatorConfig(eCh);
 	halEventUpdateRunTasks(0, 1);
 	while(halEventWaitTasksOK(0, portMAX_DELAY)) {
 		TickType_t ActLWtime = xTaskGetTickCount();		// Get the ticks as starting reference
@@ -789,17 +795,20 @@ void vTaskActuatorInit(void) { xTaskCreateWithMask(&sActuatorParam, NULL); }
 // ######################################### Public APIs ###########################################
 
 u8_t xActuatorGetBus(u8_t eCh) {
-	if (xAxtuatorCheckValidity(eCh) == erACT_INV_CH) return ruleINV_ACT;
+	if (xActuatorCheckChannel(eCh) == erACT_INV_CH)
+		return ruleINV_ACT;
 	return ActInit[eCh].ioBus;
 }
 
 u8_t xActuatorGetType(u8_t eCh) {
-	if (xAxtuatorCheckValidity(eCh) == erACT_INV_CH) return ruleINV_ACT;
+	if (xActuatorCheckChannel(eCh) == erACT_INV_CH)
+		return ruleINV_ACT;
 	return ActInit[eCh].ioType;
 }
 
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	vActuatorBusySET(&sAI[eCh]);
 	vActuatorStop(eCh);
 	vActuatorSetTiming(eCh, tFI, tON, tFO, tOFF);
@@ -814,7 +823,8 @@ void vActuatorOn(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0xFFFFFFFF, 0, 0)
 void vActuatorOff(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 0, 0, 0, 0xFFFFFFFF); }
 
 void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	act_info_t * psAI = &sAI[eCh];
 	vActuatorBusySET(psAI);
 	u32_t CurRpt = sAI[eCh].Rpt;
@@ -829,7 +839,8 @@ void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF) {
 }
 
 void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	if (OUTSIDE(actSTAGE_FI, Stage, actSTAGE_OFF)) {
 		SL_ERR("Invalid Stage %d requested", Stage);
 		return;
@@ -839,14 +850,17 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	vActuatorBusySET(psAI);
 	u32_t CurVal = psAI->tXXX[Stage]; 			// save the selected stage value
 	u32_t NewVal = CurVal + Adjust;
-	if (Adjust < 0) psAI->tXXX[Stage] = (NewVal < CurVal) ? NewVal : 0;
-	else psAI->tXXX[Stage] = (NewVal > CurVal) ? NewVal : UINT32_MAX;
+	if (Adjust < 0)
+		psAI->tXXX[Stage] = (NewVal < CurVal) ? NewVal : 0;
+	else
+		psAI->tXXX[Stage] = (NewVal > CurVal) ? NewVal : UINT32_MAX;
 	vActuatorBusyCLR(psAI);
 	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 void xActuatorToggle(u8_t eCh) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	act_info_t * psAI = &sAI[eCh];
 	vActuatorBusySET(psAI);
 	SWAP(psAI->tFI, psAI->tFO, u32_t);
@@ -870,10 +884,13 @@ void vActuatorUnBlock(u8_t eCh) {
  * @brief	calculate number of mSec remaining for a specific actuator channel
 */
 u64_t xActuatorGetRemainingTime(u8_t eCh) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return 0ULL;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return 0ULL;
 	act_info_t * psAI = &sAI[eCh];
-	if (psAI->Rpt == 0)				return 0ULL;
-	if (psAI->Rpt == UINT32_MAX)	return UINT64_MAX;
+	if (psAI->Rpt == 0)
+		return 0ULL;
+	if (psAI->Rpt == UINT32_MAX)
+		return UINT64_MAX;
 	// calculate remaining time for full repeats
 	vActuatorBusySET(psAI);
 	u64_t u64Value = (psAI->Rpt > 1) ? (psAI->tFI + psAI->tON + psAI->tFO + psAI->tOFF) * (psAI->Rpt - 1) : 0;
@@ -921,26 +938,31 @@ void vActuatorsWinddown(void) {
  */
 
 void xActuatorSetAlertStage(u8_t eCh, int OnOff) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	act_info_t	* psAI = &sAI[eCh];
 	psAI->alertStage = OnOff ? 1 : 0;
 }
 
 void xActuatorSetAlertDone(u8_t eCh, int OnOff) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	act_info_t	* psAI = &sAI[eCh];
 	psAI->alertDone = OnOff ? 1 : 0;
 }
 
 void xActuatorSetStartStage(u8_t eCh, int Stage) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	if (INRANGE(actSTAGE_FI, Stage, actSTAGE_OFF)) sAI[eCh].StageBeg = Stage;
 }
 
 void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	IF_myASSERT(debugTRACK, INRANGE(0, iMin, 100) && INRANGE(0, iMax, 100));
-	if (iMin > iMax) SWAP(iMin, iMax, u8_t);
+	if (iMin > iMax)
+		SWAP(iMin, iMax, u8_t);
 	act_info_t	* psAI = &sAI[eCh];
 	psAI->MinDC = iMin;
 	psAI->MaxDC = iMax;
@@ -957,7 +979,8 @@ void vActuatorSetMinMaxDC(u8_t eCh, int iMin, int iMax) {
  * @return
  */
 void xActuatorLoadSequences(u8_t eCh, u8_t * paSeq) {
-	if (xAxtuatorCheckValidity(eCh) < erSUCCESS) return;
+	if (xActuatorCheckChannel(eCh) < erSUCCESS)
+		return;
 	IF_myASSERT(debugTRACK, halMemoryANY(paSeq));
 	vActuatorAddSequences(eCh, 0, paSeq);
 }
