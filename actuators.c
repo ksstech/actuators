@@ -127,7 +127,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
-	#if (buildPLTFRM == HW_AC01)
+	#if (appPLTFRM == HW_AC01)
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
@@ -146,10 +146,10 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 14),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 15),
 
-	#elif (buildPLTFRM == HW_EM1P2) || (buildPLTFRM == HW_EM3P2)
+	#elif (appPLTFRM == HW_EM1P2) || (appPLTFRM == HW_EM3P2)
 //	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, HAL_GDO_0), // cannot use, pin conflicts with SCL
 
-	#elif (buildPLTFRM == HW_KC868A4)
+	#elif (appPLTFRM == HW_KC868A4)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
@@ -157,7 +157,7 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),
 
-	#elif (buildPLTFRM == HW_KC868A6)
+	#elif (appPLTFRM == HW_KC868A6)
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO8),
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO9),
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO10),
@@ -166,15 +166,15 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO13),
 	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 1),
-	#elif (buildPLTFRM == HW_DK41)
+	#elif (appPLTFRM == HW_DK41)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 
-	#elif (buildPLTFRM == HW_WIPY3)
+	#elif (appPLTFRM == HW_WIPY3)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 
-	#elif (buildPLTFRM == HW_SP2PM)
+	#elif (appPLTFRM == HW_SP2PM)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
@@ -248,7 +248,7 @@ static int xAxtuatorCheckValidity(u8_t eCh) {
 	return iRV;
 }
 
-#if (buildAEP > 0)
+#if (appAEP > 0)
 static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 	if (eCh >= HAL_XXO || sAI[eCh].Blocked || OUTSIDE(selACT_T_FI, Field, selACT_T_REM)) {
 		SL_ERR("Invalid actuator(%d) / field (%d) / status (%d)", eCh, Field, sAI[eCh].Blocked);
@@ -1067,7 +1067,7 @@ int xTaskActuatorReport(report_t * psR) {
 
 // ############################## Rules interface to Actuator table ################################
 
-#if (buildAEP > 0)
+#if (appAEP > 0)
 double	dActuatorGetFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 	IF_myASSERT(debugTRACK, halMemorySRAM(px64Var));
 	x64_t x64Value = { .f64 = 0.0 };
