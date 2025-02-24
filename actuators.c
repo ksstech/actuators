@@ -1083,7 +1083,7 @@ int xTaskActuatorReport(report_t * psR) {
 		iRV += xActuatorReportSeq(psR, Seq);
 	}
 	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.03R%s", xActuatorRunningCount(),
-		xActuatorGetMaxRemainingTime() * MICROS_IN_MILLISEC, repFORM_TST(psR,aNL) ? strNLx2 : strNL);
+		xActuatorGetMaxRemainingTime() * MICROS_IN_MILLISEC, fmTST(aNL) ? strNLx2 : strNL);
 	if (psR->fNoLock) halUartUnLock();
 	return iRV;
 }
