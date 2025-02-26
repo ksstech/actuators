@@ -1177,7 +1177,8 @@ void vActuatorTestReport(u8_t eCh, char * pcMess) {
 void vActuatorTest(void) {
 	// Test PHYSical level functioning
 	#if	(debugPHYS || debugFUNC || debugUSER)
-	if (i2cDevCount) halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);
+	if (i2cDevCount)
+		halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);
 	#endif
 
 	#if	(debugPHYS)
