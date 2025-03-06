@@ -567,7 +567,7 @@ static void vActuatorConfig(u8_t eCh) {
 	psAID->MaxDC = psAID->DelDC = 100;
 	psAID->ConfigOK = 1;
 	vActuatorSetDC(eCh, psAID->MinDC = 0);
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (xOptionGet(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 /**
@@ -582,7 +582,7 @@ static void vActuatorSetTiming(u8_t eCh, u32_t tFI, u32_t tON, u32_t tFO, u32_t 
 	psAI->tON = pdMS_TO_TICKS(tON > MILLIS_IN_DAY ? MILLIS_IN_DAY : tON);
 	psAI->tFO  = pdMS_TO_TICKS(tFO > MILLIS_IN_DAY ? MILLIS_IN_DAY : tFO);
 	psAI->tOFF = pdMS_TO_TICKS(tOFF > MILLIS_IN_DAY ? MILLIS_IN_DAY : tOFF);
-	IF_PXT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u" strNL, eCh, tFI, tON, tFO, tOFF);
+	IF_PXT(debugTRACK && (xOptionGet(dbgActuate) & 2), "[ACT] SetTiming Ch=%d tFI=%u tON=%u tFO=%u tOFF=%u" strNL, eCh, tFI, tON, tFO, tOFF);
 }
 
 /**
@@ -601,7 +601,7 @@ static void vActuatorStart(u8_t eCh, u32_t Repeats) {
 	vActuatorSetDC(eCh, psAI->CurDC);
 	psAI->Rpt = Repeats;
 	halEventUpdateRunTasks(taskACTUATE_MASK, 1);
-	IF_PXT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu" strNL, eCh, Repeats);
+	IF_PXT(debugTRACK && (xOptionGet(dbgActuate) & 2), "[ACT] Start Ch=%hhu Rpt=%lu" strNL, eCh, Repeats);
 }
 
 /**
@@ -615,7 +615,7 @@ static void vActuatorStop(u8_t eCh) {
 	psAI->StageNow	= psAI->StageBeg;
 	psAI->alertDone	= psAI->alertStage	= 0;
 	vActuatorSetDC(eCh, 0);
-	IF_PXT(debugTRACK && (ioB2GET(dbgActuate) & 2), "[ACT] Stop Ch=%d" strNL, eCh);
+	IF_PXT(debugTRACK && (xOptionGet(dbgActuate) & 2), "[ACT] Stop Ch=%d" strNL, eCh);
 }
 
 /**
@@ -631,7 +631,7 @@ static void vActuatorAddSequences(u8_t eCh, int Idx, u8_t * paSeq) {
 			break; 										// and go no further
 		}
 	}
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (xOptionGet(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 /**
@@ -825,7 +825,7 @@ void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t t
 	vActuatorSetTiming(eCh, tFI, tON, tFO, tOFF);
 	vActuatorStart(eCh, Rpt);
 	vActuatorBusyCLR(&sAI[eCh]);
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (xOptionGet(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 void vActuatorBreath(u8_t eCh) { vActuatorLoad(eCh, 0xFFFFFFFF, 750, 750, 750, 750); }
@@ -866,7 +866,7 @@ void vActuatorAdjust(u8_t eCh, int Stage, int Adjust) {
 	else
 		psAI->tXXX[Stage] = (NewVal > CurVal) ? NewVal : UINT32_MAX;
 	vActuatorBusyCLR(psAI);
-	IF_EXEC_2(debugTRACK && (ioB2GET(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
+	IF_EXEC_2(debugTRACK && (xOptionGet(dbgActuate) & 2), xActuatorReportChan, NULL, eCh);
 }
 
 void xActuatorToggle(u8_t eCh) {
