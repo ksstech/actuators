@@ -691,8 +691,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 #endif
 	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh)
 		vActuatorConfig(eCh);
-	halEventUpdateRunTasks(0, 1);
-	while(halEventWaitTasksOK(0, portMAX_DELAY)) {
+	halEventUpdateRunTasks(taskACTUATE_MASK, 1);
+	while(halEventWaitTasksOK(taskACTUATE_MASK, portMAX_DELAY)) {
 		TickType_t ActLWtime = xTaskGetTickCount();		// Get the ticks as starting reference
 		IF_SYSTIMER_START(debugTIMING, stACT_SX);
 		act_info_t * psAI = &sAI[0];
