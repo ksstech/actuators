@@ -279,9 +279,9 @@ void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
 	#if	(HAL_IDO > 0)
 		case actBUS_I2C:
 			#if	(HAL_PCA9555 > 0) && (HAL_PCF8574 == 0)
-				pca9555DIG_OUT_SetStateLazy(ActInit[eCh].ioNum, NewState);
+				pca9555SetStateLazy(ActInit[eCh].ioNum, NewState);
 			#elif (HAL_PCF8574 > 0) && (HAL_PCA9555 == 0)
-				pcf8574DIG_OUT_SetState(ActInit[eCh].ioNum, NewState);
+				pcf8574SetState(ActInit[eCh].ioNum, NewState);
 			#else
 				#error "Can only support 1 or the other at any stage"
 			#endif
@@ -308,9 +308,9 @@ int xActuateGetLevelDIG(u8_t eCh) {
 	#if	(HAL_IDO > 0)
 		case actBUS_I2C:
 		#if	(HAL_PCA9555 > 0)
-			iRV = pca9555DIG_OUT_GetState(ActInit[eCh].ioNum);
+			iRV = pca9555GetState(ActInit[eCh].ioNum);
 		#elif	(HAL_PCF8574 > 0)
-			iRV = pcf8574DIG_IO_GetState(ActInit[eCh].ioNum);
+			iRV = pcf8574IO_GetState(ActInit[eCh].ioNum);
 		#else
 			myASSERT(0);
 		#endif
@@ -761,7 +761,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		// possible for every I2C connected actuator pin to change state every 1mS, we
 		// could be trying to write each bit each 1mS, hence 16x I2C writes per 1mS.
 		// Hence we are doing a batch max write once per cycle, if any bit changed
-		if (pca9555DIG_OUT_WriteAll() == 1) {			// if it was a dirty write, check if write OK...
+		if (pca9555WriteAll() == 1) {			// if it was a dirty write, check if write OK...
 			// With both water valves and door strikers we have a situation where a reverse EMF is induced
 			// in the solenoid when power is removed from the actuator. This EMF can, if left undamped,
 			// reflect back along the cabling to the controller and has been knows to cause I2C bus problems.
