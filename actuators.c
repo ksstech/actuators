@@ -719,7 +719,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_ON: {							// remain on 100% for tON mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S1);
 				if (psAI->tON > 0) {
-					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MaxDC);
+					if (psAI->tNOW == 0)
+						vActuatorSetDC(eCh, psAI->MaxDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S1);
 					break;
@@ -741,7 +742,8 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			case actSTAGE_OFF: {						// remain off 0% for tOFF mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S3);
 				if (psAI->tOFF > 0) {
-					if (psAI->tNOW == 0) vActuatorSetDC(eCh, psAI->MinDC);
+					if (psAI->tNOW == 0)
+						vActuatorSetDC(eCh, psAI->MinDC);
 					vActuatorUpdateTiming(psAI);
 					IF_SYSTIMER_STOP(debugTIMING, stACT_S3);
 					break;
