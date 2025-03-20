@@ -310,7 +310,7 @@ int xActuateGetLevelDIG(u8_t eCh) {
 		#if	(HAL_PCA9555 > 0)
 			iRV = pca9555GetState(ActInit[eCh].ioNum);
 		#elif	(HAL_PCF8574 > 0)
-			iRV = pcf8574IO_GetState(ActInit[eCh].ioNum);
+			iRV = pcf8574GetState(ActInit[eCh].ioNum);
 		#else
 			myASSERT(0);
 		#endif
