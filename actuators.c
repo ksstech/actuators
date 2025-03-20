@@ -756,13 +756,9 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 			psAI->Busy = 0;
 		}
 
-		#if	(HAL_PCA9555 == 1)
 		// Considering that we might be running actuator task every 1mS and that it is
 		// possible for every I2C connected actuator pin to change state every 1mS, we
 		// could be trying to write each bit each 1mS, hence 16x I2C writes per 1mS.
-		if (pca9555WriteAll() == 1) {			// if it was a dirty write, check if write OK...
-			pca9555Check();
-		}
 		// Hence, if any bit changed, we are doing a batch write once per cycle.
 
 		// With both water valves and door strikers we have a situation where a reverse EMF is induced
@@ -772,7 +768,9 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		// across. the solenoid connectors, as close as possible to the source. To diagnose possible
 		// diode absence or failure we regularly perform a check to verify the actual I2C device state
 		// against what we believe it should be
-		#if	(HAL_PCA9555 == 1)
+		#if	(HAL_PCA9555 > 0)
+			if (pca9555Flush())		// if it was a dirty write check if device is status is correct
+				pca9555Verify();
 		#endif
 
 		IF_SYSTIMER_STOP(debugTIMING, stACT_SX);
