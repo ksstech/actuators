@@ -281,7 +281,7 @@ void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
 			#if	(HAL_PCA9555 > 0) && (HAL_PCF8574 == 0)
 				pca9555SetStateLazy(ActInit[eCh].ioNum, NewState);
 			#elif (HAL_PCF8574 > 0) && (HAL_PCA9555 == 0)
-				pcf8574SetState(ActInit[eCh].ioNum, NewState);
+				pcf8574SetStateLazy(ActInit[eCh].ioNum, NewState);
 			#else
 				#error "Can only support 1 or the other at any stage"
 			#endif
@@ -771,6 +771,10 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		#if	(HAL_PCA9555 > 0)
 			if (pca9555Flush())		// if it was a dirty write check if device is status is correct
 				pca9555Verify();
+		#endif
+		#if	(HAL_PCF8574 > 0)
+			if (pcf8574Flush(-1))	// if it was a dirty write check if device is status is correct
+				pcf8574Verify(-1);
 		#endif
 
 		IF_SYSTIMER_STOP(debugTIMING, stACT_SX);
