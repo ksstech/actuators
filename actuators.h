@@ -141,7 +141,16 @@ void vActuatorStartSequence(u8_t eCh, int Seq);
 
 u64_t xActuatorGetRemainingTime(u8_t eCh);
 u64_t xActuatorGetMaxRemainingTime (void);
+
+/**
+ * @brief	check all actuators, if repeat count = unlimited/forever, set it to 1
+ */
 void vActuatorsWinddown(void);
+
+/**
+ * @brief	get the number of actuators currently running/active
+ * @return	number of running actuators
+ */
 int xActuatorRunningCount(void);
 
 struct v64_t;
