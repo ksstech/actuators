@@ -1,4 +1,4 @@
-// actuators.c - Copyright (c) 2016-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
+// actuators.c - Copyright (c) 2016-25 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
 #include "hal_platform.h"
 
