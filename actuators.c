@@ -4,6 +4,7 @@
 
 #if (HAL_XXO > 0)
 #include "actuators.h"
+#include "builddefs.h"
 #include "endpoints.h"
 #include "hal_device_includes.h"
 #include "hal_gpio.h"
@@ -1102,8 +1103,11 @@ int xTaskActuatorReport(report_t * psR) {
 		iRV += xActuatorReportChan(psR, eCh);
 	for (u8_t Seq = 0; Seq < NO_MEM(sAS); ++Seq)
 		iRV += xActuatorReportSeq(psR, Seq);
-	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.03R%s", xActuatorRunningCount(),
-		xActuatorGetMaxRemainingTime() * MICROS_IN_MILLISEC, fmTST(aNL) ? strNLx2 : strNL);
+	u64_t U64ms = xActuatorGetMaxRemainingTime();
+	// If runtime is forever, convert to some very long period 
+	if (U64ms == UINT64_MAX)	U64ms = (u64_t) COMPUTE_TS_NTP(2029,12,31,23,59,59) * MICROS_IN_SECOND;
+	else 						U64ms *= MICROS_IN_MILLISEC;
+	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.03R%s", xActuatorRunningCount(), U64ms, fmTST(aNL) ? strNLx2 : strNL);
 	if (psR->fNoLock)
 		halUartUnLock();
 	return iRV;
