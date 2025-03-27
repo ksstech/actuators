@@ -931,13 +931,14 @@ u64_t xActuatorGetRemainingTime(u8_t eCh) {
 
 /**
  * @brief	Calculate maximum possible remaining run time, not the sum of ALL
- * @return Remaining maximum actuator running time in mSecs
+ * @return	Remaining maximum actuator running time in mSecs
  */
 u64_t xActuatorGetMaxRemainingTime (void) {
 	u64_t u64Max = 0;
 	for (int eCh = 0; eCh < HAL_XXO; ++eCh) {
 		u64_t u64Now = xActuatorGetRemainingTime(eCh);
-		if (u64Now > u64Max) u64Max = u64Now;			// save current as new Max value
+		if (u64Now > u64Max)
+			u64Max = u64Now;							// save current as new Max value
 	}
 	return u64Max;
 }
@@ -1095,16 +1096,16 @@ int xActuatorReportSeq(report_t * psR, u8_t Seq) {
 int xTaskActuatorReport(report_t * psR) {
 	IF_myASSERT(debugPARAM, halMemorySRAM(psR));
 	int iRV = 0;
-	if (psR->fNoLock) halUartLock(WPFX_TIMEOUT);
-	for (u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
+	if (psR->fNoLock)
+		halUartLock(WPFX_TIMEOUT);
+	for (u8_t eCh = 0; eCh < HAL_XXO; ++eCh)
 		iRV += xActuatorReportChan(psR, eCh);
-	}
-	for (u8_t Seq = 0; Seq < NO_MEM(sAS); ++Seq) {
+	for (u8_t Seq = 0; Seq < NO_MEM(sAS); ++Seq)
 		iRV += xActuatorReportSeq(psR, Seq);
-	}
 	iRV += wprintfx(psR, "Running=%u  maxDelay=%!.03R%s", xActuatorRunningCount(),
 		xActuatorGetMaxRemainingTime() * MICROS_IN_MILLISEC, fmTST(aNL) ? strNLx2 : strNL);
-	if (psR->fNoLock) halUartUnLock();
+	if (psR->fNoLock)
+		halUartUnLock();
 	return iRV;
 }
 
