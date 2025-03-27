@@ -1055,12 +1055,12 @@ int xActuatorReportChan(report_t * psR, u8_t eCh) {
 	#endif
 	#if (HAL_XAO > 0)
 	if (ActInit[eCh].ioType == actTYPE_ANA) {
-		iRV += wprintfx(psR, " %4hhu|", xActuateGetLevelANA(eCh));
+		iRV += report(psR, " %4hhu|", xActuateGetLevelANA(eCh));
 	} else
 	#endif
 	#if (HAL_XPO > 0)
 	if (ActInit[eCh].ioType == actTYPE_PWM) {
-		iRV += wprintfx(psR, " %4hhu|", xActuateGetLevelPWM(eCh));
+		iRV += report(psR, " %4hhu|", xActuateGetLevelPWM(eCh));
 	} else
 	#endif
 	{
