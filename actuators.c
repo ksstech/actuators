@@ -12,7 +12,6 @@
 	#include "hal_i2c_common.h"
 #endif
 #include "hal_memory.h"
-#include "hal_options.h"
 #include "rules.h"
 #include "syslog.h"
 #include "systiming.h"
