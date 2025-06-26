@@ -1,4 +1,4 @@
-// x_actuators.h
+// actuators.h
 
 #pragma once
 
