@@ -239,14 +239,10 @@ static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 
 static int xActuatorCheckChannel(u8_t eCh) {
 	int iRV;
-	if (eCh >= HAL_XXO)
-		iRV = erACT_INV_CH; 
-	else if (sAI[eCh].ConfigOK == 0)
-		iRV = erACT_NOT_CFG;
-	else if (sAI[eCh].Blocked)
-		iRV = erACT_BLOCKED;
-	else
-		return erSUCCESS;
+	if (eCh >= HAL_XXO)					iRV = erACT_INV_CH;
+	else if (sAI[eCh].ConfigOK == 0)	iRV = erACT_NOT_CFG;
+	else if (sAI[eCh].Blocked)			iRV = erACT_BLOCKED;
+	else								return erSUCCESS;
 	SL_ERR("%s (%d)", pcStrError(iRV), eCh);
 	return iRV;
 }
