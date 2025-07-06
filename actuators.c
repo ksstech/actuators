@@ -2,7 +2,7 @@
 
 #include "hal_platform.h"
 
-#if (HAL_XXO > 0)
+#if (appUSE_ACTUATORS > 0)
 #include "actuators.h"
 #include "builddefs.h"
 #include "endpoints.h"
