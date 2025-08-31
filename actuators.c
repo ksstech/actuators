@@ -1088,6 +1088,12 @@ int xActuatorReportSeq(report_t * psR, u8_t Seq) {
 	return iRV;
 }
 
+/**
+ * @brief	Report all Actuator channels and sequences
+ * @param	psR	- pointer to report structure, NULL for no report
+ * @return	number of lines reported
+ * @note	No UART locking at individual channel level
+ */
 int xTaskActuatorReport(report_t * psR) {
 	IF_myASSERT(debugPARAM, halMemorySRAM(psR));
 	int iRV = 0;
