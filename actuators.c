@@ -1212,7 +1212,7 @@ void vActuatorTest(void) {
 			for(int8_t CurDC = 0; CurDC <= 100;  CurDC = (CurDC == 0) ? 1 : CurDC * 2) {
 				vActuatorSetDC(eCh, CurDC);
 				SL_INFO("DIG: eCh=%d  Freq=%'u  Lev=%'u" strNL, eCh, Freq, CurDC);
-				getchar();
+				xStdioGetC(STDIN_FILENO);
 			}
 		}
 	}
