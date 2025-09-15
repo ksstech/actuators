@@ -126,7 +126,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
-	#if (cmakePLTFRM == HW_AC01)
+	#if (cmakePLTFRM == HW_AC01) || (cmakePLTFRM == HW_RS01)
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
