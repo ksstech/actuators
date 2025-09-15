@@ -477,17 +477,17 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 	#if	(HAL_XDO > 0)		// All (SOC + I2C + SPI) DIGital type actuators
 		case actTYPE_DIG:
 			switch(psAI->StageNow) {
-				case actSTAGE_FI: 
+				case actSTAGE_FI:
 					psAI->Match	= psAI->MaxDC - psAI->CurDC;
 					break;
-				case actSTAGE_ON: 
-					psAI->Match	= psAI->MinDC; 
+				case actSTAGE_ON:
+					psAI->Match	= psAI->MinDC;
 					break;
-				case actSTAGE_FO: 
-					psAI->Match	= psAI->MaxDC - psAI->CurDC; 
+				case actSTAGE_FO:
+					psAI->Match	= psAI->MaxDC - psAI->CurDC;
 					break;
-				case actSTAGE_OFF: 
-					psAI->Match	= psAI->MaxDC; 
+				case actSTAGE_OFF:
+					psAI->Match	= psAI->MaxDC;
 					break;
 			}
 			vActuateSetLevelDIG(eCh, (psAI->Count >= psAI->Match) ? 1 : 0);
@@ -758,11 +758,11 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 
 		// With both water valves and door strikers we have a situation where a reverse EMF is induced
 		// in the solenoid when power is removed from the actuator. This EMF can, if left undamped,
-		// reflect back along the cabling to the controller and has been knows to cause I2C bus problems.
+		// reflect back along the cabling to the controller and has been known to cause I2C bus problems.
 		// In order to damp the EMF right at the source a reverse biased signal diode should be wired
-		// across. the solenoid connectors, as close as possible to the source. To diagnose possible
+		// across the solenoid connectors, as close as possible to the source. To diagnose possible
 		// diode absence or failure we regularly perform a check to verify the actual I2C device state
-		// against what we believe it should be
+		// against what we believe it should be.
 		#if	(HAL_PCA9555 > 0)
 			if (pca9555Flush())		// if it was a dirty write check if device is status is correct
 				pca9555Verify();

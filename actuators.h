@@ -62,7 +62,7 @@ typedef struct __attribute__((packed)) {				// Actuator structure
 	u8_t	CurDC;					// Current DutyCycle 0 -> 100%
 	u8_t	StageBeg;				// Stage to start a cycle with, primarily for lead/trail OFF
 	u8_t	StageNow;				// Current stage for actuator
-	u8_t	ChanNum;
+	u8_t	ChanNum;				// logical actuator number
 	union {
 		struct __attribute__((packed)) {
 			volatile u8_t ConfigOK	: 1;
