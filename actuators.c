@@ -145,6 +145,10 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 14),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 15),
 
+	#if (cmakePLTFRM == HW_RS01)
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),	// Red LED onboard
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),	// Green LED onboard
+	#endif
 	#elif (cmakePLTFRM == HW_EM1P2) || (cmakePLTFRM == HW_EM3P2)
 //	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, HAL_GDO_0), // cannot use, pin conflicts with SCL
 

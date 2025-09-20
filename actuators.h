@@ -42,10 +42,16 @@ enum { actSTAGE_FI, actSTAGE_ON, actSTAGE_FO, actSTAGE_OFF, actSTAGE_NUM };// Ac
 // ########################################## Structures ##########################################
 
 typedef union __attribute__((packed)) {
-	struct __attribute__((packed)) { u8_t ioType:2; u8_t ioBus:2; u8_t ioNum:4; };
-	u8_t u8Val;
+	struct __attribute__((packed)) {
+		u8_t ioType:2; 				// DIGital / PWM / ANAlog
+		u8_t ioBus:2; 				// SoC / I2C / SPI
+		u8_t spare1:4;
+		u8_t spare2:3;
+		u8_t ioNum:5;				// logical channel (max 32)
+	};
+	u16_t u16Val;
 } act_init_t;
-DUMB_STATIC_ASSERT(sizeof(act_init_t) == 1);
+DUMB_STATIC_ASSERT(sizeof(act_init_t) == 2);
 
 typedef struct __attribute__((packed)) {				// Actuator structure
 	union {							// all values in TICKS not mSec
