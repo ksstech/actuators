@@ -89,8 +89,9 @@
  * 100 is smooth but FI/FO look abrupt at start & end
  */
 #define	actFREQ_DEF_DIG				33
-#define	actFREQ_DEF_ANA				250
-#define	halFREQ_DEF_PWM				1000
+#define	actFREQ_DEF_ANA				250					// to be tested
+#define	halFREQ_DEF_PWM				1000				// to be tested
+
 #define	actFREQ_MIN					1
 #define	actFREQ_MAX					configTICK_RATE_HZ
 
@@ -157,8 +158,8 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 3),
-	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),
-	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),		// DAC0
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAc1
 
 	#elif (cmakePLTFRM == HW_KC868A6)
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO8),
@@ -167,8 +168,8 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO11),
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO12),
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO13),
-	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 0),
-	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 1),
+	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 0),	// DAC0
+	actMAKE_DEF(actTYPE_ANA, actBUS_SOC, 1),	// DAC1
 	#elif (cmakePLTFRM == HW_DK41)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
