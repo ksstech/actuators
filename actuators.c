@@ -158,8 +158,9 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 3),
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 4),		/* buzzer */
 	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),		// DAC0
-	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAc1
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAC1
 
 	#elif (cmakePLTFRM == HW_KC868A6)
 	actMAKE_DEF(actTYPE_DIG, actBUS_I2C, pcf8574IO8),
