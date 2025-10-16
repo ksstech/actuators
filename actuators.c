@@ -552,16 +552,16 @@ static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
  * @return	None
  */
 static void vActuatorConfig(u8_t eCh) {
-	const act_init_t * psAIS = &ActInit[eCh];
-	if (sAI[eCh].Blocked)
+	act_info_t * psAID = &sAI[eCh];
+	if (psAID->Blocked)
 		return;
+	const act_init_t * psAIS = &ActInit[eCh];
 	switch(psAIS->ioType) {
 		case actTYPE_DIG: vActuatorSetFrequency(eCh, actFREQ_DEF_DIG); break;
 		case actTYPE_PWM: vActuatorSetFrequency(eCh, halFREQ_DEF_PWM); break;
 		case actTYPE_ANA: vActuatorSetFrequency(eCh, actFREQ_DEF_ANA); break;
 		default: xActuatorLogError(__FUNCTION__, eCh); return;
 	}
-	act_info_t * psAID = &sAI[eCh];
 	memset(psAID->Seq, 0xFF, SO_MEM(act_info_t, Seq));
 	psAID->StageBeg = psAID->StageNow = actSTAGE_FI;
 	psAID->ChanNum = eCh;
@@ -690,8 +690,7 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 #if (halUSE_I2C == 1)
 	halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
 #endif
-	for(u8_t eCh = 0; eCh < HAL_XXO; ++eCh)
-		vActuatorConfig(eCh);
+	for(u8_t eCh = 0; eCh < HAL_XXO; vActuatorConfig(eCh++));
 	halEventUpdateRunTasks(taskACTUATE_MASK, 1);
 	while(halEventWaitTasksOK(taskACTUATE_MASK, portMAX_DELAY)) {
 		TickType_t ActLWtime = xTaskGetTickCount();		// Get the ticks as starting reference
