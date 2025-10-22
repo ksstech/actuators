@@ -769,11 +769,11 @@ static void IRAM_ATTR vTaskActuator(void * pvPara) {
 		// diode absence or failure we regularly perform a check to verify the actual I2C device state
 		// against what we believe it should be.
 		#if	(HAL_PCA9555 > 0)
-			if (pca9555Flush())		// if it was a dirty write check if device is status is correct
+			if (pca9555Flush())		// if it was a dirty write, check if device status is correct
 				pca9555Verify();
 		#endif
 		#if	(HAL_PCF8574 > 0)
-			if (pcf8574Flush(-1))	// if it was a dirty write check if device is status is correct
+			if (pcf8574Flush(-1))	// if it was a dirty write, check if device status is correct
 				pcf8574Verify(-1);
 		#endif
 
