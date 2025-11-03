@@ -388,7 +388,7 @@ void IRAM_ATTR vActuateSetLevelANA(u8_t eCh, u8_t NewState) {
 	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
 	#if	(HAL_GAO > 0)
 		case actBUS_SOC: 
-			halGAO_WriteRAW(ActInit[eCh].ioNum, NewState);
+			halGAO_WriteRaw(ActInit[eCh].ioNum, NewState);
 			break;
 	#endif
 
