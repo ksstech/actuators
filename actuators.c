@@ -127,7 +127,7 @@ const act_seq_t sAS[actNUM_SEQUENCES] = {
 };
 
 const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
-	#if (cmakePLTFRM == HW_AC01) || (cmakePLTFRM == HW_RS01)
+	#if (cmakePLTFRM == HW_AC01) || (cmakePLTFRM == HW_RS01) || (cmakePLTFRM == HW_RS02)
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 2),
@@ -146,7 +146,7 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 14),
 	actMAKE_DEF(actTYPE_DIG,actBUS_I2C, 15),
 
-	#if (cmakePLTFRM == HW_RS01)
+	#if (cmakePLTFRM == HW_RS01) || (cmakePLTFRM == HW_RS02)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),	// Red LED onboard
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),	// Green LED onboard
 	#endif
