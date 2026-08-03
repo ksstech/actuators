@@ -1,4 +1,4 @@
-// actuators.c - Copyright (c) 2016-25 Andre M. Maree / KSS Technologies (Pty) Ltd.
+// actuators.c - Copyright (c) 2016-26 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
 #include "hal_platform.h"
 
@@ -226,7 +226,12 @@ static void vActuatorBusyCLR(act_info_t	* psAI) { psAI->Busy = 0; }
  * @param	psAI
  * @return
  */
-static int IRAM_ATTR xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
+/* NOT IRAM_ATTR - deliberately. Nothing in this file is reachable with the flash cache disabled:
+ * the only entry point is vTaskActuator, registered as a FreeRTOS task at :792, and every function
+ * below is called solely from within this file. The annotation used to be on all eight of them,
+ * spending 1,758 bytes of a 63 KB IRAM budget to claim a safety property none of them needs.
+ * If one is ever called from an ISR, it needs IRAM_ATTR *and* an audit of everything it touches. */
+static int xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	epi_t	sEI = { 0 };
 	event_t	sEvent = { 0 };
 	alert_t	sAlert = { 0 };
@@ -269,7 +274,7 @@ static int xActuatorVerifyParameters(u8_t eCh, u8_t Field) {
 /**
  * @brief	LL=NL
  */
-void IRAM_ATTR vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
+void vActuateSetLevelDIG(u8_t eCh, u8_t NewState) {
 	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
 	#if	(HAL_GDO > 0)
 		case actBUS_SOC: 
@@ -329,7 +334,7 @@ int xActuateGetLevelDIG(u8_t eCh) {
 /**
  * @brief	LL=NL
  */
-void IRAM_ATTR vActuateSetLevelPWM(u8_t eCh, u8_t NewState) {
+void vActuateSetLevelPWM(u8_t eCh, u8_t NewState) {
 	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
 	#if	(HAL_GPO > 0)
 		case actBUS_SOC: 
@@ -384,7 +389,7 @@ int xActuateGetLevelPWM(u8_t eCh) {
 /**
  * @brief	LL=NL
  */
-void IRAM_ATTR vActuateSetLevelANA(u8_t eCh, u8_t NewState) {
+void vActuateSetLevelANA(u8_t eCh, u8_t NewState) {
 	switch(ActInit[eCh].ioBus) {					// handle hardware dependent component
 	#if	(HAL_GAO > 0)
 		case actBUS_SOC: 
@@ -476,7 +481,7 @@ static void vActuatorSetFrequency(u8_t eCh, u32_t Frequency) {
  * @brief	LL=NL Recalc & set duty cycle (brightness/speed level)
  * @param	logical (soft) PWM channel
  */
-static void IRAM_ATTR vActuatorSetDC(u8_t eCh, u8_t CurDC) {
+static void vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 	act_info_t * psAI = &sAI[eCh];
 	psAI->CurDC = CurDC;
 	switch(ActInit[eCh].ioType) {
@@ -638,7 +643,7 @@ static void vActuatorAddSequences(u8_t eCh, int Idx, u8_t * paSeq) {
 /**
  * @brief	LL-NL
  */
-static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
+static void xActuatorNextStage(act_info_t * psAI) {
 	if ((psAI->alertStage == 1) && (psAI->tXXX[psAI->StageNow] > 0))
 		xActuatorAlert(psAI, alertTYPE_ACT_STAGE, alertLEVEL_INFO);
 	if (++psAI->StageNow == actSTAGE_NUM)
@@ -668,7 +673,7 @@ static void IRAM_ATTR xActuatorNextStage(act_info_t * psAI) {
 /**
  * @brief	LL-NL
  */
-static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
+static void vActuatorUpdateTiming(act_info_t * psAI) {
 	psAI->Count	+= actuateTASK_PERIOD;
 	if (psAI->Count >= psAI->Divisor)
 		psAI->Count = 0;
@@ -681,7 +686,7 @@ static void IRAM_ATTR vActuatorUpdateTiming(act_info_t * psAI) {
 
 // ####################################### Actual task #############################################
 
-static void IRAM_ATTR vTaskActuator(void * pvPara) {
+static void vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S0, stMICROS, "ActS0_FI", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S1, stMICROS, "ActS1_ON", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
