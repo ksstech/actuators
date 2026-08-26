@@ -633,7 +633,9 @@ static void vActuatorStop(u8_t eCh) {
 	memset(&psAI->tXXX, 0, sizeof(sAI[0].tXXX));
 	memset(&psAI->Seq, 0xFF, sizeof(sAI[0].Seq));
 	psAI->StageNow	= psAI->StageBeg;
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);		// flags byte is a shared-RMW target
 	psAI->alertDone	= psAI->alertStage	= 0;
+	xRtosSemaphoreGive(&shActMux);
 	vActuatorSetDC(eCh, 0);
 	IF_PXT(debugTRACK && (xOptionGet(dbgActuate) & 2), "[ACT] Stop Ch=%d" strNL, eCh);
 }
@@ -811,6 +813,7 @@ static void vTaskActuator(void * pvPara) {
 }
 
 void vTaskActuatorInit(void) {
+	xRtosSemaphoreInit(&shActMux);						// eager: no first-touch lazy-create race
 	const task_param_t sActuatorParam = {
 		.pxTaskCode = vTaskActuator,
 		.pcName = "actuate",
