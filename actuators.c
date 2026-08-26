@@ -197,6 +197,10 @@ StackType_t tsbACT[actuateSTACK_SIZE] = { 0 };
  */
 u8_t ActuatorsRunning = 0;
 act_info_t sAI[HAL_XXO];
+/* One mutex serialises every write to the shared flags byte: the bare spin-then-set was a
+ * check-then-act race (two tasks could both claim Busy), and every bitfield write is a RMW
+ * that can clobber neighbouring flags written from other tasks. Hold times are microseconds. */
+static SemaphoreHandle_t shActMux = NULL;
 
 // #################################### Common support functions ###################################
 
@@ -211,15 +215,25 @@ static int xActuatorLogError(const char * pFname, u8_t eCh) {
  * @brief	Wait until actuator not busy then mark as busy...
  */
 static void vActuatorBusySET(act_info_t * psAI) {
-	while (psAI->Busy)
+	for (;;) {
+		xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+		if (psAI->Busy == 0)
+			break;
+		xRtosSemaphoreGive(&shActMux);					// owned elsewhere: release, wait, retry
 		vTaskDelay(pdMS_TO_TICKS(2));
+	}
 	psAI->Busy = 1;
+	xRtosSemaphoreGive(&shActMux);
 }
 
 /**
  * @brief	Clear actuator busy flag
  */
-static void vActuatorBusyCLR(act_info_t	* psAI) { psAI->Busy = 0; }
+static void vActuatorBusyCLR(act_info_t	* psAI) {
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+	psAI->Busy = 0;
+	xRtosSemaphoreGive(&shActMux);
+}
 
 /**
  * @brief	UNTESTED
@@ -706,9 +720,13 @@ static void vTaskActuator(void * pvPara) {
 			if (psAI->Rpt == 0 || psAI->Blocked || psAI->ConfigOK == 0)
 				continue;
 			++ActuatorsRunning;
-			if (psAI->Busy)
-				continue;								// being changed from somewhere else
+			xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+			if (psAI->Busy) {							// being changed from somewhere else
+				xRtosSemaphoreGive(&shActMux);
+				continue;
+			}
 			psAI->Busy = 1;
+			xRtosSemaphoreGive(&shActMux);
 			switch(psAI->StageNow) {
 			case actSTAGE_FI: {							// Step UP from 0% to 100% over tFI mSec
 				IF_SYSTIMER_START(debugTIMING, stACT_S0);
@@ -758,7 +776,7 @@ static void vTaskActuator(void * pvPara) {
 				break;
 			}
 			}
-			psAI->Busy = 0;
+			vActuatorBusyCLR(psAI);
 		}
 
 		// Considering that we might be running actuator task every 1mS and that it is
@@ -896,12 +914,16 @@ int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
 void vActuatorBlock(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);		// flags byte is a shared-RMW target
 	sAI[eCh].Blocked = 1;
+	xRtosSemaphoreGive(&shActMux);
 }
 
 void vActuatorUnBlock(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
 	sAI[eCh].Blocked = 0;
+	xRtosSemaphoreGive(&shActMux);
 }
 
 /**
@@ -966,15 +988,17 @@ void vActuatorsWinddown(void) {
 void xActuatorSetAlertStage(u8_t eCh, int OnOff) {
 	if (xActuatorCheckChannel(eCh) < erSUCCESS)
 		return;
-	act_info_t	* psAI = &sAI[eCh];
-	psAI->alertStage = OnOff ? 1 : 0;
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);		// flags byte is a shared-RMW target
+	sAI[eCh].alertStage = OnOff ? 1 : 0;
+	xRtosSemaphoreGive(&shActMux);
 }
 
 void xActuatorSetAlertDone(u8_t eCh, int OnOff) {
 	if (xActuatorCheckChannel(eCh) < erSUCCESS)
 		return;
-	act_info_t	* psAI = &sAI[eCh];
-	psAI->alertDone = OnOff ? 1 : 0;
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+	sAI[eCh].alertDone = OnOff ? 1 : 0;
+	xRtosSemaphoreGive(&shActMux);
 }
 
 void xActuatorSetStartStage(u8_t eCh, int Stage) {
