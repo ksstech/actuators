@@ -5,14 +5,18 @@
 #if (appUSE_ACTUATORS > 0 && HAL_XXO > 0)
 #include "actuators.h"
 #include "builddefs.h"
-#include "endpoints.h"
+#if (appUSE_ENDPOINTS > 0)
+	#include "endpoints.h"					// no symbol used here - kept for legacy include chains
+#endif
 #include "hal_device_includes.h"
 #include "hal_gpio.h"
 #if (halUSE_I2C > 0)
 	#include "hal_i2c_common.h"
 #endif
 #include "hal_memory.h"
-#include "rules.h"
+#if (appUSE_RULES > 0)
+	#include "rules.h"						// only the cmakeAEP>0 rules-interface section needs it
+#endif
 #include "syslog.h"
 #include "systiming.h"
 #include "errors_events.h"
@@ -183,6 +187,14 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
+
+	#elif (cmakePLTFRM == HW_TESTJIG)			// 4 OPTO-OUT (GDO) drive the DUT OPTO-IN + 2 DAC
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),		// OPTO-OUT 1 (GDO0, GPIO13)
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),		// OPTO-OUT 2 (GDO1, GPIO27)
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),		// OPTO-OUT 3 (GDO2, GPIO12)
+	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 3),		// OPTO-OUT 4 (GDO3, GPIO2)
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),		// DAC1 (GAO0, GPIO25)
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAC2 (GAO1, GPIO26)
 	#endif
 };
 
