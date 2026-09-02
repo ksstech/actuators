@@ -15,7 +15,10 @@
 #endif
 #include "hal_memory.h"
 #if (appUSE_RULES > 0)
-	#include "rules.h"						// only the cmakeAEP>0 rules-interface section needs it
+	#include "rules.h"						// rules engine: real ruleINV_* codes + rule_t
+#else										// standalone (jig, no rules engine): map to a generic code
+	#define ruleINV_ACT		erFAILURE
+	#define ruleINV_TYPE	erFAILURE
 #endif
 #include "syslog.h"
 #include "systiming.h"
@@ -257,6 +260,7 @@ static void vActuatorBusyCLR(act_info_t	* psAI) {
  * below is called solely from within this file. The annotation used to be on all eight of them,
  * spending 1,758 bytes of a 63 KB IRAM budget to claim a safety property none of them needs.
  * If one is ever called from an ISR, it needs IRAM_ATTR *and* an audit of everything it touches. */
+#if (appUSE_IDENT > 0)						// alert generation is the identity/endpoint (AEP) path
 static int xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	epi_t	sEI = { 0 };
 	event_t	sEvent = { 0 };
@@ -273,6 +277,7 @@ static int xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	sAlert.pvValue = psAI;
 	return xEpGenerateAlert(&sEI);
 }
+#endif
 
 static int xActuatorCheckChannel(u8_t eCh) {
 	int iRV;
@@ -672,16 +677,20 @@ static void vActuatorAddSequences(u8_t eCh, int Idx, u8_t * paSeq) {
  * @brief	LL-NL
  */
 static void xActuatorNextStage(act_info_t * psAI) {
+#if (appUSE_IDENT > 0)
 	if ((psAI->alertStage == 1) && (psAI->tXXX[psAI->StageNow] > 0))
 		xActuatorAlert(psAI, alertTYPE_ACT_STAGE, alertLEVEL_INFO);
+#endif
 	if (++psAI->StageNow == actSTAGE_NUM)
 		psAI->StageNow = actSTAGE_FI;
 	if (psAI->StageNow == psAI->StageBeg) {				// back at starting stage?
 		if (psAI->Rpt != UINT32_MAX) {					// yes, but running unlimited repeats ?
 			--psAI->Rpt; 								// No, decrement the repeat count
 			if (psAI->Rpt == 0) {						// all repeats done?
+#if (appUSE_IDENT > 0)
 				if (psAI->alertDone)					// yes, check if we should raise alert
 					xActuatorAlert(psAI, alertTYPE_ACT_DONE, alertLEVEL_WARNING);
+#endif
 				if (psAI->Seq[0] != 0xFF) {				// another sequence in the queue?
 					const act_seq_t * psAS = &sAS[psAI->Seq[0]];	// load values from sequence #
 					vActuatorSetTiming(psAI->ChanNum, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
@@ -1215,7 +1224,7 @@ int	xActuatorUpdateFieldValue(u8_t eCh, u8_t Field, v64_t * px64Var) {
 #define	tBASE		(3000 * SCALE)
 #define	tSTEP		(500 * SCALE)
 
-int xActuatorsConfigMode(rule_t * psR, int Xcur, int Xmax) {
+int xActuatorsConfigMode(struct rule_t * psR, int Xcur, int Xmax) {	// psR unused - opaque, no rules.h
 	do {
 		u32_t tXX = tBASE + (Xcur * tSTEP);
 		vActuatorLoad(Xcur, 2, 0, tXX, 0, tXX);
