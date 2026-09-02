@@ -729,9 +729,9 @@ static void vTaskActuator(void * pvPara) {
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S2, stMICROS, "ActS2_FO", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_S3, stMICROS, "ActS3_OF", 1, 10);
 	IF_SYSTIMER_INIT(debugTIMING, stACT_SX, stMICROS, "ActSXall", 1, 100);
-#if (halUSE_I2C == 1)
-	halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);		// ensure I2C config done before initialising
-#endif
+#if (halUSE_I2C == 1 && HAL_IXO > 0)					// only wait for I2C if actuators live ON the bus
+	halEventWaitStatus(flagAPP_I2C, portMAX_DELAY);		// (PCA9555 etc.); SoC-only actuators (jig) need
+#endif													// not block on the deferred I2C bring-up
 	for(u8_t eCh = 0; eCh < HAL_XXO; vActuatorConfig(eCh++));
 	halEventUpdateRunTasks(taskACTUATE_MASK, 1);
 	while(halEventWaitTasksOK(taskACTUATE_MASK, portMAX_DELAY)) {
