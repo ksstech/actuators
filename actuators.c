@@ -222,7 +222,7 @@ static act_done_cb_t pfActDone = NULL;				// completion hook (vActuatorSetDoneHo
 
 static int xActuatorLogError(const char * pFname, u8_t eCh) {
 	const act_init_t * psAI = &ActInit[eCh];
-	vSyslog(SL_SEV_ERROR, pFname, "Ch=%d B=%s/%d T=%s/%d N=%d", eCh, ActBusNames[psAI->ioBus], psAI->ioBus, 
+	xSyslog(SL_SEV_ERROR, pFname, "Ch=%d B=%s/%d T=%s/%d N=%d", eCh, ActBusNames[psAI->ioBus], psAI->ioBus, 
 		ActTypeNames[psAI->ioType], psAI->ioType, psAI->ioNum);
 	return erFAILURE;
 }
