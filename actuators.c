@@ -216,6 +216,7 @@ act_info_t sAI[HAL_XXO];
  * check-then-act race (two tasks could both claim Busy), and every bitfield write is a RMW
  * that can clobber neighbouring flags written from other tasks. Hold times are microseconds. */
 static SemaphoreHandle_t shActMux = NULL;
+static act_done_cb_t pfActDone = NULL;				// completion hook (vActuatorSetDoneHook), NULL = none
 
 // #################################### Common support functions ###################################
 
@@ -691,6 +692,8 @@ static void xActuatorNextStage(act_info_t * psAI) {
 				if (psAI->alertDone)					// yes, check if we should raise alert
 					xActuatorAlert(psAI, alertTYPE_ACT_DONE, alertLEVEL_WARNING);
 #endif
+				if (pfActDone)							// completion hook (esp-hw-test end events)
+					pfActDone(psAI->ChanNum);
 				if (psAI->Seq[0] != 0xFF) {				// another sequence in the queue?
 					const act_seq_t * psAS = &sAS[psAI->Seq[0]];	// load values from sequence #
 					vActuatorSetTiming(psAI->ChanNum, psAS->tFI, psAS->tON, psAS->tFO, psAS->tOFF);
@@ -935,6 +938,8 @@ void xActuatorToggle(u8_t eCh) {
 }
 
 int xActuatorRunningCount(void) { return ActuatorsRunning; }
+
+void vActuatorSetDoneHook(act_done_cb_t pfDone) { pfActDone = pfDone; }
 
 void vActuatorBlock(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);

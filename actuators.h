@@ -99,6 +99,15 @@ extern u8_t	NumActuator;
 void vTaskActuatorInit(void);
 
 /**
+ * @brief	Optional completion hook: called from the actuate task when a channel's repeat count
+ *			reaches zero, before any queued sequence starts or the channel is stopped. NULL = none.
+ * @note	shActMux is NOT held, but the channel is still Busy: calling vActuatorLoad/Update/
+ *			Adjust/Toggle/GetRemainingTime on THAT channel from the callback spins forever.
+ */
+typedef void (*act_done_cb_t)(u8_t eCh);
+void vActuatorSetDoneHook(act_done_cb_t pfDone);
+
+/**
  * @brief
  * @param[in]
  * @return
