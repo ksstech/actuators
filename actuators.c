@@ -451,7 +451,7 @@ int xActuateGetLevelANA(u8_t eCh) {
 	switch(ActInit[eCh].ioBus) {						// handle hardware dependent component
 	#if	(HAL_GAO > 0)
 		case actBUS_SOC:
-			halGAO_ReadRAW(ActInit[eCh].ioNum);
+			iRV = halGAO_ReadRAW(ActInit[eCh].ioNum);	// discarded result: every channel read as 255
 			break;
 	#endif
 
