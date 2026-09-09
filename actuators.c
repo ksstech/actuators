@@ -157,6 +157,20 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),	// Red LED onboard
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),	// Green LED onboard
 	#endif
+
+	// DUT firmware, same hardware: adds FUN channels for the 8 1-Wire MASTER scan requests. The
+	// handler only bumps a counter; the 1-Wire task does the scan. cmakeDUT is the ROLE, so one
+	// set covers ac01/rs01/rs02.
+	#if (cmakeDUT > 0) && (HAL_GFO > 0)
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 0),	// 1-Wire master scan request, ch0
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 1),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 2),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 3),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 4),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 5),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 6),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 7),	// ... ch7
+	#endif
 	#elif (cmakePLTFRM == HW_EM1P2) || (cmakePLTFRM == HW_EM3P2)
 //	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, HAL_GDO_0), // cannot use, pin conflicts with SCL
 
@@ -198,6 +212,16 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 3),		// OPTO-OUT 4 (GDO3, GPIO2)
 	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),		// DAC1 (GAO0, GPIO25)
 	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAC2 (GAO1, GPIO26)
+	#if (HAL_GFO > 0)							// 1-Wire SLAVE presentation, scheduled not timed:
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 0),		// the handler (jigows.c) only sets the presence flag
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 1),		// the slave ISR reads - us bit timing is untouched.
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 2),		// ioNum n = BUT(n+1) = slave ch n, so actuator
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 3),		// channel 6+n ('load 6' = ch0).
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 4),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 5),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 6),
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 7),
+	#endif
 	#endif
 };
 
@@ -217,6 +241,17 @@ act_info_t sAI[HAL_XXO];
  * that can clobber neighbouring flags written from other tasks. Hold times are microseconds. */
 static SemaphoreHandle_t shActMux = NULL;
 static act_done_cb_t pfActDone = NULL;				// completion hook (vActuatorSetDoneHook), NULL = none
+#if (HAL_XFO > 0)
+static const act_fun_ops_t * psActFunOps = NULL;	// actTYPE_FUN handlers (xActuatorRegisterFUN)
+static bool bActFunLocked = false;					// set once the task exists: too late to register
+
+int xActuatorRegisterFUN(const act_fun_ops_t * psOps) {
+	if (bActFunLocked || psOps == NULL || psOps->SetLevel == NULL)
+		return erFAILURE;
+	psActFunOps = psOps;
+	return erSUCCESS;
+}
+#endif
 
 // #################################### Common support functions ###################################
 
@@ -505,6 +540,13 @@ static void vActuatorSetFrequency(u8_t eCh, u32_t Frequency) {
 		break;
 	#endif
 
+	#if	(HAL_XFO > 0)
+	case actTYPE_FUN:						// no hardware, but Divisor must not be 0: vActuatorStart()
+		FIT2RANGE(actFREQ_MIN, Frequency, actFREQ_MAX, u32_t);	// divides by (tXXX[Stage] / Divisor)
+		sAI[eCh].Divisor = (MILLIS_IN_SECOND / actuateTASK_PERIOD) / Frequency;
+		break;
+	#endif
+
 	default: xActuatorLogError(__FUNCTION__, eCh);
 	}
 }
@@ -564,6 +606,14 @@ static void vActuatorSetDC(u8_t eCh, u8_t CurDC) {
 			break;
 	#endif
 
+	#if	(HAL_XFO > 0)
+		case actTYPE_FUN:					// no output stage: hand the stage edge to the module. With
+			if (psActFunOps)				// tFI/tFO = 0 the FI/FO stages never reach here, so the
+				psActFunOps->SetLevel(ActInit[eCh].ioNum,	// handler sees exactly ON -> 1, OFF -> 0
+					psAI->StageNow == actSTAGE_ON ? 1 : 0);
+			break;
+	#endif
+
 	default: xActuatorLogError(__FUNCTION__, eCh);
 	}
 	IF_EXEC_2(debugDUTY, xActuatorReportChan, NULL, eCh);
@@ -597,6 +647,13 @@ static void vActuatorConfig(u8_t eCh) {
 		case actTYPE_DIG: vActuatorSetFrequency(eCh, actFREQ_DEF_DIG); break;
 		case actTYPE_PWM: vActuatorSetFrequency(eCh, halFREQ_DEF_PWM); break;
 		case actTYPE_ANA: vActuatorSetFrequency(eCh, actFREQ_DEF_ANA); break;
+		#if	(HAL_XFO > 0)					// no handler registered = the channel stays unconfigured
+		case actTYPE_FUN:					// and the task loop skips it (ConfigOK left clear)
+			if (psActFunOps == NULL) { xActuatorLogError(__FUNCTION__, eCh); return; }
+			if (psActFunOps->Config && psActFunOps->Config(psAIS->ioNum) < erSUCCESS) return;
+			vActuatorSetFrequency(eCh, actFREQ_DEF_DIG);
+			break;
+		#endif
 		default: xActuatorLogError(__FUNCTION__, eCh); return;
 	}
 	memset(psAID->Seq, 0xFF, SO_MEM(act_info_t, Seq));
@@ -838,6 +895,9 @@ static void vTaskActuator(void * pvPara) {
 
 void vTaskActuatorInit(void) {
 	xRtosSemaphoreInit(&shActMux);						// eager: no first-touch lazy-create race
+	#if	(HAL_XFO > 0)									// vActuatorConfig() runs inside the task: any
+	bActFunLocked = true;								// FUN handler must already be registered
+	#endif
 	const task_param_t sActuatorParam = {
 		.pxTaskCode = vTaskActuator,
 		.pcName = "actuate",
@@ -1120,7 +1180,15 @@ int xActuatorReportChan(report_t * psR, u8_t eCh) {
 		iRV += xReport(psR, " %4hhu|", xActuateGetLevelPWM(eCh));
 	} else
 	#endif
-	{
+	#if (HAL_XFO > 0)						// same shape as DIG: the module's own view of the channel
+	if (ActInit[eCh].ioType == actTYPE_FUN) {
+		int iLvl = (psActFunOps && psActFunOps->GetLevel) ? psActFunOps->GetLevel(ActInit[eCh].ioNum) : 0;
+		iRV += xReport(psR, " %c%c%c |", CHR_0 + (iLvl ? 1 : 0), psAI->Blocked ? CHR_B : CHR_SPACE, psAI->Busy ? CHR_b : CHR_SPACE);
+	} else
+	#endif
+	{	// unknown type: terminate the row. Without this it printed the channel number and no
+		// newline, running every following row together (0.3.1.18).
+		iRV += xReport(psR, " ??? |" strNL);
 		return iRV;
 	}
 	#define FMT1 " %s | %#'5d |%#'7d|%#'7d|%#'7d|%#'7d|%#'7d| %3d %3d %3d | %3d %3d %3d|"

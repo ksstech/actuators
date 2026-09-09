@@ -19,7 +19,10 @@ extern "C" {
 
 enum { actBUS_SOC, actBUS_I2C, actBUS_SPI, actBUS_NUM };
 
-enum {actTYPE_DIG, actTYPE_PWM, actTYPE_ANA, actTYPE_NUM };
+// actTYPE_FUN: an actuator with no pin, filling the last value of the 2-bit ioType field. Scheduled
+// like any other (Rpt / tON / tOFF / sequences); ON/OFF edges go to a module registered via
+// xActuatorRegisterFUN(), which switches on ioNum. Guarded by HAL_XFO throughout.
+enum {actTYPE_DIG, actTYPE_PWM, actTYPE_ANA, actTYPE_FUN, actTYPE_NUM };
 
 enum {													// interface SOC/I2C/SPI & type DIG/PWM/ANA
 	actSOC_DIG,											// All (DIGital + PWM + ANAlog) SoC integrated actuators
@@ -106,6 +109,28 @@ void vTaskActuatorInit(void);
  */
 typedef void (*act_done_cb_t)(u8_t eCh);
 void vActuatorSetDoneHook(act_done_cb_t pfDone);
+
+/**
+ * @brief	Handlers for actTYPE_FUN channels. One set serves all of them, told apart by ioNum;
+ *			the module owns any private state (act_info_t size is asserted).
+ * @note	SetLevel() runs on the actuator task every actuateTASK_PERIOD with the channel Busy.
+ *			MUST return immediately - no I2C, no blocking, no logging - or it stalls every actuator.
+ * @note	Level 1 = entering actSTAGE_ON, 0 = actSTAGE_OFF. Start/Stop also drive 0, so treat 0
+ *			as "clear", not an event.
+ */
+typedef struct {
+	int  (*Config)(u8_t ioNum);						// optional: erSUCCESS accepts the channel
+	void (*SetLevel)(u8_t ioNum, u8_t Level);		// required
+	int  (*GetLevel)(u8_t ioNum);					// optional: reporting only
+} act_fun_ops_t;
+
+/**
+ * @brief	Register the handlers for actTYPE_FUN channels.
+ * @note	MUST precede vTaskActuatorInit(): vActuatorConfig() runs inside the task and rejects a
+ *			FUN channel with no handler, leaving ConfigOK clear so the task skips it.
+ * @return	erSUCCESS, or erFAILURE once the actuator task has started.
+ */
+int xActuatorRegisterFUN(const act_fun_ops_t * psOps);
 
 /**
  * @brief
