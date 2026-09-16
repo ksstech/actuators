@@ -3,6 +3,7 @@
 #pragma once
 
 #include "struct_union.h"
+#include "alerts_id.h"							// alertTYPE_ACT_* / alertLEVEL_*, canonical values
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,6 +110,13 @@ void vTaskActuatorInit(void);
  */
 typedef void (*act_done_cb_t)(u8_t eCh);
 void vActuatorSetDoneHook(act_done_cb_t pfDone);
+
+#if (HAL_XFO > 0)
+// Stage/done alert hook (jig timing): xActuatorAlert calls it on the actuate task with the channel,
+// alert type (alertTYPE_ACT_*) and the just-completed stage. Return immediately - no blocking.
+typedef void (*act_alert_cb_t)(u8_t ch, u8_t type, u8_t stage);
+void vActuatorSetAlertHook(act_alert_cb_t pfAlert);
+#endif
 
 /**
  * @brief	Handlers for actTYPE_FUN channels. One set serves all of them, told apart by ioNum;

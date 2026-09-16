@@ -6,7 +6,7 @@
 #include "actuators.h"
 #include "builddefs.h"
 #if (appUSE_ENDPOINTS > 0)
-	#include "endpoints.h"					// no symbol used here - kept for legacy include chains
+	#include "endpoints.h"					// alert_t/epi_t + xEpGenerateAlert for the AEP path
 #endif
 #include "hal_device_includes.h"
 #include "hal_gpio.h"
@@ -244,6 +244,7 @@ static act_done_cb_t pfActDone = NULL;				// completion hook (vActuatorSetDoneHo
 #if (HAL_XFO > 0)
 static const act_fun_ops_t * psActFunOps = NULL;	// actTYPE_FUN handlers (xActuatorRegisterFUN)
 static bool bActFunLocked = false;					// set once the task exists: too late to register
+static act_alert_cb_t pfActAlert = NULL;			// stage/done alert hook (vActuatorSetAlertHook)
 
 int xActuatorRegisterFUN(const act_fun_ops_t * psOps) {
 	if (bActFunLocked || psOps == NULL || psOps->SetLevel == NULL)
@@ -291,13 +292,12 @@ static void vActuatorBusyCLR(act_info_t	* psAI) {
  * @param	psAI
  * @return
  */
-/* NOT IRAM_ATTR - deliberately. Nothing in this file is reachable with the flash cache disabled:
- * the only entry point is vTaskActuator, registered as a FreeRTOS task at :792, and every function
- * below is called solely from within this file. The annotation used to be on all eight of them,
- * spending 1,758 bytes of a 63 KB IRAM budget to claim a safety property none of them needs.
- * If one is ever called from an ISR, it needs IRAM_ATTR *and* an audit of everything it touches. */
-#if (appUSE_IDENT > 0)						// alert generation is the identity/endpoint (AEP) path
 static int xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
+#if (HAL_XFO > 0)
+	if (pfActAlert)
+		pfActAlert(psAI->ChanNum, Type, psAI->StageNow);
+#endif
+#if (appUSE_IDENT > 0)						// alert generation is the identity/endpoint (AEP) path
 	epi_t	sEI = { 0 };
 	event_t	sEvent = { 0 };
 	alert_t	sAlert = { 0 };
@@ -312,8 +312,10 @@ static int xActuatorAlert(act_info_t * psAI, u8_t Type, u8_t Level) {
 	sAlert.Level = Level;
 	sAlert.pvValue = psAI;
 	return xEpGenerateAlert(&sEI);
-}
+#else
+	return erFAILURE;
 #endif
+}
 
 static int xActuatorCheckChannel(u8_t eCh) {
 	int iRV;
@@ -735,20 +737,16 @@ static void vActuatorAddSequences(u8_t eCh, int Idx, u8_t * paSeq) {
  * @brief	LL-NL
  */
 static void xActuatorNextStage(act_info_t * psAI) {
-#if (appUSE_IDENT > 0)
 	if ((psAI->alertStage == 1) && (psAI->tXXX[psAI->StageNow] > 0))
 		xActuatorAlert(psAI, alertTYPE_ACT_STAGE, alertLEVEL_INFO);
-#endif
 	if (++psAI->StageNow == actSTAGE_NUM)
 		psAI->StageNow = actSTAGE_FI;
 	if (psAI->StageNow == psAI->StageBeg) {				// back at starting stage?
 		if (psAI->Rpt != UINT32_MAX) {					// yes, but running unlimited repeats ?
 			--psAI->Rpt; 								// No, decrement the repeat count
 			if (psAI->Rpt == 0) {						// all repeats done?
-#if (appUSE_IDENT > 0)
 				if (psAI->alertDone)					// yes, check if we should raise alert
 					xActuatorAlert(psAI, alertTYPE_ACT_DONE, alertLEVEL_WARNING);
-#endif
 				if (pfActDone)							// completion hook (esp-hw-test end events)
 					pfActDone(psAI->ChanNum);
 				if (psAI->Seq[0] != 0xFF) {				// another sequence in the queue?
@@ -1000,6 +998,9 @@ void xActuatorToggle(u8_t eCh) {
 int xActuatorRunningCount(void) { return ActuatorsRunning; }
 
 void vActuatorSetDoneHook(act_done_cb_t pfDone) { pfActDone = pfDone; }
+#if (HAL_XFO > 0)
+void vActuatorSetAlertHook(act_alert_cb_t pfAlert) { pfActAlert = pfAlert; }
+#endif
 
 void vActuatorBlock(u8_t eCh) {
 	IF_myASSERT(debugTRACK, eCh < HAL_XXO);
