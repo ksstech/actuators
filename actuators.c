@@ -891,6 +891,14 @@ static void vTaskActuator(void * pvPara) {
 	vTaskDelete(NULL);
 }
 
+// TJ 1-Wire experiment (cmakeESPTESTJIG only): pin off CPU1, the slave ISR's core - matches jigow's
+// own rule. tskNO_AFFINITY everywhere else (DUT, irmacs) - unchanged production behaviour.
+#if (cmakeESPTESTJIG > 0)
+#define actCORE_ID 0
+#else
+#define actCORE_ID tskNO_AFFINITY
+#endif
+
 void vTaskActuatorInit(void) {
 	xRtosSemaphoreInit(&shActMux);						// eager: no first-touch lazy-create race
 	#if	(HAL_XFO > 0)									// vActuatorConfig() runs inside the task: any
@@ -903,7 +911,7 @@ void vTaskActuatorInit(void) {
 		.uxPriority = actuateTASK_PRIORITY,
 		.pxStackBuffer = tsbACT,
 		.pxTaskBuffer = &ttsACT,
-		.xCoreID = tskNO_AFFINITY,
+		.xCoreID = actCORE_ID,
 		.xMask = taskACTUATE_MASK,
 	};
 	xTaskCreateWithMask(&sActuatorParam, NULL);
