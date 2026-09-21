@@ -162,6 +162,17 @@ u8_t xActuatorGetType(u8_t eCh);
 u8_t xActuatorGetNumber(u8_t ioType);
 
 void vActuatorLoad(u8_t eCh, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF);
+
+#if defined(cmakeACT_RANGE) && (cmakeACT_RANGE > 0)
+// Every channel in an inclusive range loaded and started, or stopped, at one instant. The task
+// commits the range at a pass boundary, so all of them move in the same pass - and on an I2C
+// expander, in one write. Both calls return once the commit has happened, bounded by actRANGE_WAIT,
+// so the caller's timestamp is the moment the range went live.
+void vActuatorRangeCommit(void);					// actuator task only, at the top of a pass
+int  xActuatorLoadRange(u8_t chFirst, u8_t chLast, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF);
+int  xActuatorStopRange(u8_t chFirst, u8_t chLast);
+#endif
+
 void vActuatorUpdate(u8_t eCh, int Rpt, int tFI, int tON, int tFO, int tOFF);
 void vActuatorAdjust(u8_t eCh, int Stage, int Adjust);
 

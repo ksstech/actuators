@@ -779,6 +779,100 @@ static void vActuatorUpdateTiming(act_info_t * psAI) {
 	}
 }
 
+// ################### Range operations: load/start or stop a range as one ##########################
+// Additive, compiled only where cmakeACT_RANGE is set (the two testbed projects). irmacs never
+// defines it, so nothing below reaches that image and its object code is unchanged.
+//
+// Why a commit point and not a loop: the pass reads each channel's Rpt without a shared lock, so a
+// range armed from a caller DURING a pass is split - the channels the pass has not reached yet go
+// live one pass earlier than the rest, and since the pass cadence is drift-free that 2 ms error
+// persists for the whole run. So the caller prepares every channel with Rpt withheld and publishes
+// the range; the task commits it at the TOP of a pass. Every channel then starts in the same pass,
+// and on an I2C expander in the same single write.
+
+#if defined(cmakeACT_RANGE) && (cmakeACT_RANGE > 0)
+#define	actRANGE_WAIT		20						// ms a caller waits for the commit (one pass away)
+
+static volatile u32_t sRangeGo;						// prepared, waiting to be started
+static volatile u32_t sRangeStop;					// waiting to be stopped
+static volatile u32_t sRangeRpt;					// repeat count to commit for sRangeGo
+
+/**
+ * @brief	Apply a pending range operation. Runs ON the actuator task, at a pass boundary.
+ */
+void vActuatorRangeCommit(void) {
+	if ((sRangeGo | sRangeStop) == 0)
+		return;
+	u32_t Go, Stop, Rpt;
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+	Go = sRangeGo; Stop = sRangeStop; Rpt = sRangeRpt;
+	sRangeGo = sRangeStop = 0;
+	xRtosSemaphoreGive(&shActMux);
+	for (u8_t eCh = 0; eCh < HAL_XXO; ++eCh) {
+		if (Stop & (1UL << eCh))
+			vActuatorStop(eCh);						// zeroes Rpt, resets the stage, drives the level off
+		else if (Go & (1UL << eCh))
+			sAI[eCh].Rpt = Rpt;						// the only liveness test: this pass picks it up
+	}
+}
+
+/**
+ * @brief		Load and START an inclusive channel range, identical parameters, all at one instant
+ * @param[in]	chFirst, chLast	inclusive, chFirst <= chLast
+ * @param[in]	Rpt, tFI, tON, tFO, tOFF  exactly as vActuatorLoad(), applied to every channel
+ * @return		channels armed, or erFAILURE
+ * @note		Returns once the task has committed, so the caller's timestamp is the start instant.
+ */
+int xActuatorLoadRange(u8_t chFirst, u8_t chLast, u32_t Rpt, u32_t tFI, u32_t tON, u32_t tFO, u32_t tOFF) {
+	if (chFirst > chLast || chLast >= HAL_XXO)
+		return erFAILURE;
+	u32_t Mask = 0;
+	for (u8_t eCh = chFirst; eCh <= chLast; ++eCh) {
+		if (xActuatorCheckChannel(eCh) < erSUCCESS)
+			continue;
+		vActuatorBusySET(&sAI[eCh]);				// the pass skips a busy channel; nothing here is live yet
+		vActuatorStop(eCh);
+		vActuatorSetTiming(eCh, tFI, tON, tFO, tOFF);
+		vActuatorStart(eCh, 0);						// everything except Rpt: still invisible to the pass
+		vActuatorBusyCLR(&sAI[eCh]);
+		Mask |= 1UL << eCh;
+	}
+	if (Mask == 0)
+		return erFAILURE;
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+	sRangeRpt = Rpt ? Rpt : 1;
+	sRangeGo |= Mask;
+	xRtosSemaphoreGive(&shActMux);
+	halEventUpdateRunTasks(taskACTUATE_MASK, 1);	// the task may be parked: wake it for the commit
+	for (int i = 0; i < actRANGE_WAIT && sRangeGo; ++i)
+		vTaskDelay(pdMS_TO_TICKS(1));
+	return __builtin_popcount(Mask);
+}
+
+/**
+ * @brief		STOP an inclusive channel range, all at one instant
+ * @return		channels stopped, or erFAILURE
+ */
+int xActuatorStopRange(u8_t chFirst, u8_t chLast) {
+	if (chFirst > chLast || chLast >= HAL_XXO)
+		return erFAILURE;
+	u32_t Mask = 0;
+	for (u8_t eCh = chFirst; eCh <= chLast; ++eCh)
+		if (xActuatorCheckChannel(eCh) >= erSUCCESS)
+			Mask |= 1UL << eCh;
+	if (Mask == 0)
+		return erFAILURE;
+	xRtosSemaphoreTake(&shActMux, portMAX_DELAY);
+	sRangeStop |= Mask;
+	sRangeGo &= ~Mask;								// a range still waiting to start is cancelled
+	xRtosSemaphoreGive(&shActMux);
+	halEventUpdateRunTasks(taskACTUATE_MASK, 1);
+	for (int i = 0; i < actRANGE_WAIT && sRangeStop; ++i)
+		vTaskDelay(pdMS_TO_TICKS(1));
+	return __builtin_popcount(Mask);
+}
+#endif
+
 // ####################################### Actual task #############################################
 
 static void vTaskActuator(void * pvPara) {
@@ -797,6 +891,9 @@ static void vTaskActuator(void * pvPara) {
 		IF_SYSTIMER_START(debugTIMING, stACT_SX);
 		act_info_t * psAI = &sAI[0];
 		ActuatorsRunning = 0;
+		#if defined(cmakeACT_RANGE) && (cmakeACT_RANGE > 0)
+		vActuatorRangeCommit();							// a whole range goes live (or stops) HERE, between
+		#endif											// passes, so every channel in it moves in this pass
 		for (u8_t eCh = 0; eCh < HAL_XXO;  ++eCh, ++psAI) {
 			if (psAI->Rpt == 0 || psAI->Blocked || psAI->ConfigOK == 0)
 				continue;
