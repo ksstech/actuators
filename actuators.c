@@ -205,18 +205,20 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 
-	#elif (cmakePLTFRM == HW_TESTJIG)			// 4 OPTO-OUT (GDO) drive the DUT OPTO-IN + 2 DAC
+	#elif (cmakePLTFRM == HW_TESTJIG) || (cmakePLTFRM == HW_TJ_N16R8)	// 4 OPTO-OUT (GDO) drive the DUT OPTO-IN (+ 2 DAC on testjig)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),		// OPTO-OUT 1 (GDO0, GPIO13)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),		// OPTO-OUT 2 (GDO1, GPIO27)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),		// OPTO-OUT 3 (GDO2, GPIO12)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 3),		// OPTO-OUT 4 (GDO3, GPIO2)
-	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),		// DAC1 (GAO0, GPIO25)
-	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAC2 (GAO1, GPIO26)
+	#if (HAL_GAO > 0)							// testjig: DAC1/DAC2. tj_n16r8: none - GPIO25/26 carry the DUT link
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 0),		// DAC1 (GAO0, GPIO25)   and 1-Wire ch5, and ActInit[HAL_XXO] has no
+	actMAKE_DEF(actTYPE_ANA,actBUS_SOC, 1),		// DAC2 (GAO1, GPIO26)   room for them (HAL_XXO = GDO + GAO + GFO)
+	#endif
 	#if (HAL_GFO > 0)							// 1-Wire SLAVE presentation, scheduled not timed:
 	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 0),		// the handler (jigows.c) only sets the presence flag
 	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 1),		// the slave ISR reads - us bit timing is untouched.
 	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 2),		// ioNum n = BUT(n+1) = slave ch n, so actuator
-	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 3),		// channel 6+n ('load 6' = ch0).
+	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 3),		// channel HAL_GDO+HAL_GAO+n ('load 6' = ch0 on testjig, 'load 4' on tj_n16r8).
 	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 4),
 	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 5),
 	actMAKE_DEF(actTYPE_FUN,actBUS_SOC, 6),
