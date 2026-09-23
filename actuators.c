@@ -205,7 +205,7 @@ const act_init_t ActInit[HAL_XXO] = {			// Static configuration info
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),
 
-	#elif (cmakePLTFRM == HW_TESTJIG) || (cmakePLTFRM == HW_TJ_N16R8)	// 4 OPTO-OUT (GDO) drive the DUT OPTO-IN (+ 2 DAC on testjig)
+	#elif (cmakePLTFRM == HW_TESTJIG) || (cmakePLTFRM == HW_TJ_N16R8) || (cmakePLTFRM == HW_TJ_S3N16R8)	// 4 OPTO-OUT (GDO) drive the DUT OPTO-IN (+ 2 DAC on testjig)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 0),		// OPTO-OUT 1 (GDO0, GPIO13)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 1),		// OPTO-OUT 2 (GDO1, GPIO27)
 	actMAKE_DEF(actTYPE_DIG,actBUS_SOC, 2),		// OPTO-OUT 3 (GDO2, GPIO12)
